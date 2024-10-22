@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>com.adorsys.webank</groupId>
         <artifactId>obs</artifactId>
@@ -20,18 +21,36 @@
     </properties>
 
     <dependencies>
+        <!-- OBS Service API -->
         <dependency>
             <groupId>com.adorsys.webank</groupId>
             <artifactId>obs-service-api</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- Swagger Annotations -->
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations-jakarta</artifactId>
             <version>2.2.22</version>
             <scope>compile</scope>
         </dependency>
-    </dependencies>
 
+        <!-- Spring Boot Starter for Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>3.1.4</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Spring Boot Starter for Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>3.1.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

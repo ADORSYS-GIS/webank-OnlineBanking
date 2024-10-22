@@ -2,23 +2,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.adorsys.webank</groupId>
-        <artifactId>webank-OnlineBanking</artifactId>
-        <version>0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
-    <artifactId>obs</artifactId>
+    <groupId>com.adorsys.webank</groupId>
+    <artifactId>webank-OnlineBanking</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>obs-rest-api</module>
-        <module>obs-rest-server</module>
-        <module>obs-service-api</module>
-        <module>obs-service-impl</module>
-
+        <module>obs</module>
+        <module>online-banking-app</module>
     </modules>
 
 
