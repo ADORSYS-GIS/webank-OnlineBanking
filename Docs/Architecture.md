@@ -203,3 +203,6 @@ sequenceDiagram
 #### **Key relationships**:
 - Each user is linked to an account in the DAS.
 - The OTP is temporarily stored in the PRS and removed after verification.
+
+### **9. Conclusion**
+This architecture document outlines the key components of the OBS backend, their interactions, and the necessary security and scalability considerations. By following this architecture, the Webank backend services will be well-structured.
