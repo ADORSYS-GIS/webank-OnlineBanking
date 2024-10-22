@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.adorsys.webank</groupId>
 	<artifactId>online-banking-app</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.1-SNAPSHOT</version>
 	<name>online-banking-app</name>
 	<description>online banking service</description>
 	<url/>
@@ -32,29 +32,29 @@
 	</properties>
 	<dependencies>
 
-<!--		<dependency>-->
-<!--			<groupId>com.adorsys.webank</groupId>-->
-<!--			<artifactId>obs-rest-api</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.adorsys.webank</groupId>
+			<artifactId>obs-rest-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.adorsys.webank</groupId>-->
-<!--			<artifactId>obs-rest-server</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.adorsys.webank</groupId>
+			<artifactId>obs-rest-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.adorsys.webank</groupId>-->
-<!--			<artifactId>obs-service-api</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.adorsys.webank</groupId>
+			<artifactId>obs-service-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.adorsys.webank</groupId>-->
-<!--			<artifactId>obs-service-impl</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.adorsys.webank</groupId>
+			<artifactId>obs-service-impl</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
