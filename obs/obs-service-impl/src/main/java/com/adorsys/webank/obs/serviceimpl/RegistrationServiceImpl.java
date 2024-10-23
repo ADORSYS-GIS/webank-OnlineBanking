@@ -5,15 +5,16 @@
 
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.service.OBSServiceApi;
+import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OBSServiceImpl implements OBSServiceApi {
+public class RegistrationServiceImpl implements RegistrationServiceApi {
 
     @Override
     public String registerAccount(String phoneNumber, String publicKey) {
-        // For now, just simulate forwarding the request
+        // For now, we just return a successful account creation,
+        //Have to implement the logic to foward the request to the module and get back a respond
         return "Successfully registered account for phone number: " + phoneNumber;
     }
 }

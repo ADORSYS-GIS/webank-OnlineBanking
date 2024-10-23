@@ -5,6 +5,6 @@
 
 package com.adorsys.webank.obs.service;
 
-public interface OBSServiceApi {
+public interface RegistrationServiceApi {
     String registerAccount(String phoneNumber, String publicKey);
 }

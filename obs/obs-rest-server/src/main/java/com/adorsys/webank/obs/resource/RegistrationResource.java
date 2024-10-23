@@ -5,26 +5,25 @@
 
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.service.OBSServiceApi;
+import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class OBSRestServer implements RegistrationApi {
+public class RegistrationResource implements RegistrationResourceApi {
 
-    private final OBSServiceApi obsService;
+    private final RegistrationServiceApi RegistrationService;
 
     @Autowired
-    public OBSRestServer(OBSServiceApi obsService) {
-        this.obsService = obsService;
+    public RegistrationResource(RegistrationServiceApi RegistrationService) {
+        this.RegistrationService = RegistrationService;
     }
 
     @Override
     public ResponseEntity<String> registerAccount(String phoneNumber, String publicKey) {
-        // Call the OBSServiceApi to handle the registration logic
-        // For now, let's just simulate a successful registration response
-        String response = obsService.registerAccount(phoneNumber, publicKey);
+        // Call the RegistrationServiceApi to handle the registration logic
+        String response = RegistrationService.registerAccount(phoneNumber, publicKey);
 
         return ResponseEntity.ok(response);
     }
