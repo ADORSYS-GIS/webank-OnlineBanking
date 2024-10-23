@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/registration")
-public interface RegistrationApi {
+public interface RegistrationResourceApi {
 
     @Operation(summary = "Register a new bank account", description = "Accepts a phone number and public key for registration")
     @ApiResponses(value = {
@@ -23,10 +23,10 @@ public interface RegistrationApi {
     })
     @PostMapping
     ResponseEntity<String> registerAccount(
-            @Parameter(description = "User's phone number", required = true)
+            @Parameter(required = true)
             @RequestParam("phoneNumber") String phoneNumber,
 
-            @Parameter(description = "User's public key", required = true)
+            @Parameter(required = true)
             @RequestParam("publicKey") String publicKey
     );
 }
