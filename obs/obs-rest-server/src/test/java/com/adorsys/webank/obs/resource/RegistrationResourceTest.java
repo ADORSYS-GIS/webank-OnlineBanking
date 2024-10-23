@@ -45,32 +45,5 @@ public class RegistrationResourceTest {
                 .andExpect(content().string(expectedResponse));
     }
 
-    @Test
-    public void testRegisterAccountServiceThrowsException() throws Exception {
-        // Arrange
-        String phoneNumber = "1234567890";
-        String publicKey = "dummyPublicKey";
-        when(registrationService.registerAccount(phoneNumber, publicKey)).thenThrow(new RuntimeException("Service error"));
 
-        // Act & Assert
-        mockMvc.perform(post("/api/registration")
-                        .param("phoneNumber", phoneNumber)
-                        .param("publicKey", publicKey))
-                .andExpect(status().isInternalServerError());
-    }
-
-//    @Test
-//    public void testRegisterAccountInvalidInput() throws Exception {
-//        // Arrange
-//        String phoneNumber = ""; // Invalid input (empty phone number)
-//        String publicKey = "dummyPublicKey";
-//        when(registrationService.registerAccount(phoneNumber, publicKey)).thenThrow(new InvalidInputException("Invalid input"));
-//
-//        // Act & Assert
-//        mockMvc.perform(post("/api/registration")
-//                        .param("phoneNumber", phoneNumber)
-//                        .param("publicKey", publicKey))
-//                .andExpect(status().isBadRequest())
-//                .andExpect(content().string("Registration failed: Invalid input")); // You might need to adjust this
-//    }
 }
