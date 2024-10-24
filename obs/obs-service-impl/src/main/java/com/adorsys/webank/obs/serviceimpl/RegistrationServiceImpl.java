@@ -1,10 +1,6 @@
-/*
- * Copyright (c) 2018-2024 adorsys GmbH and Co. KG
- * All rights are reserved.
- */
-
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +8,12 @@ import org.springframework.stereotype.Service;
 public class RegistrationServiceImpl implements RegistrationServiceApi {
 
     @Override
-    public String registerAccount(String phoneNumber, String publicKey) {
-        // For now, we just return a successful account creation,
-        //Have to implement the logic to foward the request to the module and get back a respond
-        return "Successfully registered account for phone number: " + phoneNumber;
+    public String registerAccount(RegistrationRequest registrationRequest) {
+        int phoneNumber = registrationRequest.getPhoneNumber();
+        String publicKey = registrationRequest.getPublicKey();
+
+        // Add logic for registering the account with phoneNumber and publicKey
+
+        return "Registration successful for phone number: " + phoneNumber; // Return message including the phone number
     }
 }

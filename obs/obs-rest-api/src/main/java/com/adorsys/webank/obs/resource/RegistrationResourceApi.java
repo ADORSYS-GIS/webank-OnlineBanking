@@ -5,12 +5,14 @@
 
 package com.adorsys.webank.obs.resource;
 
+import com.adorsys.webank.obs.dto.RegistrationRequest;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+
 
 @RestController
 @RequestMapping("/api/registration")
@@ -23,10 +25,6 @@ public interface RegistrationResourceApi {
     })
     @PostMapping
     ResponseEntity<String> registerAccount(
-            @Parameter(required = true)
-            @RequestParam("phoneNumber") String phoneNumber,
-
-            @Parameter(required = true)
-            @RequestParam("publicKey") String publicKey
+             @RequestBody RegistrationRequest registrationRequest
     );
 }

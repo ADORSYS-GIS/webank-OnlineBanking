@@ -1,10 +1,7 @@
-/*
- * Copyright (c) 2018-2024 adorsys GmbH and Co. KG
- * All rights are reserved.
- */
-
 package com.adorsys.webank.obs.service;
 
+import com.adorsys.webank.obs.dto.RegistrationRequest;
+
 public interface RegistrationServiceApi {
-    String registerAccount(String phoneNumber, String publicKey);
+    String registerAccount(RegistrationRequest registrationRequest);
 }
