@@ -1,5 +1,6 @@
 package com.adorsys.webank.obs.resource;
 
+import com.adorsys.webank.obs.dto.OtpRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

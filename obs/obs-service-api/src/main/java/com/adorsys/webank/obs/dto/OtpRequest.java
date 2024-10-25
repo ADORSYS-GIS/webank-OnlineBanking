@@ -1,4 +1,4 @@
-package com.adorsys.webank.obs.resource;
+package com.adorsys.webank.obs.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

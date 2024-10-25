@@ -1,7 +1,7 @@
 package com.adorsys.webank.obs.resource;
 
+import com.adorsys.webank.obs.dto.OtpRequest;
 import com.adorsys.webank.obs.service.OtpServiceApi;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +22,7 @@ public class OtpRestServer implements OtpRestApi {
     }
 
     @Override
-    public ResponseEntity<?> receiveOtp(@RequestBody @NotNull OtpRequest otpRequest) {
+    public ResponseEntity<?> receiveOtp(@RequestBody OtpRequest otpRequest) {
         try {
             // Delegate OTP validation and processing to the service
             String responseMessage = otpServiceApi.receiveOtp(otpRequest.getOtp());
