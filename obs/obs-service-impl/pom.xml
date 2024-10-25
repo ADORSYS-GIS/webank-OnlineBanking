@@ -52,12 +52,7 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.adorsys.webank</groupId>
-            <artifactId>obs-rest-api</artifactId>
-            <version>0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
+
     </dependencies>
 
 </project>
