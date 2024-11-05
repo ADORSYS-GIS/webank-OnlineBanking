@@ -22,6 +22,8 @@
         <dependency.locations.enabled>false</dependency.locations.enabled>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <webank-bank-account.version>0.1-SNAPSHOT</webank-bank-account.version>
+        <ledgers.version>6.1-SNAPSHOT</ledgers.version>
 
         <!-- Maven plugins-->
         <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
@@ -140,7 +142,30 @@
 
     <dependencyManagement>
         <dependencies>
+<!-- webank  bank account dependencies -->
+            <dependency>
+                <groupId>de.adorsys.ledgers</groupId>
+                <artifactId>ledgers-bank-account-service-api</artifactId>
+                <version>${webank-bank-account.version}</version>
+            </dependency>
 
+
+
+            <dependency>
+                <groupId>de.adorsys.ledgers</groupId>
+                <artifactId>ledgers-bank-account-service-impl</artifactId>
+                <version>${webank-bank-account.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- ledgers dependencies -->
+
+            <dependency>
+                <groupId>de.adorsys.ledgers</groupId>
+                <artifactId>ledgers-postings-service-impl</artifactId>
+                <version>${ledgers.version}</version>
+                <scope>test</scope>
+            </dependency>
             <!-- spring dependencies -->
 
             <dependency>

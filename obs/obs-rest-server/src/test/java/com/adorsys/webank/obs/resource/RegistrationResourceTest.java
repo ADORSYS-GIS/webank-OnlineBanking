@@ -30,7 +30,7 @@ public class RegistrationResourceTest {
     void registerAccount_ShouldReturnSuccessfulResponse() {
         // Arrange
         RegistrationRequest registrationRequest = new RegistrationRequest();
-        registrationRequest.setPhoneNumber(1234567890);
+        registrationRequest.setPhoneNumber("1234567890");
         registrationRequest.setPublicKey("testPublicKey");
 
         String expectedResponse = "Registration successful";

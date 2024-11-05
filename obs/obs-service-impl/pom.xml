@@ -54,16 +54,33 @@
 
         <dependency>
             <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>ledgers-bank-account-rest-api</artifactId>
-            <version>6.1-SNAPSHOT</version>
+            <artifactId>ledgers-bank-account-service-api</artifactId>
+        </dependency>
+<!-- test depedencies -->
+
+        <dependency>
+            <groupId>de.adorsys.ledgers</groupId>
+            <artifactId>ledgers-bank-account-service-impl</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>ledgers-bank-account-rest-server</artifactId>
-            <version>6.1-SNAPSHOT</version>
+            <artifactId>ledgers-postings-service-impl</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.3.5</version>
+            </plugin>
+        </plugins>
+    </build>
+
 
 </project>

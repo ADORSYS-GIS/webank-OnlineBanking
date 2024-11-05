@@ -2,18 +2,20 @@ package com.adorsys.webank.obs.dto;
 
 public class RegistrationRequest {
 
-    private int phoneNumber;
+
     private String publicKey;
 
-    // Getters and Setters
+    private String phoneNumber;
 
-    public int getPhoneNumber() {
+    // Getters and Setters
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(int phoneNumber) {
+    public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
+
 
     public String getPublicKey() {
         return publicKey;
