@@ -1,4 +1,4 @@
-name: Java CI/CD Pipeline - Build and Test Only
+name: Java CI/CD Pipeline with Maven
 
 on:
   push:
