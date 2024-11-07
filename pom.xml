@@ -35,6 +35,7 @@
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <maven-pmd-plugin.version>3.21.0</maven-pmd-plugin.version>
+        <owasp.dependency.check.version>11.1.0</owasp.dependency.check.version>
 
         <!-- Spring-related versions -->
         <spring-boot-dependencies.version>3.2.7</spring-boot-dependencies.version>
@@ -374,4 +375,25 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${owasp.dependency.check.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>update-only</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failBuildOnCVSS></failBuildOnCVSS>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
 </project>
