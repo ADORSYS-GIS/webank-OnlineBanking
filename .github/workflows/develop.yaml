@@ -50,6 +50,9 @@ jobs:
            # Step 3: Run OWASP Dependency-Check
           - name: Run OWASP Dependency-Check
             uses: dependency-check/Dependency-Check_Action@main
+            env:
+           # actions/setup-java@v1 changes JAVA_HOME so it needs to be reset to match the depcheck image
+              JAVA_HOME: /opt/jdk
             with:
              project: 'webank-onlinebanking'
              path: '.'
