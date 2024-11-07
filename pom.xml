@@ -136,6 +136,20 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>github-ledgers</id>
+            <url>https://maven.pkg.github.com/ADORSYS-GIS/ledgers</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>github-webank</id>
+            <url>https://maven.pkg.github.com/ADORSYS-GIS/webbank-BankAccount</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencyManagement>
