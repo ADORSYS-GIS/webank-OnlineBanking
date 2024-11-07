@@ -15,7 +15,7 @@
 
     <modules>
         <module>obs-rest-api</module>
-        <module>obs-rest-server</module>
+        <module>obs-rest</module>
         <module>obs-service-api</module>
         <module>obs-service-impl</module>
     </modules>

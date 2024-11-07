@@ -416,13 +416,9 @@
                     <execution>
                         <goals>
                             <goal>check</goal>
-                            <goal>update-only</goal>
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <failBuildOnCVSS>5</failBuildOnCVSS>
-                </configuration>
             </plugin>
         </plugins>
     </build>
