@@ -1,8 +1,9 @@
-package com.adorsys.webank.obs.serviceimpl;
+package com.adorsys.webank.obs.resource;
 
-import de.adorsys.ledgers.bank.server.utils.client.ExchangeRateClient;
+import com.adorsys.webank.obs.EnableObsServiceimpl;
 import de.adorsys.ledgers.bank.api.service.BankAccountInitService;
 import de.adorsys.ledgers.bank.api.service.EnableBankAccountService;
+import de.adorsys.ledgers.bank.server.utils.client.ExchangeRateClient;
 import de.adorsys.ledgers.postings.impl.EnablePostingService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.context.ApplicationListener;
 
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @EnableBankAccountService
+@EnableObsServiceimpl
 @EnablePostingService
 @EnableFeignClients(basePackageClasses = ExchangeRateClient.class)
 public class TestOnlineBankingApplication implements ApplicationListener<ApplicationReadyEvent> {
