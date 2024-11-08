@@ -419,6 +419,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <failOnCVSS>5</failOnCVSS>
+                </configuration>
             </plugin>
         </plugins>
     </build>
