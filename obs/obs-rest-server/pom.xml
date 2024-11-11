@@ -24,8 +24,14 @@
     </properties>
 
     <dependencies>
-
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -40,20 +46,32 @@
             <artifactId>obs-rest-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-        </dependency>
 
-        <!-- test dependencies -->
-        <dependency>
-            <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>ledgers-bank-account-service-impl</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>de.adorsys.ledgers</groupId>
             <artifactId>ledgers-postings-service-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.adorsys.ledgers</groupId>
+            <artifactId>ledgers-bank-account-service-impl</artifactId>
+        </dependency>
+
+        <!-- Test dependency -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -63,28 +81,6 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>webank-server-utils</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-
 
 
         <!-- Other existing dependencies -->
