@@ -36,7 +36,7 @@ jobs:
           echo "<settings>
                   <servers>
                     <server>
-                      <id>github-ledgers</id>
+                      <id>github-webank</id>
                       <username>${{ github.actor }}</username>
                       <password>${{ secrets.WEBANK_ACCESS_TOKEN }}</password>
                     </server>
