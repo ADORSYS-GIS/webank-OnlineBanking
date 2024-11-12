@@ -8,7 +8,7 @@ package com.adorsys.webank.obs.resource.mockbank;
 @org.springframework.context.annotation.Configuration
 public class Config {
     @org.springframework.context.annotation.Bean
-    public de.adorsys.ledgers.bank.api.service.domain.ASPSPConfigSource configSource() {
+    public MockBankConfigSource configSource() {
         return new MockBankConfigSource();
     }
 

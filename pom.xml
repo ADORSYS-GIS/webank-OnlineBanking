@@ -151,7 +151,7 @@
         <dependencies>
 <!-- webank  bank account dependencies -->
             <dependency>
-                <groupId>de.adorsys.ledgers</groupId>
+                <groupId>de.adorsys.webank</groupId>
                 <artifactId>ledgers-bank-account-service-api</artifactId>
                 <version>${webank-bank-account.version}</version>
             </dependency>
@@ -159,7 +159,7 @@
 
 
             <dependency>
-                <groupId>de.adorsys.ledgers</groupId>
+                <groupId>de.adorsys.webank</groupId>
                 <artifactId>ledgers-bank-account-service-impl</artifactId>
                 <version>${webank-bank-account.version}</version>
                 <scope>test</scope>

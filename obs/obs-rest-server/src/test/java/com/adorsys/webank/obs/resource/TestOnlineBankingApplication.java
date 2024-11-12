@@ -1,10 +1,12 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.EnableObsServiceimpl;
-import de.adorsys.ledgers.bank.api.service.BankAccountInitService;
-import de.adorsys.ledgers.bank.api.service.EnableBankAccountService;
-import de.adorsys.ledgers.bank.server.utils.client.ExchangeRateClient;
+
+
 import de.adorsys.ledgers.postings.impl.EnablePostingService;
+import de.adorsys.webank.bank.api.service.BankAccountInitService;
+import de.adorsys.webank.bank.api.service.EnableBankAccountService;
+import de.adorsys.webank.bank.server.utils.client.ExchangeRateClient;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;

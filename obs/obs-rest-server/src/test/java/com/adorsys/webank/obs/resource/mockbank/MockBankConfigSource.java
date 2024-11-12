@@ -7,9 +7,10 @@ package com.adorsys.webank.obs.resource.mockbank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import de.adorsys.ledgers.bank.api.service.domain.ASPSPConfigData;
-import de.adorsys.ledgers.bank.api.service.domain.ASPSPConfigSource;
-import de.adorsys.ledgers.bank.api.service.domain.LedgerAccountModel;
+import de.adorsys.webank.bank.api.service.domain.ASPSPConfigData;
+import de.adorsys.webank.bank.api.service.domain.ASPSPConfigSource;
+import de.adorsys.webank.bank.api.service.domain.LedgerAccountModel;
+
 
 //@Component
 public class MockBankConfigSource implements ASPSPConfigSource {

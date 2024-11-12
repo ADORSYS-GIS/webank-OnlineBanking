@@ -47,14 +47,7 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>ledgers-postings-service-impl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>ledgers-bank-account-service-impl</artifactId>
-        </dependency>
+
 
         <!-- Test dependency -->
         <dependency>
@@ -81,7 +74,16 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>de.adorsys.ledgers</groupId>
+            <artifactId>ledgers-postings-service-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.adorsys.webank</groupId>
+            <artifactId>webank-bank-account-service-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Other existing dependencies -->
     </dependencies>
