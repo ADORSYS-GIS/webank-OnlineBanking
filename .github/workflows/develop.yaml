@@ -43,6 +43,7 @@ jobs:
                   </servers>
                 </settings>" > ~/.m2/settings.xml
 
+
       - name: Build with webank Online banking
         run: mvn clean install -s ~/.m2/settings.xml -DskipTests -DskipITs -Dmaven.javadoc.skip=true
 
