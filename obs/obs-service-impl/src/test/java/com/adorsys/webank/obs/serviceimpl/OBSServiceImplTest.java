@@ -1,9 +1,10 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.RegistrationRequest;
-import com.adorsys.webank.obs.serviceimpl.OBSServiceImpl;
-import de.adorsys.ledgers.bank.api.domain.BankAccountBO;
-import de.adorsys.ledgers.bank.api.service.BankAccountService;
+
+
+import de.adorsys.webank.bank.api.domain.BankAccountBO;
+import de.adorsys.webank.bank.api.service.BankAccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

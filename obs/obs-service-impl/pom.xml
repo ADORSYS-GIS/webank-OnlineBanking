@@ -35,17 +35,31 @@
         </dependency>
 
 
+<!--        <dependency>-->
+<!--            <groupId>de.adorsys.ledgers</groupId>-->
+<!--            <artifactId>ledgers-bank-account-service-api</artifactId>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>ledgers-bank-account-service-api</artifactId>
+            <groupId>de.adorsys.webank</groupId>
+            <artifactId>webank-bank-account-service-api</artifactId>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
 <!-- test depedencies -->
 
+<!--        <dependency>-->
+<!--            <groupId>de.adorsys.ledgers</groupId>-->
+<!--            <artifactId>ledgers-bank-account-service-impl</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>de.adorsys.ledgers</groupId>
-            <artifactId>ledgers-bank-account-service-impl</artifactId>
+            <groupId>de.adorsys.webank</groupId>
+            <artifactId>webank-bank-account-service-impl</artifactId>
+            <version>0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -69,9 +83,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>de.adorsys.ledgers</groupId>
+            <groupId>de.adorsys.webank</groupId>
             <artifactId>webank-server-utils</artifactId>
-            <version>${project.version}</version>
+            <version>0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

@@ -2,10 +2,11 @@ package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
-import de.adorsys.ledgers.bank.api.domain.AccountTypeBO;
-import de.adorsys.ledgers.bank.api.domain.AccountUsageBO;
-import de.adorsys.ledgers.bank.api.domain.BankAccountBO;
-import de.adorsys.ledgers.bank.api.service.BankAccountService;
+
+import de.adorsys.webank.bank.api.domain.AccountTypeBO;
+import de.adorsys.webank.bank.api.domain.AccountUsageBO;
+import de.adorsys.webank.bank.api.domain.BankAccountBO;
+import de.adorsys.webank.bank.api.service.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
