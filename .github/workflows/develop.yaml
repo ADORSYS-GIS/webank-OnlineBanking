@@ -36,17 +36,17 @@ jobs:
           echo "<settings>
                   <servers>
                     <server>
-                      <id>github-ledgers</id>
+                      <id>github-webank</id>
                       <username>${{ github.actor }}</username>
-                      <password>${{ secrets.WEBANK_ONLINE_TOKEN }}</password>
+                      <password>${{ secrets.WEBANK_ACCESS_TOKEN }}</password>
                     </server>
                   </servers>
                 </settings>" > ~/.m2/settings.xml
 
+
       - name: Build with webank Online banking
         run: mvn clean install -s ~/.m2/settings.xml -DskipTests -DskipITs -Dmaven.javadoc.skip=true
 
-  # 2. Test Stage
   test:
     runs-on: ubuntu-latest
     needs: build
@@ -59,9 +59,25 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-      - name: Run Unit Tests
-        run: mvn test
+      - name: Set up Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          echo "<settings>
+                  <servers>
+                    <server>
+                      <id>github-webank</id>
+                      <username>${{ github.actor }}</username>
+                      <password>${{ secrets.WEBANK_ACCESS_TOKEN }}</password>
+                    </server>
+                  </servers>
+                </settings>" > ~/.m2/settings.xml
 
-      - name: Run Integration Tests
-        run: mvn verify
+      - name: Run Unit and Integration Tests
+        run: mvn verify -s ~/.m2/settings.xml -Dmaven.javadoc.skip=true
