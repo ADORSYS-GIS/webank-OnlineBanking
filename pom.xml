@@ -22,6 +22,8 @@
         <dependency.locations.enabled>false</dependency.locations.enabled>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <webank-bank-account.version>0.1-SNAPSHOT</webank-bank-account.version>
+        <ledgers.version>6.1-SNAPSHOT</ledgers.version>
 
         <!-- Maven plugins-->
         <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
@@ -35,9 +37,10 @@
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <maven-pmd-plugin.version>3.21.0</maven-pmd-plugin.version>
+        <owasp.dependency.check.version>11.1.0</owasp.dependency.check.version>
 
         <!-- Spring-related versions -->
-        <spring-boot-dependencies.version>3.2.7</spring-boot-dependencies.version>
+        <spring-boot-dependencies.version>3.3.5</spring-boot-dependencies.version>
         <spring-cloud-starter-openfeign.version>4.1.0</spring-cloud-starter-openfeign.version>
         <spring-security.version>6.1.9</spring-security.version>
         <spring-plugin.version>3.0.0</spring-plugin.version>
@@ -46,7 +49,8 @@
         <!-- Other versions -->
         <springdoc-openapi-ui.version>2.3.0</springdoc-openapi-ui.version>
         <commons-collections4.version>4.3</commons-collections4.version>
-        <commons-io.version>2.8.0</commons-io.version>
+        <commons-io.version>2.17.0</commons-io.version>
+
         <jetbrains.annotations.version>15.0</jetbrains.annotations.version>
         <dbunit.version>2.6.0</dbunit.version>
         <keycloak.version>24.0.5</keycloak.version>
@@ -136,11 +140,41 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>github-webank</id>
+            <url>https://maven.pkg.github.com/ADORSYS-GIS/webank-BankAccount</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencyManagement>
         <dependencies>
+<!-- webank  bank account dependencies -->
+            <dependency>
+                <groupId>de.adorsys.webank</groupId>
+                <artifactId>ledgers-bank-account-service-api</artifactId>
+                <version>${webank-bank-account.version}</version>
+            </dependency>
 
+
+
+            <dependency>
+                <groupId>de.adorsys.webank</groupId>
+                <artifactId>ledgers-bank-account-service-impl</artifactId>
+                <version>${webank-bank-account.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- ledgers dependencies -->
+
+            <dependency>
+                <groupId>de.adorsys.ledgers</groupId>
+                <artifactId>ledgers-postings-service-impl</artifactId>
+                <version>${ledgers.version}</version>
+                <scope>test</scope>
+            </dependency>
             <!-- spring dependencies -->
 
             <dependency>
@@ -215,13 +249,13 @@
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>2.1.0</version>
+                <version>2.6.0</version>
             </dependency>
 
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations-jakarta</artifactId>
-                <version>2.2.22</version>
+                <version>2.2.25</version>
                 <scope>compile</scope>
             </dependency>
 
@@ -371,7 +405,43 @@
                 <scope>test</scope>
             </dependency>
 
+             <!-- transitive dependencies -->
+
+              <!-- Bouncy Castle -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.79</version> 
+        </dependency>
+
+        <!-- XMLUnit -->
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-core</artifactId>
+            <version>2.10.0</version> 
+        </dependency>
+
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${owasp.dependency.check.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failOnCVSS>5</failOnCVSS>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
 </project>

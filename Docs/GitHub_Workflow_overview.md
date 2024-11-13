@@ -11,6 +11,7 @@ The workflow is triggered by the following events:
 * Push events: Direct commits to the `main` branch.
 * Pull requests: Pull requests targeting the `main` branch.
 
+
 ### Workflow Jobs
 
 **1. Build Stage**
