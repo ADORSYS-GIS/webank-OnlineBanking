@@ -34,6 +34,7 @@ Steps:
 * Run Unit Tests: Executes `mvn test` to run unit tests.
 * Run Integration Tests: Executes `mvn verify` to run integration tests.
 
+
 **3. Code Quality Check with SonarQube**
 
 Depends on: Successful completion of the Build stage.
