@@ -63,6 +63,7 @@ jobs:
         run: mvn sonar:sonar -Dsonar.organization=your_org_key \
           -Dsonar.host.url=https://your_sonarqube_server_url \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          
 
   # 4. Deployment Stage
   # deploy:
