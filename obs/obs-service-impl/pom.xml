@@ -34,10 +34,22 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- other dependencies -->
+
+
+
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
+            <groupId>de.adorsys.webank</groupId>
+            <artifactId>webank-bank-account-service-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+<!-- test depedencies -->
+
+
+        <dependency>
+            <groupId>de.adorsys.webank</groupId>
+            <artifactId>webank-bank-account-service-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -51,7 +63,34 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.adorsys.webank</groupId>
+            <artifactId>webank-server-utils</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.3.5</version>
+            </plugin>
+        </plugins>
+    </build>
+
 
 </project>
