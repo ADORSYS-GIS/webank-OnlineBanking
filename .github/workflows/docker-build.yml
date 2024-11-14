@@ -1,0 +1,32 @@
+name: Build and Push Docker Image
+on:
+  # Trigger the workflow only when a pull request is merged into main
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+jobs:
+  build:
+    # Run this job only if the pull request is actually merged
+    if: github.event.pull_request.merged == true
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t ghcr.io/adorsys-gis/webank-online-banking:latest .
+
+      - name: Push Docker image to GHCR
+        run: |
+          docker push ghcr.io/adorsys-gis/webank-online-banking:latest
