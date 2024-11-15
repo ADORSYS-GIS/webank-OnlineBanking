@@ -23,7 +23,6 @@ jobs:
           architecture: x64
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: 'sub-project/pom.xml'
 
       - name: Set up Maven settings.xml
         run: |
@@ -56,7 +55,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: 'sub-project/pom.xml'
 
       - name: Set up Maven settings.xml
         run: |
@@ -90,7 +88,6 @@ jobs:
           architecture: x64
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: 'sub-project/pom.xml'
 
 
       - name: build project before check
@@ -115,8 +112,6 @@ jobs:
             with:
              java-version: '17'
              distribution: 'temurin'
-             cache: 'maven'
-             cache-dependency-path: 'sub-project/pom.xml'
 
            # Step 3: Run OWASP Dependency-Check
           - name: Run OWASP Dependency-Check
