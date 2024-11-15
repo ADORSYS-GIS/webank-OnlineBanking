@@ -64,7 +64,7 @@ jobs:
           -Dsonar.host.url=https://your_sonarqube_server_url \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
           
-  # 4. Deployment Stage
+  # 4. Deployment Stage.
   # deploy:
   #   runs-on: ubuntu-latest
   #   needs: test
