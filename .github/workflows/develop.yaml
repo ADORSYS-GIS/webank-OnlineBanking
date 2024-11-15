@@ -22,13 +22,8 @@ jobs:
           java-version: 17
           architecture: x64
           distribution: 'temurin'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          cache: 'maven'
+          cache-dependency-path: 'sub-project/pom.xml'
 
       - name: Set up Maven settings.xml
         run: |
@@ -60,12 +55,8 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+          cache: 'maven'
+          cache-dependency-path: 'sub-project/pom.xml'
 
       - name: Set up Maven settings.xml
         run: |
@@ -98,6 +89,8 @@ jobs:
             with:
              java-version: '17'
              distribution: 'temurin'
+             cache: 'maven'
+             cache-dependency-path: 'sub-project/pom.xml'
 
            # Step 3: Run OWASP Dependency-Check
           - name: Run OWASP Dependency-Check
