@@ -7,9 +7,11 @@
 4. [Building the Docker Image](#4-building-the-docker-image)
 5. [Authenticating with GHCR](#5-authenticating-with-ghcr)
 6. [Pushing the Image to GHCR](#6-pushing-the-image-to-ghcr)
-7. [Setting Up GitHub Actions Workflow](#7-setting-up-github-actions-workflow)
-8. [Troubleshooting](#8-troubleshooting-docker-and-ghcr-deployment)
-9. [Conclusion](#9-conclusion)
+7. [Making Image Public](#7-making-the-image-public)
+8. [Setting Up GitHub Actions Workflow](#8-setting-up-github-actions-workflow)
+9. [Troubleshooting](#9-troubleshooting-docker-and-ghcr-deployment)
+10. [Conclusion](#10-conclusion)
+
 ## 1. Introduction
 ### What is a Github Container Registry (GHCR)
 GitHub Container Registry stores container images within your organization or personal account, and allows you to associate an image with a repository. It currently supports both the Docker Image Manifest V2, Schema 2 and Open Container Initiative (OCI) specifications.
@@ -37,7 +39,7 @@ FROM openjdk:17-jdk-slim
 
 WORKDIR /webank-OnlineBanking
 
-# py the JAR file from the online-banking-app module
+# Copy the JAR file from the online-banking-app module
 COPY ./online-banking-app/target/online-banking-app-0.1-SNAPSHOT.jar /webank-OnlineBanking/online-banking-app-0.1-SNAPSHOT.jar
 
 # Expose the port your app runs on
@@ -99,9 +101,43 @@ Push the image:
 docker push ghcr.io/USERNAME/your-image-name:tag
 ```
 
+## 7. Making the Image Public
+
+If you want to make your Docker image publicly accessible, follow these steps:
+1. Go to your GitHub repository
+2. Click on the "Packages" tab
+3. Select your package (Docker image)
+4. Navigate to "Package Settings"
+5. In the "Danger Zone" section, change the visibility to "Public"
+- * ![reference image](/Docs/Images/package-public.png)
+
+
+#### Pulling the Image from GHCR
+
+After the image has been pushed and made public, others can pull it by navigating to the repository, click on the image under packages:
+
+- * ![reference image](/Docs/Images/pull_image.png)
+
+For our case, we are pulling the image from Webank Online Banking repository, so you can use
+
+```bash
+docker pull ghcr.io/adorsys-gis/webank-online-banking:latest
+
+```
+
+#### Running the Image
+To run the pulled image:
+
+```bash
+docker run -p 8080:8080 ghcr.io/NAMESPACE/your-image-name:tag
+```
+This command runs the container and maps port 8080 of the container to port 8080 on your host machine.
+
+You can now access the application by opening a web browser and navigating to ```http://localhost:8080/swagger-ui/index.html```
+
 **Alternatively**,you can use GITHUB_TOKEN to authenticate with GHCR.
 You can authenticate to GHCR is to use the GITHUB_TOKEN, But this can be specified in the workflow file. GitHub provides you with a token that you can use to authenticate on behalf of GitHub Actions. At the start of each workflow run, GitHub will automatically create a unique GITHUB_TOKEN secret to use in the workflow, which you can use to authenticate.
-## 7. Setting Up GitHub Actions Workflow
+## 8. Setting Up GitHub Actions Workflow
 
 GitHub Actions allows you to automate your Docker image build and push process. Follow these steps to set up a workflow:
 
@@ -144,7 +180,6 @@ jobs:
       - name: Push Docker image to GHCR
         run: |
           docker push ghcr.io/adorsys-gis/webank-online-banking:latest
-
 ```
 ### Explanation of Workflow
 1. `name: Build and Push Docker Image` - The name of the workflow.
@@ -160,13 +195,13 @@ jobs:
 11. `run:` - Run the command to build the Docker image.
 12. `name: Push Docker image to GHCR` - Push the Docker image to Github Container Registry.
 
-## 8. Troubleshooting Docker and GHCR Deployment
+## 9. Troubleshooting Docker and GHCR Deployment
 
 ### Common Issues and Solutions
 
 **Authentication Problems**
 - Ensure your Personal Access Token (PAT) has the correct permissions
-- Verify the scopes include `read:packages` and `write:packages`
+- Verify the scopes include `read:packages` , `write:packages` and `repo`
 - Double-check that the token is not expired
 
 **Image Deployment Issues**
@@ -174,8 +209,7 @@ jobs:
 - Verify that your Dockerfile is located in the root of your repository
 - Check GitHub Actions logs for detailed error messages if the workflow fails
 
-## 9. Conclusion
+## 10. Conclusion
 In this guide, you learned how to build a Docker image, authenticate to GitHub Container Registry, tag, and push images. Additionally, you set up GitHub Actions for automating the process and made your images publicly accessible, ensuring that others can use them.
-
 Now, you have a well-structured and efficient way to deploy your Docker images to GitHub Container Registry, making it easier for others to use your services.
 
