@@ -12,6 +12,66 @@
         <module>online-banking-app</module>
     </modules>
 
+    <name>Webank</name>
+    <description>OpenSource Implementation Of Online banking Functionalities</description>
+
+    <url></url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Francis Pouatcha</name>
+            <email>francis.pouatcha@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Nancy Muyeh</name>
+            <email>nancy.muyeh@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Chia Hans Ful</name>
+            <email>hans.chia@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Nkwa Jude Tambe</name>
+            <email>jude.nkwa@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Ariel Tchikaya</name>
+            <email>ariel.tchikaya@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>
+                Koufan De Koufan Menkene</name>
+            <email>menkene.koufan@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Yvan Henang </name>
+            <email>yvan.henang@skyengpro.com</email>
+            <organization>SKY ENGINEERING PROFESSIONAL Sarl</organization>
+            <organizationUrl>https://skyengpro.de/</organizationUrl>
+        </developer>
+
+    </developers>
+
+
 
     <properties>
         <!-- Common properties -->
