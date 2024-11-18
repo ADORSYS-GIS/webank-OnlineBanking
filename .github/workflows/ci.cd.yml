@@ -6,8 +6,30 @@ on:
   pull_request:
     branches: [ "main", "staging" ]
 
+
+
 jobs:
-  # 1. Build Stage
+  # 1. Test Stage
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+  
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+  
+      - name: Run Unit Tests
+        run: mvn test
+  
+      - name: Run Integration Tests
+        run: mvn verify
+
+  # 2. Build Stage
   build:
     runs-on: ubuntu-latest
     steps:
@@ -22,27 +44,7 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn clean install
-
-  # 2. Test Stage
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Run Unit Tests
-        run: mvn test
-
-      - name: Run Integration Tests
-        run: mvn verify
+        run: mvn clean install -Dmaven.test.skip=true
 
   # 3. Code Quality Check with SonarQube
   quality-check:
