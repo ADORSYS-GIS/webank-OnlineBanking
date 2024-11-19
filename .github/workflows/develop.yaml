@@ -22,7 +22,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Cache Maven packages
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -60,11 +60,13 @@ jobs:
           distribution: 'temurin'
 
       - name: Cache Maven packages
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
+
 
       - name: Set up Maven settings.xml
         run: |
@@ -84,6 +86,37 @@ jobs:
         run: mvn clean install -s ~/.m2/settings.xml -DskipTests -DskipITs -Dmaven.javadoc.skip=true
 
   
+
+
+  pmdCheck:
+    needs: build
+    name: Run code analyser PMD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone webank online banking repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          architecture: x64
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+
+
+      - name: build project before check
+        run: mvn -ntp -DskipTests -DskipITs -Dmaven.javadoc.skip=true clean install
+
+      - name: Check pmd
+        run: mvn -ntp pmd:check
+
 
   security-scan:
          name: Owasp security scan
