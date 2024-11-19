@@ -2,8 +2,7 @@ name: Build and Push Docker Image (Testing)
 on:
   push:
     branches:
-    - test-workflow-for-image
-
+      - test-workflow-for-image
 jobs:
   build:
     runs-on: ubuntu-latest
