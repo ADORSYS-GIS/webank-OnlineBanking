@@ -122,7 +122,7 @@ jobs:
               path: ${{ github.workspace }}/reports
 
   Sonarqube:
-    name: Build and analyze
+    name: Sonarqube
     runs-on: ubuntu-latest
 
     steps:
@@ -160,7 +160,7 @@ jobs:
                   </servers>
                 </settings>" > ~/.m2/settings.xml
 
-      - name: Sonarqube
+      - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
