@@ -1,16 +1,11 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Image (Testing)
 on:
-  # Trigger the workflow only when a pull request is merged into main
-  pull_request:
+  push:
     branches:
-      - main
-    types:
-      - closed
+    - test-workflow-for-image
+
 jobs:
   build:
-    # Run this job only if the pull request is actually merged
-    if: github.event.pull_request.merged == true
-
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
