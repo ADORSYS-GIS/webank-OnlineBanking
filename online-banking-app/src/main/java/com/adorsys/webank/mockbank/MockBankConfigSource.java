@@ -3,7 +3,7 @@
  * All rights are reserved.
  */
 
-package com.adorsys.webank.obs.resource.mockbank;
+package com.adorsys.webank.mockbank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
