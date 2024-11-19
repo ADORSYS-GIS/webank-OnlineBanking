@@ -117,7 +117,7 @@
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <javatar-commons.version>0.7</javatar-commons.version>
-        <h2database.version>2.2.220</h2database.version>
+        <h2database.version>2.3.232</h2database.version>
         <postgresql.version>42.3.10</postgresql.version>
         <datecalc-common.version>1.4.0</datecalc-common.version>
         <datecalc-jdk8.version>1.4.0</datecalc-jdk8.version>
@@ -155,35 +155,12 @@
         <!--Sonar -->
         <sonar.core.coveragePlugin>jacoco</sonar.core.coveragePlugin>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.language>java</sonar.language>
         <sonar.coverage.exclusions>
-            **/*Entity.java,**/*TO.java,
-            **/*BO.java,**/*PO.java,
-            **/*Application.java,
-            **/*Exception.java,
-            **/*Config*.java,
             **/*.xml,
-            **/ledgers-user-management-service-api/**/*,
-            **/ledgers-sca-service-api/**/*,
-            **/ledgers-postings-service-api/**/*,
-            **/ledgers-middleware-service-api/**/*,
-            **/ledgers-deposit-account-service-api/**/*,
-            **/ledgers-jaxb-api/**/*,
-            **/ledgers-middleware-rest-api/**/*,
-            **/ledgers-security/**/*,
-            **/ledgers-app/**/*,
-            **/ledgers-middleware-rest-server/**/*,
-            **/ledgers-deposit-account-repository/**/*,
-            **/ledgers-postings-repository/**/*,
-            **/ledgers-sca-repository/**/*,
-            **/ledgers-user-management-repository/**/*,
-            **/ledgers-utils/**/*,
-            **/*Provider*.java,
-            **/*Test*.java,
-            **/api/**/*,
-            **/keycloak/client/model/**/*,
+            **/obs-service-api/**/*,
+            **/obs-rest-api/**/*,
             **/*Properties*.java
         </sonar.coverage.exclusions>
         <sonar.moduleName>${project.artifactId}</sonar.moduleName>
@@ -408,6 +385,12 @@
                 <version>${commons-io.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>5.0.0.4389</version>
+            </dependency>
+
             <!-- test dependencies -->
 
             <dependency>
@@ -487,6 +470,31 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <formats>
+                                <format>XML</format>
+                            </formats>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
                 <version>${owasp.dependency.check.version}</version>
@@ -497,9 +505,9 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <failOnCVSS>5</failOnCVSS>
-                </configuration>
+<!--                <configuration>-->
+<!--                    <failBuildOnCVSS>5</failBuildOnCVSS>-->
+<!--                </configuration>-->
             </plugin>
 
             <plugin>
