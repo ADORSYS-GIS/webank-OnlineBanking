@@ -86,6 +86,7 @@ jobs:
   
 
   security-scan:
+         name: Owasp security scan
          runs-on: ubuntu-latest
          needs: build  # Ensures that the security scan runs only if the build job succeeds
 
