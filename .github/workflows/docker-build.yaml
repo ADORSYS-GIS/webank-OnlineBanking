@@ -15,6 +15,25 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+            path: ~/.m2
+            key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+            restore-keys: ${{ runner.os }}-m2
+
+      - name: Set up Maven settings.xml
+        run: |
+                mkdir -p ~/.m2
+                echo "<settings>
+                        <servers>
+                          <server>
+                            <id>github-webank</id>
+                            <username>${{ github.actor }}</username>
+                            <password>${{ secrets.WEBANK_ACCESS_TOKEN }}</password>
+                          </server>
+                        </servers>
+                      </settings>" > ~/.m2/settings.xml
 
       - name: Build JAR
         run: mvn -f online-banking-app/pom.xml clean package -DskipTests
