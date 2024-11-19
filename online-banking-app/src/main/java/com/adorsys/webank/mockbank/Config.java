@@ -3,7 +3,7 @@
  * All rights are reserved.
  */
 
-package com.adorsys.webank.obs.resource.mockbank;
+package com.adorsys.webank.mockbank;
 
 @org.springframework.context.annotation.Configuration
 public class Config {
