@@ -1,4 +1,4 @@
-package com.adorsys.webank.obs.Config;
+package com.adorsys.webank.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -65,7 +65,6 @@ public class OBSServiceImpl implements RegistrationServiceApi {
                 return "Error creating account for phone number: " + registrationRequest.getPhoneNumber();
             }
         } catch (Exception e) {
-            System.err.println("Exception occurred during account registration: " + e);
             return "An error occurred while processing the request: " + e.getMessage();
         }
     }
