@@ -1,70 +1,58 @@
-# GitHub Actions Workflow Documentation: Java CI/CD with Maven
+# Java CI with Maven Workflow Documentation
 
-### Overview
+This document provides a high-level overview of the CI/CD pipeline for the `webank-onlinebanking` project using GitHub Actions. The workflow is designed to ensure code quality, security, and readiness for deployment.
 
-This document provides a detailed explanation of the "Java CI/CD Pipeline with Maven" workflow, which automates the building, testing, and code quality checks for your Java application.
+## Workflow Overview
 
-### Workflow Trigger
+The workflow is triggered on the following events:
+- Pushes to the `main` branch.
+- Pull requests targeting the `main` branch.
 
-The workflow is triggered by the following events:
+### Key Features:
+1. Automated build and dependency management.
+2. Comprehensive testing, including unit and integration tests.
+3. Security scanning for vulnerabilities in dependencies.
+4. Code quality analysis using SonarQube.
 
-* Push events: Direct commits to the `main` branch.
-* Pull requests: Pull requests targeting the `main` branch.
+---
 
+## Stages in the Workflow
 
-### Workflow Jobs
+### 1. Test
+In this stage:
+- Unit and integration tests are executed to validate functionality.
+- Tests are run using Maven commands, with relevant outputs and logs generated.
 
-**1. Test Stage**
-
-Depends on: Successful completion of the Build stage.
-
-Purpose: Runs unit and integration tests to verify code functionality.
-
-Steps:
-* Checkout Repository: Fetches the latest code (optional, can reuse from the previous job).
-* Set Up JDK 17: Configures the Java 17 environment (optional, can reuse from the previous job).
-* Run Unit Tests: Executes `mvn test` to run unit tests.
-* Run Integration Tests: Executes `mvn verify` to run integration tests.
-
-
-**2. Build Stage**
-
-Purpose: Sets up the build environment, downloads dependencies, and builds the application.
-
-Steps:
-* Checkout Repository: Uses actions/checkout@v4 to fetch the latest code.
-* Set Up JDK 17: Configures a Java 17 development environment using actions/setup-java@v4.
-* Build with Maven: Executes `mvn clean install` to build the project.
+### 2. Build
+The build stage compiles the project and resolves dependencies. Maven is used for build automation, with caching implemented to speed up subsequent builds. It also prepares a custom `settings.xml` to authenticate with necessary repositories.
 
 
+### 3. Security Scan
+This stage ensures the security of the project by performing:
+- A scan for known vulnerabilities in dependencies using OWASP Dependency-Check.
+- Generation of a detailed report for identified issues.
+- Uploading the security scan report as an artifact for review.
 
+### 4. Code Quality Analysis (SonarQube)
+This stage performs static code analysis using SonarQube to:
+- Identify code smells, bugs, and security vulnerabilities.
+- Provide actionable insights to improve code quality.
+- Integrate with the SonarQube server to display detailed metrics and dashboards.
 
-**3. Code Quality Check with SonarQube**
+---
 
-Depends on: Successful completion of the Build stage.
+## Execution Environment
+The workflow runs on the `ubuntu-latest` environment to ensure compatibility and consistency across stages. Java 17 is used as the target runtime environment, with Temurin and Zulu distributions supported.
 
-Purpose: Analyzes code with SonarQube to identify potential issues and improve quality.
+---
 
-Steps:
-* Checkout Repository: Fetches the latest code (optional, can reuse from previous jobs).
-* Set Up JDK 17: Configures the Java 17 environment (optional, can reuse from previous jobs).
-* SonarQube Scan: Executes `mvn sonar:sonar` with the following configuration:
-    * **SONAR_TOKEN:** A secret containing your SonarQube token.
-    * **sonar.organization:** Your SonarQube organization key.
-    * **sonar.host.url:** Your SonarQube server URL.
+## Outputs
+- Test reports summarizing unit and integration test results.
+- Build artifacts generated during the build stage.
+- Security reports from OWASP Dependency-Check.
+- SonarQube analysis reports available on the configured SonarQube instance.
 
-**Note:** Ensure these secrets are configured in your GitHub repository's settings.
+---
 
-### Additional Considerations
-
-The provided YAML also includes commented-out sections for deployment and notification stages. You can customize and uncomment these sections to automate deployments and send notifications based on workflow outcomes.
-
-### Troubleshooting
-
-* Build Failures: Check for errors in your code or Maven configuration. Ensure compatibility between Java version and dependencies.
-* Test Failures: Analyze test failures and fix underlying code issues.
-* SonarQube Scan Issues: Verify your SonarQube token permissions, server URL, and organization key.
-
-## Conclusion
-
-This GitHub Actions workflow streamlines your Java development process by automating builds, tests, and code quality checks. By integrating these steps into your workflow, you can improve code quality, reduce errors, and accelerate development cycles.
+## Summary
+This CI/CD workflow ensures a robust pipeline for building, testing, securing, and analyzing the `webank-onlinebanking` project. It facilitates automated processes to maintain high code quality and security standards while accelerating development cycles.
