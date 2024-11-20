@@ -9,48 +9,9 @@ on:
       - main
 
 jobs:
-  build:
 
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          architecture: x64
-          distribution: 'temurin'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Set up Maven settings.xml
-        run: |
-          mkdir -p ~/.m2
-          echo "<settings>
-                  <servers>
-                    <server>
-                      <id>github-webank</id>
-                      <username>${{ github.actor }}</username>
-                      <password>${{ secrets.WEBANK_ACCESS_TOKEN }}</password>
-                    </server>
-                  </servers>
-                </settings>" > ~/.m2/settings.xml
-
-
-      - name: Build with webank Online banking
-        run: mvn clean install -s ~/.m2/settings.xml -DskipTests -DskipITs -Dmaven.javadoc.skip=true
-
-  # 2. Test Stage
   test:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -61,7 +22,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Cache Maven packages
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -83,7 +44,82 @@ jobs:
       - name: Run Unit and Integration Tests
         run: mvn verify -s ~/.m2/settings.xml -Dmaven.javadoc.skip=true
 
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          architecture: x64
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+
+
+      - name: Set up Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          echo "<settings>
+                  <servers>
+                    <server>
+                      <id>github-webank</id>
+                      <username>${{ github.actor }}</username>
+                      <password>${{ secrets.WEBANK_ACCESS_TOKEN }}</password>
+                    </server>
+                  </servers>
+                </settings>" > ~/.m2/settings.xml
+
+
+      - name: Build with webank Online banking
+        run: mvn clean install -s ~/.m2/settings.xml -DskipTests -DskipITs -Dmaven.javadoc.skip=true
+
+  
+
+
+  pmdCheck:
+    needs: build
+    name: Run code analyser PMD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone webank online banking repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          architecture: x64
+          distribution: 'temurin'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+
+
+      - name: build project before check
+        run: mvn -ntp -DskipTests -DskipITs -Dmaven.javadoc.skip=true clean install
+
+      - name: Check pmd
+        run: mvn -ntp pmd:check
+
+
   security-scan:
+         name: Owasp security scan
          runs-on: ubuntu-latest
          needs: build  # Ensures that the security scan runs only if the build job succeeds
 
@@ -120,7 +156,7 @@ jobs:
               path: ${{ github.workspace }}/reports
 
   Sonarqube:
-    name: Build and analyze
+    name: Sonarqube
     runs-on: ubuntu-latest
 
     steps:

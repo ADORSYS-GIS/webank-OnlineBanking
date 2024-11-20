@@ -28,6 +28,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
+		<ruleset.basedir>../</ruleset.basedir>
 	</properties>
 	<dependencies>
 

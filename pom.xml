@@ -12,6 +12,66 @@
         <module>online-banking-app</module>
     </modules>
 
+    <name>Webank</name>
+    <description>OpenSource Implementation Of Online banking Functionalities</description>
+
+    <url></url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Francis Pouatcha</name>
+            <email>francis.pouatcha@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Nancy Muyeh</name>
+            <email>nancy.muyeh@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Chia Hans Ful</name>
+            <email>hans.chia@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Nkwa Jude Tambe</name>
+            <email>jude.nkwa@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Ariel Tchikaya</name>
+            <email>ariel.tchikaya@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>
+                Koufan De Koufan Menkene</name>
+            <email>menkene.koufan@adorsys.com</email>
+            <organization>adorsys GmbH &amp; Co KG</organization>
+            <organizationUrl>https://adorsys.de/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Yvan Henang </name>
+            <email>yvan.henang@skyengpro.com</email>
+            <organization>SKY ENGINEERING PROFESSIONAL Sarl</organization>
+            <organizationUrl>https://skyengpro.de/</organizationUrl>
+        </developer>
+
+    </developers>
+
+
 
     <properties>
         <!-- Common properties -->
@@ -449,7 +509,43 @@
 <!--                    <failBuildOnCVSS>5</failBuildOnCVSS>-->
 <!--                </configuration>-->
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven-pmd-plugin.version}</version>
+                <configuration>
+                    <minimumTokens>100</minimumTokens>
+                    <targetJdk>${java.version}</targetJdk>
+                    <analysisCache>true</analysisCache>
+                    <linkXRef>false</linkXRef>
+                    <rulesets>
+                        <ruleset>${ruleset.basedir}/qa/pmd/pmd-ruleset.xml</ruleset>
+                    </rulesets>
+                    <includeTests>true</includeTests>
+                    <failOnViolation>true</failOnViolation>
+                    <printFailingErrors>true</printFailingErrors>
+                    <excludes>
+                        <exclude>**/*MapperImpl.java</exclude>
+                    </excludes>
+                    <excludeRoots>
+                        <excludeRoot>../ledgers-deposit-account-service-impl/target/generated-sources/annotations/
+                        </excludeRoot>
+                        <excludeRoot>../ledgers-middleware-rest-server/target/generated-sources/annotations/
+                        </excludeRoot>
+                        <excludeRoot>../ledgers-middleware-service-impl/target/generated-sources/annotations/
+                        </excludeRoot>
+                        <excludeRoot>../ledgers-postings-service-impl/target/generated-sources/annotations/
+                        </excludeRoot>
+                        <excludeRoot>../ledgers-sca-service-impl/target/generated-sources/annotations/
+                        </excludeRoot>
+                        <excludeRoot>../ledgers-user-management-service-impl/target/generated-sources/annotations/
+                        </excludeRoot>
+                    </excludeRoots>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
-    
+
 </project>
