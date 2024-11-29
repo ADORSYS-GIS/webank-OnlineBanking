@@ -58,9 +58,23 @@ The **Webank Online Banking System** is a middleware service designed to connect
     mvn clean install
     mvn spring-boot:run
     ```
-
-5. **Access API Documentation**:
+4**Access API Documentation**:
     - The OpenAPI documentation will be available at `http://localhost:8080/swagger-ui.html` (or the port specified for each module).
+
+## Starting application with Docker Compose
+
+1. Whilst inside the project root directory, Run the command 
+```bash
+ docker compose up --build 
+ ```
+2. Access the API documentation at 
+```bash
+http://localhost:9200/swagger-ui.html
+```
+3. you can stop the application with 
+```bash
+docker compose down
+```
 
 ## Usage
 - **User Registration**:
