@@ -31,7 +31,6 @@
 		<ruleset.basedir>../</ruleset.basedir>
 	</properties>
 	<dependencies>
-
 		<dependency>
 			<groupId>com.adorsys.webank</groupId>
 			<artifactId>obs-rest-api</artifactId>
@@ -74,13 +73,13 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.7.4</version>
 		</dependency>
 
-		<!--		<dependency>-->
-<!--			<groupId>com.h2database</groupId>-->
-<!--			<artifactId>h2</artifactId>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
