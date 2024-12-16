@@ -43,7 +43,7 @@ jobs:
                 </settings>" > ~/.m2/settings.xml
 
       - name: Build JAR
-        run: mvn -f online-banking-app/pom.xml clean package -DskipTests
+        run: mvn clean package -DskipTests
 
       - name: Verify JAR File Exists
         run: |
