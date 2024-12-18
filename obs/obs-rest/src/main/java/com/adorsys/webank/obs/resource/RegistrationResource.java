@@ -14,12 +14,9 @@ public class RegistrationResource implements RegistrationResourceApi {
 
     @Autowired
     private RegistrationServiceApi registrationService;
-    @Autowired
-    private HttpServletRequest request;
     @Override
     @PostMapping
     public ResponseEntity<String> registerAccount(@RequestBody RegistrationRequest registrationRequest) {
-        System.out.println(request.getRequestURL());
         try {
             String result = registrationService.registerAccount(registrationRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(result);

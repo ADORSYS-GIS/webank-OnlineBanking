@@ -19,8 +19,6 @@ public class Host {
         String contextPath = request.getContextPath(); // application context path (if any)
 
         // Format the URL
-        String url = String.format("%s://%s:%d%s", scheme, serverName, serverPort, contextPath);
-
-        return url;
+        return String.format("%s://%s:%d%s", scheme, serverName, serverPort, contextPath);
     }
 }
