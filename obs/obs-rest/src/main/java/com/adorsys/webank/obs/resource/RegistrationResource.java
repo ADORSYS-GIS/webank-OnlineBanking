@@ -2,6 +2,7 @@ package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,6 @@ public class RegistrationResource implements RegistrationResourceApi {
 
     @Autowired
     private RegistrationServiceApi registrationService;
-
     @Override
     @PostMapping
     public ResponseEntity<String> registerAccount(@RequestBody RegistrationRequest registrationRequest) {
