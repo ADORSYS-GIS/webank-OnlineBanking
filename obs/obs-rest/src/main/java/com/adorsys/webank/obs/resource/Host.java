@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Enumeration;
 
-
 @RestController
 @RequestMapping("/api")
 public class Host {
@@ -17,13 +16,20 @@ public class Host {
         // Construct the URL
         StringBuilder sb = new StringBuilder();
         sb.append("scheme: ").append(request.getScheme()).append("\n"); // http or https
-        sb.append("serverName: ").append(request.getServerName()).append("\n");
-        sb.append("serverPort: ").append(request.getServerPort()).append("\n"); // localhost or domain
-        sb.append("contextPath: ").append(request.getContextPath()).append("\n"); // localhost or domain
+        sb.append("serverName: ").append(request.getServerName()).append("\n"); // server name
+        sb.append("serverPort: ").append(request.getServerPort()).append("\n"); // server port
+        sb.append("contextPath: ").append(request.getContextPath()).append("\n"); // application context path (if any)
+
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
-            sb.append(headerName + ": ").append(request.getHeaders(headerName)).append("\n");
+            sb.append(headerName).append(": ");
+
+            Enumeration<String> headers = request.getHeaders(headerName);
+            while (headers.hasMoreElements()) {
+                sb.append(headers.nextElement()).append(" ");
+            }
+            sb.append("\n");
         }
 
         // Format the URL
