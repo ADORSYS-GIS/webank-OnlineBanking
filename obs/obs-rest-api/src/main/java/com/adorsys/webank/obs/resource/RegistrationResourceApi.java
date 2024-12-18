@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/registration")
-@CrossOrigin(origins = "http://localhost:5173")
 public interface RegistrationResourceApi {
 
     @Operation(summary = "Register a new bank account", description = "Accepts a phone number and public key for registration")
