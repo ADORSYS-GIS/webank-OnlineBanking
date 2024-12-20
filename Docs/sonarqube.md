@@ -12,7 +12,7 @@ SonarQube is a powerful open-source platform designed to improve code quality an
 - Docker (for local SonarQube setup)
 - SonarScanner CLI or SonarQube plugin in your preferred IDE
 - GitHub Repository (for CI/CD integration example)
-- Ensure your code has unit tests and generates a coverage report (e.g., lcov.info) for SonarQube to read and analyze.
+- Ensure your code has unit tests and generates a coverage report (e.g., jacoco for java code coverage) for SonarQube to read and analyze.
 
 ## SonarQube Installation Options
 
@@ -61,8 +61,6 @@ If your organization provides a hosted SonarQube server, you can connect directl
         <sonar.language>java</sonar.language>
         <sonar.coverage.exclusions>
             **/*.xml,
-            **/obs-service-api/**/*,
-            **/obs-rest-api/**/*,
             **/*Properties*.java
         </sonar.coverage.exclusions>
         <sonar.moduleName>${project.artifactId}</sonar.moduleName>
@@ -173,7 +171,7 @@ Automate code analysis by integrating SonarQube with GitHub Actions. This workfl
 - Runs the Maven build process (mvn verify) to compile the code and run tests.
 - Executes the SonarQube Maven Plugin to analyze:,Code quality,Security vulnerabilities and Test coverage.
 
-Alternatively,you can also install and run SonarQube locally using Docker.
+Alternatively, you can also install and run SonarQube locally using Docker.
 
 ### Local Installation with Docker
 
@@ -190,7 +188,7 @@ Alternatively,you can also install and run SonarQube locally using Docker.
 
 3. Change Default Password:
 
-- Go to My Account > Security and change the admin password for security.
+- Go to My Account > Security and change the default password for security.
 
 4. Configure Your Project:
 Ensure your project is set up to use the SonarQube Maven plugin and Jacoco for code coverage.
@@ -198,8 +196,10 @@ Configure the sonar-scanner.properties file with the correct SonarQube server UR
 
 5. Run the SonarQube Analysis:
 In your project's root directory, run the following Maven command:
-Bash
+
+```Bash
 mvn sonar:sonar
+```
 
 6. Access the SonarQube Web Interface:
 Open a web browser and navigate to <http://localhost:9000>.
@@ -233,3 +233,4 @@ Set Debt Reduction Goals: Establish specific goals for reducing technical debt o
 Explore Advanced Features: Utilize advanced features like code duplication analysis, security hotspots, and code metrics to gain deeper insights into your code.
 Integrate with IDEs: Use SonarLint to get real-time feedback on code quality and security issues within your IDE.
 Customize Reports: Customize SonarQube reports to focus on specific metrics and issues that are most relevant to your team.
+
