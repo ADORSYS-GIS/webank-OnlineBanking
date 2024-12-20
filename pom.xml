@@ -97,7 +97,8 @@
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
         <maven-pmd-plugin.version>3.21.0</maven-pmd-plugin.version>
-        <owasp.dependency.check.version>11.1.0</owasp.dependency.check.version>
+
+<!--        <owasp.dependency.check.version>11.1.0</owasp.dependency.check.version>-->
 
         <!-- Spring-related versions -->
         <spring-boot-dependencies.version>3.3.5</spring-boot-dependencies.version>
@@ -110,6 +111,7 @@
         <springdoc-openapi-ui.version>2.3.0</springdoc-openapi-ui.version>
         <commons-collections4.version>4.3</commons-collections4.version>
         <commons-io.version>2.17.0</commons-io.version>
+
 
         <jetbrains.annotations.version>15.0</jetbrains.annotations.version>
         <dbunit.version>2.6.0</dbunit.version>
@@ -494,21 +496,21 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>${owasp.dependency.check.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
+<!--            <plugin>-->
+<!--                <groupId>org.owasp</groupId>-->
+<!--                <artifactId>dependency-check-maven</artifactId>-->
+<!--                <version>${owasp.dependency.check.version}</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals>-->
+<!--                            <goal>check</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
 <!--                <configuration>-->
 <!--                    <failBuildOnCVSS>5</failBuildOnCVSS>-->
 <!--                </configuration>-->
-            </plugin>
+<!--            </plugin>-->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

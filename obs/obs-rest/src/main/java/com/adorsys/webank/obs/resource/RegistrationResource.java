@@ -13,7 +13,6 @@ public class RegistrationResource implements RegistrationResourceApi {
 
     @Autowired
     private RegistrationServiceApi registrationService;
-
     @Override
     @PostMapping
     public ResponseEntity<String> registerAccount(@RequestBody RegistrationRequest registrationRequest) {
