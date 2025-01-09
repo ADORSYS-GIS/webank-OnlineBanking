@@ -1,14 +1,9 @@
 package com.adorsys.webank.obs.service;
+import org.springframework.stereotype.Service;
 
-import jakarta.ws.rs.Consumes;
-
-@Consumes("application/json")
+@Service
 public interface OtpServiceApi {
-    /**
-     * Method to receive and process the OTP.
-     *
-     * @param otp The OTP string received.
-     */
-    String receiveOtp(String otp);
-}
+    String sendOtp(String phoneNumber, String publicKey);
 
+    boolean validateOtp(String phoneNumber, String publicKey, String otpInput , String otpHash);
+}
