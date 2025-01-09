@@ -3,14 +3,14 @@ package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.OtpRequest;
 import com.adorsys.webank.obs.dto.OtpValidationRequest;
-import com.adorsys.webank.obs.service.OtpServiceApi;
+import com.adorsys.webank.obs.service.ObsOtpServiceApi;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class OtpRestServer implements OtpRestApi {
-    private final OtpServiceApi otpService;
+public class ObsOtpRestServer implements ObsOtpRestApi {
+    private final ObsOtpServiceApi otpService;
 
-    public OtpRestServer(OtpServiceApi otpService) {
+    public ObsOtpRestServer(ObsOtpServiceApi otpService) {
 
         this.otpService = otpService;
     }

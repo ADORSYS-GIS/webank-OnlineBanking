@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Target(value = {java.lang.annotation.ElementType.TYPE})
 @Documented
 @Import({
-		ServiceimplConfiguration.class
+		ObsServiceimplConfiguration.class
 })
 public @interface EnableObsServiceimpl {
 }

@@ -7,10 +7,10 @@
 //
 //import static org.junit.jupiter.api.Assertions.*;
 //
-//class OtpServiceImplTest {
+//class ObsOtpServiceImplTest {
 //
 //    @InjectMocks
-//    private OtpServiceImpl otpService;
+//    private ObsOtpServiceImpl otpService;
 //
 //    @BeforeEach
 //    void setUp() {

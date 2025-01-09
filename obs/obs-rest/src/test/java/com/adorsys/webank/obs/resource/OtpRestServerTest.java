@@ -1,7 +1,7 @@
 //package com.adorsys.webank.obs.resource;
 //
 //import com.adorsys.webank.obs.dto.OtpRequest;
-//import com.adorsys.webank.obs.service.OtpServiceApi;
+//import com.adorsys.webank.obs.service.ObsOtpServiceApi;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.mockito.InjectMocks;
@@ -15,13 +15,13 @@
 //import static org.junit.jupiter.api.Assertions.assertEquals;
 //import static org.mockito.Mockito.when;
 //
-//public class OtpRestServerTest {
+//public class ObsOtpRestServerTest {
 //
 //    @InjectMocks
-//    private OtpRestServer otpRestServer; // Class under test
+//    private ObsOtpRestServer ObsOtpRestServer; // Class under test
 //
 //    @Mock
-//    private OtpServiceApi otpServiceApi; // Mocked dependency
+//    private ObsOtpServiceApi ObsOtpServiceApi; // Mocked dependency
 //
 //    @BeforeEach
 //    void setUp() {
@@ -35,10 +35,10 @@
 //        otpRequest.setOtp("123456");
 //
 //        String expectedResponse = "OTP is valid";
-//        when(otpServiceApi.receiveOtp(otpRequest.getOtp())).thenReturn(expectedResponse);
+//        when(ObsOtpServiceApi.receiveOtp(otpRequest.getOtp())).thenReturn(expectedResponse);
 //
 //        // Act
-//        ResponseEntity<?> responseEntity = otpRestServer.receiveOtp(otpRequest);
+//        ResponseEntity<?> responseEntity = ObsOtpRestServer.receiveOtp(otpRequest);
 //
 //        // Assert
 //        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -53,10 +53,10 @@
 //        otpRequest.setOtp("invalid");
 //
 //        String expectedErrorMessage = "Invalid OTP";
-//        when(otpServiceApi.receiveOtp(otpRequest.getOtp())).thenThrow(new IllegalArgumentException(expectedErrorMessage));
+//        when(ObsOtpServiceApi.receiveOtp(otpRequest.getOtp())).thenThrow(new IllegalArgumentException(expectedErrorMessage));
 //
 //        // Act
-//        ResponseEntity<?> responseEntity = otpRestServer.receiveOtp(otpRequest);
+//        ResponseEntity<?> responseEntity = ObsOtpRestServer.receiveOtp(otpRequest);
 //
 //        // Assert
 //        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());

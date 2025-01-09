@@ -11,5 +11,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan(basePackageClasses= {ServiceimplBasePackage.class})
-public class ServiceimplConfiguration {
+public class ObsServiceimplConfiguration {
 }

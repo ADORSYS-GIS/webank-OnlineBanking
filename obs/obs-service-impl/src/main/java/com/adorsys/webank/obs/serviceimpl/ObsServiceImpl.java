@@ -15,7 +15,7 @@ import java.util.Currency;
 import java.util.UUID;
 
 @Service
-public class OBSServiceImpl implements RegistrationServiceApi {
+public class ObsServiceImpl implements RegistrationServiceApi {
 
     @Autowired
     private BankAccountService bankAccountService;
