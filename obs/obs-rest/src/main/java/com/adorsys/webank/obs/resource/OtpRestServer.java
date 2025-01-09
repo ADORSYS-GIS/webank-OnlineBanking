@@ -1,35 +1,27 @@
 package com.adorsys.webank.obs.resource;
 
+
 import com.adorsys.webank.obs.dto.OtpRequest;
+import com.adorsys.webank.obs.dto.OtpValidationRequest;
 import com.adorsys.webank.obs.service.OtpServiceApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
-@RequestMapping("/api/otp")
 public class OtpRestServer implements OtpRestApi {
+    private final OtpServiceApi otpService;
 
-    private final OtpServiceApi otpServiceApi;
+    public OtpRestServer(OtpServiceApi otpService) {
 
-    @Autowired
-    public OtpRestServer(OtpServiceApi otpServiceApi) {
-        this.otpServiceApi = otpServiceApi;
+        this.otpService = otpService;
     }
 
     @Override
-    public ResponseEntity<?> receiveOtp(@RequestBody OtpRequest otpRequest) {
-        try {
-            // Delegate OTP validation and processing to the service
-            String responseMessage = otpServiceApi.receiveOtp(otpRequest.getOtp());
+    public String sendOtp(OtpRequest request) {
+        return otpService.sendOtp(request.getPhoneNumber(),request.getPublicKey());
+    }
 
-            return ResponseEntity.ok(Map.of("message", responseMessage));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
+    @Override
+    public boolean validateOtp(OtpValidationRequest request) {
+        return otpService.validateOtp(request.getPhoneNumber(),  request.getPublicKey() ,request.getOtpInput(), request.getOtpHash() );
     }
 }

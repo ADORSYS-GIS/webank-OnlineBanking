@@ -10,15 +10,14 @@ public class OtpServiceImpl implements OtpServiceApi {
     private static final Logger logger = LoggerFactory.getLogger(OtpServiceImpl.class);
 
     @Override
-    public String receiveOtp(String otp) {
-        if (otp == null || otp.length() != 6) {
-            logger.error("Invalid OTP format received.");
-            throw new IllegalArgumentException("Invalid OTP format");
-        }
+    public String sendOtp(String phoneNumber, String publicKey) {
 
-        // Add actual OTP processing logic here
-        logger.info("OTP successfully processed: {}", otp);
         return "OTP successfully received";
+    }
+    @Override
+    public boolean validateOtp(String phoneNumber, String publicKey, String otpInput , String otpHash){
+
+        return true;
     }
 }
 
