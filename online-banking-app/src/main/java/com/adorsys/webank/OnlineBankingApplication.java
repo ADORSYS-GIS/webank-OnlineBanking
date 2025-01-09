@@ -14,6 +14,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationListener;
 
+
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @EnableBankAccountService
 @EnablePostingService

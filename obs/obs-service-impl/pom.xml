@@ -33,7 +33,11 @@
             <artifactId>obs-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.adorsys.webank</groupId>
+            <artifactId>prs-service-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
 
 
 
@@ -45,12 +49,6 @@
 <!-- test depedencies -->
 
 
-        <dependency>
-            <groupId>de.adorsys.webank</groupId>
-            <artifactId>webank-bank-account-service-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
