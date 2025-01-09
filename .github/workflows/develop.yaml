@@ -44,10 +44,9 @@ jobs:
       - name: Run Unit and Integration Tests
         run: mvn verify -s ~/.m2/settings.xml -Dmaven.javadoc.skip=true -Ddependency-check.skip=true
 
-      - name: echo vars
+      - name: cat vars
         run: |
-          echo ${{ github.actor }}
-          echo ${{ secrets.WEBANK_ACCESS_TOKEN }}
+          cat ~/.m2/settings.xml
 
   build:
 
