@@ -15,7 +15,8 @@ public interface ObsOtpRestApi {
     @Operation(summary = "Send OTP", description = "Sends an OTP to the user's phone number")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OTP successfully sent"),
-            @ApiResponse(responseCode = "400", description = "Invalid phone number")
+            @ApiResponse(responseCode = "400", description = "Invalid phone number or OTP recently sent"),
+            @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     @PostMapping(value = "/send", consumes = "application/json", produces = "application/json")
     String sendOtp(@RequestBody OtpRequest request);
@@ -23,8 +24,11 @@ public interface ObsOtpRestApi {
     @Operation(summary = "Validate OTP", description = "Validates the received OTP against the stored value")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OTP successfully validated"),
-            @ApiResponse(responseCode = "400", description = "Invalid OTP")
+            @ApiResponse(responseCode = "400", description = "Invalid OTP"),
+            @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     @PostMapping(value = "/validate", consumes = "application/json", produces = "application/json")
     boolean validateOtp(@RequestBody OtpValidationRequest request);
 }
+
+
