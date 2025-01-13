@@ -1,6 +1,5 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.OtpRequest;
 import com.adorsys.webank.obs.dto.OtpValidationRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,7 +18,7 @@ public interface ObsOtpRestApi {
             @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     @PostMapping(value = "/send", consumes = "application/json", produces = "application/json")
-    String sendOtp(@RequestBody OtpRequest request);
+    org.springframework.http.ResponseEntity<String> sendOtp(@org.springframework.web.bind.annotation.RequestBody com.adorsys.webank.obs.dto.OtpRequest request);
 
     @Operation(summary = "Validate OTP", description = "Validates the received OTP against the stored value")
     @ApiResponses(value = {
