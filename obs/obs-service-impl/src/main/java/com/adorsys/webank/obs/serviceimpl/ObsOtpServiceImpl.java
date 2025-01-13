@@ -31,10 +31,9 @@ public class ObsOtpServiceImpl implements ObsOtpServiceApi {
         phoneNumberCache.addToCache(phoneNumber);
 
         // Process the OTP request
-        String otpResponse = otpServiceApi.sendOtp(phoneNumber, publicKey);
+        return otpServiceApi.sendOtp(phoneNumber, publicKey);
 
 
-        return otpResponse;
     }
 
     @Override
