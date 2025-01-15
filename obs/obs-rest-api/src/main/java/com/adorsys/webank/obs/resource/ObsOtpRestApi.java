@@ -30,7 +30,7 @@ public interface ObsOtpRestApi {
             @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     @PostMapping(value = "/validate", consumes = "application/json", produces = "application/json")
-    boolean validateOtp(@RequestBody OtpValidationRequest request);
+    String validateOtp(@RequestBody OtpValidationRequest request);
 }
 
 
