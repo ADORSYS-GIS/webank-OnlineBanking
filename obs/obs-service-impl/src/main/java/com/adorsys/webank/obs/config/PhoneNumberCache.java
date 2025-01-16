@@ -16,7 +16,7 @@ public class PhoneNumberCache {
 
     public PhoneNumberCache() {
         this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(10, TimeUnit.SECONDS)
+                .expireAfterWrite(1, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .build();
     }
