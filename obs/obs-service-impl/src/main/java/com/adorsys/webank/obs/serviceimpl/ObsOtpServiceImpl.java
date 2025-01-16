@@ -1,7 +1,9 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.config.PhoneNumberCache;
+import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.service.ObsOtpServiceApi;
+import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import com.adorsys.webank.service.OtpServiceApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,9 @@ public class ObsOtpServiceImpl implements ObsOtpServiceApi {
 
     @Autowired
     private PhoneNumberCache phoneNumberCache;
+
+    @Autowired
+    private RegistrationServiceApi registrationServiceApi;
 
     @Override
     public String sendOtp(String phoneNumber, String publicKey) {
@@ -37,18 +42,26 @@ public class ObsOtpServiceImpl implements ObsOtpServiceApi {
     }
 
     @Override
-    public boolean validateOtp(String phoneNumber, String publicKey, String otpInput, String otpHash) {
+    public String validateOtp(String phoneNumber, String publicKey, String otpInput, String otpHash) {
         // Perform OTP validation
         boolean isValid = otpServiceApi.validateOtp(phoneNumber, publicKey, otpInput, otpHash);
 
         // If validation is successful, clear the phone number from the cache
         if (isValid) {
             logger.info("OTP validation successful for phone number: {}. Clearing from cache.", phoneNumber);
+            RegistrationRequest registrationRequest = new RegistrationRequest();
+            registrationRequest.setPhoneNumber(phoneNumber);
+            registrationRequest.setPublicKey(publicKey);
+
+
+            String registrationResult = registrationServiceApi.registerAccount(registrationRequest);
+            logger.info("Registration result: {}", registrationResult);
             phoneNumberCache.removeFromCache(phoneNumber);
+            return registrationResult;
         } else {
             logger.warn("OTP validation failed for phone number: {}.", phoneNumber);
+            return "OTP validation failed for phone number: " + phoneNumber;
         }
 
-        return isValid;
     }
 }

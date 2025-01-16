@@ -5,5 +5,6 @@ import org.springframework.stereotype.Service;
 public interface ObsOtpServiceApi {
     String sendOtp(String phoneNumber, String publicKey);
 
-    boolean validateOtp(String phoneNumber, String publicKey, String otpInput , String otpHash);
+    String validateOtp(String phoneNumber, String publicKey, String otpInput , String otpHash);
+
 }
