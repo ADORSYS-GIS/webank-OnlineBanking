@@ -8,12 +8,16 @@ import com.adorsys.webank.service.OtpServiceApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ObsOtpServiceImpl implements ObsOtpServiceApi {
 
     private static final Logger logger = LoggerFactory.getLogger(ObsOtpServiceImpl.class);
+
+
+
 
     @Autowired
     private OtpServiceApi otpServiceApi;
@@ -44,7 +48,7 @@ public class ObsOtpServiceImpl implements ObsOtpServiceApi {
     @Override
     public String validateOtp(String phoneNumber, String publicKey, String otpInput, String otpHash) {
         // Perform OTP validation
-        boolean isValid = otpServiceApi.validateOtp(phoneNumber, publicKey, otpInput, otpHash);
+        boolean isValid = Boolean.parseBoolean(otpServiceApi.validateOtp(phoneNumber, publicKey, otpInput, otpHash));
 
         // If validation is successful, clear the phone number from the cache
         if (isValid) {
@@ -64,4 +68,7 @@ public class ObsOtpServiceImpl implements ObsOtpServiceApi {
         }
 
     }
+
+
+
 }
