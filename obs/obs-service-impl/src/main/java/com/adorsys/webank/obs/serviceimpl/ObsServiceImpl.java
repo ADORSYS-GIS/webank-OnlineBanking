@@ -3,7 +3,7 @@ package com.adorsys.webank.obs.serviceimpl;
 import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
-
+import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -19,6 +19,9 @@ import java.util.UUID;
 public class ObsServiceImpl implements RegistrationServiceApi {
 
     @Autowired
+    private BankAccountCertificateCreationService bankAccountCertificateCreationService;
+
+    @Autowired
     private BankAccountService bankAccountService;
 
     @Autowired
@@ -31,7 +34,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
             //validate the JWT token passed from the frontend
             boolean isValid = JwtCertValidator.validateJWT(phoneNumberCertificateJwt);
-//            boolean isValid = true;
+
             if (!isValid){
                 return "Invalid certificate or JWT. Account creation failed";
             }
@@ -68,11 +71,10 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     .build();
 
             // Call the service to create the account
-            BankAccountBO createdAccount = bankAccountService.createNewAccount(bankAccountBO, UUID.randomUUID().toString(), "OBS");
+            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(registrationRequest.getPhoneNumber(), registrationRequest.getPublicKey(), bankAccountBO, UUID.randomUUID().toString(), "OBS");
 
-            if (createdAccount != null) {
-                return "Registration successful for phone number: " + registrationRequest.getPhoneNumber() +
-                        ". Account ID: " + createdAccount.getId();
+            if (createdAccountResult != null) {
+                return "Bank account successfully created. Details: " + createdAccountResult;
             } else {
                 return "Error creating account for phone number: " + registrationRequest.getPhoneNumber();
             }
