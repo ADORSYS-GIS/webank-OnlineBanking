@@ -48,20 +48,15 @@ public class ObsOtpServiceImpl implements ObsOtpServiceApi {
     @Override
     public String validateOtp(String phoneNumber, String publicKey, String otpInput, String otpHash) {
         // Perform OTP validation
-        boolean isValid = Boolean.parseBoolean(otpServiceApi.validateOtp(phoneNumber, publicKey, otpInput, otpHash));
+        String isValid =otpServiceApi.validateOtp(phoneNumber, publicKey, otpInput, otpHash);
 
         // If validation is successful, clear the phone number from the cache
-        if (isValid) {
+        if (isValid.startsWith("Certificate")) {
+
             logger.info("OTP validation successful for phone number: {}. Clearing from cache.", phoneNumber);
-            RegistrationRequest registrationRequest = new RegistrationRequest();
-            registrationRequest.setPhoneNumber(phoneNumber);
-            registrationRequest.setPublicKey(publicKey);
 
-
-            String registrationResult = registrationServiceApi.registerAccount(registrationRequest);
-            logger.info("Registration result: {}", registrationResult);
             phoneNumberCache.removeFromCache(phoneNumber);
-            return registrationResult;
+            return isValid;
         } else {
             logger.warn("OTP validation failed for phone number: {}.", phoneNumber);
             return "OTP validation failed for phone number: " + phoneNumber;

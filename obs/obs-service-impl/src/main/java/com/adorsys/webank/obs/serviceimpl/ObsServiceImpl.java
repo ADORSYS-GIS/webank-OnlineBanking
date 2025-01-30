@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.RegistrationRequest;
+import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
@@ -20,9 +21,20 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     @Autowired
     private BankAccountService bankAccountService;
 
+    @Autowired
+    private JwtCertValidator jwtCertValidator;
+
     @Override
-    public String registerAccount(RegistrationRequest registrationRequest) {
+    public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt ) {
+
         try {
+
+            //validate the JWT token passed from the frontend
+            boolean isValid = JwtCertValidator.validateJWT(phoneNumberCertificateJwt);
+//            boolean isValid = true;
+            if (!isValid){
+                return "Invalid certificate or JWT. Account creation failed";
+            }
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
             String msidn = registrationRequest.getPhoneNumber();
@@ -67,6 +79,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
         } catch (Exception e) {
             return "An error occurred while processing the request: " + e.getMessage();
         }
+    }
+    private String extractJwtFromHeader(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
+        }
+        return authorizationHeader.substring(7); // Remove "Bearer " prefix
     }
 }
 
