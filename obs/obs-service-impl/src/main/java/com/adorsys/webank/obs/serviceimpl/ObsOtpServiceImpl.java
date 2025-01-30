@@ -1,14 +1,12 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.config.PhoneNumberCache;
-import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.service.ObsOtpServiceApi;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import com.adorsys.webank.service.OtpServiceApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
