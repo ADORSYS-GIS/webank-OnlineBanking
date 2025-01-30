@@ -80,11 +80,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             return "An error occurred while processing the request: " + e.getMessage();
         }
     }
-    private String extractJwtFromHeader(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
-        }
-        return authorizationHeader.substring(7); // Remove "Bearer " prefix
-    }
+
 }
 
