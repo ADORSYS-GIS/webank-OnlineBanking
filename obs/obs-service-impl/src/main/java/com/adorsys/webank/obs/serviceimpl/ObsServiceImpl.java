@@ -25,7 +25,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     private BankAccountService bankAccountService;
 
     @Autowired
-    private JwtCertValidator jwtCertValidator;
+    private final JwtCertValidator jwtCertValidator;
+
+    public ObsServiceImpl(JwtCertValidator jwtCertValidator) {
+        this.jwtCertValidator = jwtCertValidator;
+    }
+
 
     @Override
     public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt ) {
@@ -33,7 +38,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
         try {
 
             //validate the JWT token passed from the frontend
-            boolean isValid = JwtCertValidator.validateJWT(phoneNumberCertificateJwt);
+            boolean isValid = jwtCertValidator.validateJWT(phoneNumberCertificateJwt);
 
             if (!isValid){
                 return "Invalid certificate or JWT. Account creation failed";

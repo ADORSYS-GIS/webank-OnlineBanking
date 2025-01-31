@@ -6,29 +6,57 @@ import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jwt.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.text.ParseException;
 
 @Component
 public class JwtCertValidator {
     private static final Logger logger = LoggerFactory.getLogger(JwtCertValidator.class);
 
-    public static boolean validateJWT(String jwtToken) {
+    @Value("${server.public.key.json}")
+    private String SERVER_PUBLIC_KEY_JSON;
+
+    /**
+     * Validates the JWT by extracting the phoneNumberCert from its header and verifying signatures.
+     *
+     * @param jwtToken The JWT token string to validate.
+     * @return True if valid, false otherwise.
+     */
+    public boolean validateJWT(String jwtToken) { // Converted to instance method
         try {
-            SignedJWT signedJWT = parseJWT(jwtToken);
-            logger.info("jwt is : {}", jwtToken);
+            // Parse the main JWT token
+            SignedJWT signedJWT = SignedJWT.parse(jwtToken);
+            logger.info("Parsed JWT: {}", signedJWT);
 
-            SignedJWT phoneJwtSigned = extractPhoneJwt(signedJWT);
-            logger.info("phonejwtsigned : {} ", phoneJwtSigned);
+            // Extract "phoneNumberCert" from the JWT header
+            Object phoneNumberCertObj = signedJWT.getHeader().toJSONObject().get("phoneNumberJwt");
+            if (phoneNumberCertObj == null) {
+                throw new IllegalArgumentException("Missing phoneNumberCert in JWT header.");
+            }
+            String phoneNumberCert = phoneNumberCertObj.toString();
+            logger.info("Extracted phoneNumberCert: {}", phoneNumberCert);
 
-            if (!verifySignature(phoneJwtSigned)) {
-                logger.error("phoneNumberJwt signature validation failed.");
-                return false;
+            // Parse the phoneNumberCert (another JWT)
+            SignedJWT phoneNumberCertJwt = SignedJWT.parse(phoneNumberCert);
+            logger.info("Parsed phoneNumberCert JWT: {}", phoneNumberCertJwt);
+
+            // Ensure the public key JSON is not null
+            if (SERVER_PUBLIC_KEY_JSON == null || SERVER_PUBLIC_KEY_JSON.isEmpty()) {
+                throw new IllegalStateException("Public key JSON is not configured properly.");
             }
 
-            if (!verifySignature(signedJWT)) {
-                logger.error("JWT signature validation failed.");
+            // Load public key from configuration
+            JWK jwk = JWK.parse(SERVER_PUBLIC_KEY_JSON);
+            logger.info("Loaded JWK from backend: {}", jwk);
+
+            // Validate the phoneNumberCert signature using the backend-provided JWK
+            if (!(jwk instanceof ECKey publicKey) || jwk.isPrivate()) {
+                throw new IllegalArgumentException("Invalid JWK provided by backend.");
+            }
+
+            JWSVerifier phoneNumberCertVerifier = new ECDSAVerifier(publicKey);
+            if (!phoneNumberCertJwt.verify(phoneNumberCertVerifier)) {
+                logger.error("phoneNumberCert signature validation failed.");
                 return false;
             }
 
@@ -39,32 +67,4 @@ public class JwtCertValidator {
             return false;
         }
     }
-
-    private static SignedJWT parseJWT(String jwtToken) throws ParseException {
-        return SignedJWT.parse(jwtToken);
-    }
-
-    private static SignedJWT extractPhoneJwt(SignedJWT signedJWT) throws ParseException {
-        Object phoneJwtObj = signedJWT.getHeader().toJSONObject().get("phoneNumberJwt");
-        if (phoneJwtObj == null) {
-            throw new IllegalArgumentException("Missing 'phoneNumberJwt' field in JWT header.");
-        }
-        return SignedJWT.parse(phoneJwtObj.toString());
-    }
-
-    private static boolean verifySignature(SignedJWT signedJWT) throws JOSEException, ParseException {
-        JWK rawJwk = signedJWT.getHeader().getJWK();
-        if (rawJwk == null) {
-            throw new IllegalArgumentException("Missing JWK in JWT header.");
-        }
-        JWK jwk = JWK.parse(rawJwk.toJSONObject());
-
-        if (!(jwk instanceof ECKey publicKey)) {
-            throw new IllegalArgumentException("Invalid or missing ECKey in JWT.");
-        }
-
-        JWSVerifier verifier = new ECDSAVerifier(publicKey);
-        return signedJWT.verify(verifier);
-    }
-
 }
