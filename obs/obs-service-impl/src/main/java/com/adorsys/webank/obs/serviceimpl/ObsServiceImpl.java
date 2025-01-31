@@ -1,8 +1,9 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.RegistrationRequest;
+import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
-
+import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -18,11 +19,30 @@ import java.util.UUID;
 public class ObsServiceImpl implements RegistrationServiceApi {
 
     @Autowired
+    private BankAccountCertificateCreationService bankAccountCertificateCreationService;
+
+    @Autowired
     private BankAccountService bankAccountService;
 
+    @Autowired
+    private final JwtCertValidator jwtCertValidator;
+
+    public ObsServiceImpl(JwtCertValidator jwtCertValidator) {
+        this.jwtCertValidator = jwtCertValidator;
+    }
+
+
     @Override
-    public String registerAccount(RegistrationRequest registrationRequest) {
+    public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt ) {
+
         try {
+
+            //validate the JWT token passed from the frontend
+            boolean isValid = jwtCertValidator.validateJWT(phoneNumberCertificateJwt);
+
+            if (!isValid){
+                return "Invalid certificate or JWT. Account creation failed";
+            }
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
             String msidn = registrationRequest.getPhoneNumber();
@@ -56,11 +76,10 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     .build();
 
             // Call the service to create the account
-            BankAccountBO createdAccount = bankAccountService.createNewAccount(bankAccountBO, UUID.randomUUID().toString(), "OBS");
+            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(registrationRequest.getPhoneNumber(), registrationRequest.getPublicKey(), bankAccountBO, UUID.randomUUID().toString(), "OBS");
 
-            if (createdAccount != null) {
-                return "Registration successful for phone number: " + registrationRequest.getPhoneNumber() +
-                        ". Account ID: " + createdAccount.getId();
+            if (createdAccountResult != null) {
+                return "Bank account successfully created. Details: " + createdAccountResult;
             } else {
                 return "Error creating account for phone number: " + registrationRequest.getPhoneNumber();
             }
@@ -68,5 +87,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             return "An error occurred while processing the request: " + e.getMessage();
         }
     }
+
 }
 
