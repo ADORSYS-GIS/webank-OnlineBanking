@@ -12,6 +12,9 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      SERVER_PUBLIC_KEY_JSON: ${{ vars.SERVER_PUBLIC_KEY_JSON }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
