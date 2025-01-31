@@ -161,6 +161,8 @@ jobs:
   Sonarqube:
     name: Sonarqube
     runs-on: ubuntu-latest
+    env:
+      SERVER_PUBLIC_KEY_JSON: ${{ vars.SERVER_PUBLIC_KEY_JSON }}
 
     steps:
       - uses: actions/checkout@v4
