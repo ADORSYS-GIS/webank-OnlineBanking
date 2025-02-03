@@ -7,6 +7,9 @@ public class RegistrationRequest {
 
     private String phoneNumber;
 
+    public RegistrationRequest(String testPhoneNumber, String testPublicKey) {
+    }
+
     // Getters and Setters
     public String getPhoneNumber() {
         return phoneNumber;
