@@ -12,6 +12,10 @@ public class RegistrationRequest {
         this.phoneNumber = testPhoneNumber;
     }
 
+    public RegistrationRequest() {
+
+    }
+
 
     // Getters and Setters
     public String getPhoneNumber() {
