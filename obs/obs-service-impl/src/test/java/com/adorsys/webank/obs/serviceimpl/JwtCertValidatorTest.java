@@ -15,7 +15,7 @@ public class JwtCertValidatorTest {
 
     // Test Case 1: Valid JWT with correct signatures
     @Test
-    public void testValidJwt_ReturnsTrue() throws Exception {
+    public void testValidJwt_ReturnsTrue() throws  Exception {
         // Generate EC key pair for phoneNumberCert
         ECKey phoneNumberKey = generateECKey();
         String publicKeyJson = phoneNumberKey.toPublicJWK().toJSONString();
@@ -39,11 +39,11 @@ public class JwtCertValidatorTest {
     @Test
     public void testMissingPhoneNumberJwt_ReturnsFalse() throws Exception {
         // Create outer JWT without phoneNumberJwt header
-        com.nimbusds.jwt.SignedJWT outerJwt = new SignedJWT(
+        SignedJWT outerJwt = new SignedJWT(
                 new JWSHeader.Builder(JWSAlgorithm.ES256).build(),
                 new JWTClaimsSet.Builder().build()
         );
-        outerJwt.sign(new com.nimbusds.jose.crypto.ECDSASigner(generateECKey()));
+        outerJwt.sign(new ECDSASigner(generateECKey()));
 
         JwtCertValidator validator = createValidator("dummy-key");
         assertFalse(validator.validateJWT(outerJwt.serialize()));
@@ -113,13 +113,13 @@ public class JwtCertValidatorTest {
         return outerJwt.serialize();
     }
 
-    private JwtCertValidator createValidator(String publicKeyJson) throws Exception {
+    private JwtCertValidator createValidator(String publicKeyJson) throws NoSuchFieldException, IllegalAccessException  {
         JwtCertValidator validator = new JwtCertValidator();
         setPrivateField(validator, "SERVER_PUBLIC_KEY_JSON", publicKeyJson);
         return validator;
     }
 
-    private void setPrivateField(Object target, String fieldName, Object value) throws Exception {
+    private void setPrivateField(Object target, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException  {
         Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(target, value);

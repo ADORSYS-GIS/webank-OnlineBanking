@@ -8,7 +8,10 @@ public class RegistrationRequest {
     private String phoneNumber;
 
     public RegistrationRequest(String testPhoneNumber, String testPublicKey) {
+        this.publicKey = testPublicKey;
+        this.phoneNumber = testPhoneNumber;
     }
+
 
     // Getters and Setters
     public String getPhoneNumber() {
