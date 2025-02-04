@@ -1,5 +1,7 @@
 package com.adorsys.webank.obs.service;
 
+import com.adorsys.webank.obs.dto.BalanceRequest;
+
 public interface BalanceServiceApi {
-    String getBalance(String accountID);
+    String getBalance(BalanceRequest request);
 }

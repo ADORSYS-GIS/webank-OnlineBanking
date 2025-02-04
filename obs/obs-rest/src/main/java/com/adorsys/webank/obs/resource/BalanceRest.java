@@ -20,6 +20,6 @@ public class BalanceRest implements BalanceRestApi {
 
     @Override
     public String getBalance( String authorizationHeader, BalanceRequest request) {
-        return balanceService.getBalance(request.getAccountID());
+        return balanceService.getBalance(request);
     }
 }
