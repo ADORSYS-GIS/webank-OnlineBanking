@@ -23,7 +23,6 @@ public class BalanceServiceImpl implements BalanceServiceApi {
     @Override
     public String getBalance(BalanceRequest balanceRequest, String accountCertificateJwt) {
         String accountId = balanceRequest.getAccountID();
-        System.out.println("accountId: " + accountId);
 
         BankAccountDetailsBO details = bankAccountService.getAccountDetailsById(
                 accountId,
