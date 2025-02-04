@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.dto;
 
-public class TransactionRequest {
+public class TransRequest {
         private String accountID;
 
 
