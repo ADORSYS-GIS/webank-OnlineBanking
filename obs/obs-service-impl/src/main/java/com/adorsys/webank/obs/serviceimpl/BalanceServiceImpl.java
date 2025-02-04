@@ -21,8 +21,9 @@ public class BalanceServiceImpl implements BalanceServiceApi {
     }
 
     @Override
-    public String getBalance(BalanceRequest request) {
-        String accountId = request.getAccountID();
+    public String getBalance(BalanceRequest balanceRequest, String accountCertificateJwt) {
+        String accountId = balanceRequest.getAccountID();
+        System.out.println("accountId: " + accountId);
 
         BankAccountDetailsBO details = bankAccountService.getAccountDetailsById(
                 accountId,
@@ -40,4 +41,7 @@ public class BalanceServiceImpl implements BalanceServiceApi {
         return latestBalance.map(balance -> String.valueOf(balance.getAmount().getAmount()))
                 .orElse("Balance not available");
     }
+
+
+
 }

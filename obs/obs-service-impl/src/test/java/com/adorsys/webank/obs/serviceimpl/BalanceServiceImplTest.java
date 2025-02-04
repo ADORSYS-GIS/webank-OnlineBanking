@@ -38,6 +38,8 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
+        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
+
         AmountBO amount = new AmountBO();
         amount.setCurrency(Currency.getInstance("XAF"));
         amount.setAmount(new BigDecimal("1000"));
@@ -50,7 +52,7 @@ class BalanceServiceImplTest {
                 .thenReturn(accountDetails);
 
         // Act
-        String result = balanceService.getBalance(request);
+        String result = balanceService.getBalance(request, accountCertificateJwt);
 
         // Assert
         assertEquals("1000", result);
@@ -61,6 +63,8 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
+        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
+
         BankAccountDetailsBO accountDetails = new BankAccountDetailsBO();
         accountDetails.setBalances(Collections.emptyList());
 
@@ -68,7 +72,7 @@ class BalanceServiceImplTest {
                 .thenReturn(accountDetails);
 
         // Act
-        String result = balanceService.getBalance(request);
+        String result = balanceService.getBalance(request, accountCertificateJwt);
 
         // Assert
         assertEquals("Balance empty", result);
@@ -79,14 +83,40 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
+        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
 
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(null);
 
         // Act
-        String result = balanceService.getBalance(request);
+        String result = balanceService.getBalance(request, accountCertificateJwt);
 
         // Assert
         assertEquals("Balance empty", result);
+    }
+
+    @Test
+    void testGetBalance_WithNoBalanceAvailable() {
+        // Arrange
+        BalanceRequest request = new BalanceRequest();
+        request.setAccountID("12345");
+        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
+
+        AmountBO amount = new AmountBO();
+        amount.setCurrency(Currency.getInstance("XAF"));
+        amount.setAmount(new BigDecimal("1000"));
+        BalanceBO balance = new BalanceBO();
+        balance.setAmount(amount);
+        BankAccountDetailsBO accountDetails = new BankAccountDetailsBO();
+        accountDetails.setBalances(Collections.singletonList(balance));
+
+        when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
+                .thenReturn(accountDetails);
+
+        // Act
+        String result = balanceService.getBalance(request, accountCertificateJwt);
+
+        // Assert
+        assertEquals("1000", result);
     }
 }
