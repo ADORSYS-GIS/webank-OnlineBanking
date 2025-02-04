@@ -9,7 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Transaction", description = "Operations related to Transaction processing")
-@RequestMapping("/obs/accounts/")
+@RequestMapping("/api/accounts/")
 public interface TransactionRestApi {
 
 
