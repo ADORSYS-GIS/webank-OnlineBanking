@@ -10,7 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Balance", description = "Operations related to Balance processing")
-@RequestMapping("/obs/accounts/")
+@RequestMapping("/api/accounts/")
 public interface BalanceRestApi {
 
     @Operation(summary = "Get Balance", description = "Get the balance for a particular account")
