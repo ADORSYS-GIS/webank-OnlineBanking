@@ -19,7 +19,7 @@ public class JwtCertValidator {
     private String SERVER_PUBLIC_KEY_JSON;
 
     /**
-     * Validates the JWT by extracting the phoneNumberCert from its header and verifying signatures.
+     * Validates the JWT by extracting either accountJwt or phoneNumberJwt from its header and verifying signatures.
      *
      * @param jwtToken The JWT token string to validate.
      * @return True if valid, false otherwise.
@@ -27,31 +27,40 @@ public class JwtCertValidator {
     public boolean validateJWT(String jwtToken) {
         try {
             SignedJWT signedJWT = parseJWT(jwtToken);
-            String phoneNumberCert = extractPhoneNumberCert(signedJWT);
-            SignedJWT phoneNumberCertJwt = parseJWT(phoneNumberCert);
+            String cert = extractCert(signedJWT);
+            SignedJWT certJwt = parseJWT(cert);
             ECKey publicKey = loadPublicKey();
 
-            return verifySignature(phoneNumberCertJwt, publicKey);
+            return verifySignature(certJwt, publicKey);
         } catch (Exception e) {
             logger.error("Error during JWT validation: ", e);
             return false;
         }
     }
 
-    private SignedJWT parseJWT(String jwt) throws ParseException, ParseException {
+    private SignedJWT parseJWT(String jwt) throws ParseException {
         SignedJWT signedJWT = SignedJWT.parse(jwt);
         logger.info("Parsed JWT: {}", signedJWT);
         return signedJWT;
     }
 
-    private String extractPhoneNumberCert(SignedJWT signedJWT) {
-        Object phoneNumberCertObj = signedJWT.getHeader().toJSONObject().get("phoneNumberJwt");
-        if (phoneNumberCertObj == null) {
-            throw new IllegalArgumentException("Missing phoneNumberCert in JWT header.");
+    private String extractCert(SignedJWT signedJWT) {
+        // Check for accountJwt or phoneNumberJwt field in the JWT header
+        Object accountJwtObj = signedJWT.getHeader().toJSONObject().get("accountJwt");
+        if (accountJwtObj != null) {
+            String accountJwt = accountJwtObj.toString();
+            logger.info("Extracted accountJwt: {}", accountJwt);
+            return accountJwt;
         }
-        String phoneNumberCert = phoneNumberCertObj.toString();
-        logger.info("Extracted phoneNumberCert: {}", phoneNumberCert);
-        return phoneNumberCert;
+
+        Object phoneNumberCertObj = signedJWT.getHeader().toJSONObject().get("phoneNumberJwt");
+        if (phoneNumberCertObj != null) {
+            String phoneNumberCert = phoneNumberCertObj.toString();
+            logger.info("Extracted phoneNumberJwt: {}", phoneNumberCert);
+            return phoneNumberCert;
+        }
+
+        throw new IllegalArgumentException("Missing either accountJwt or phoneNumberJwt in JWT header.");
     }
 
     private ECKey loadPublicKey() throws ParseException {
@@ -67,12 +76,12 @@ public class JwtCertValidator {
         return publicKey;
     }
 
-    private boolean verifySignature(SignedJWT phoneNumberCertJwt, ECKey publicKey) throws JOSEException {
-        JWSVerifier phoneNumberCertVerifier = new ECDSAVerifier(publicKey);
-        boolean isValid = phoneNumberCertJwt.verify(phoneNumberCertVerifier);
+    private boolean verifySignature(SignedJWT certJwt, ECKey publicKey) throws JOSEException {
+        JWSVerifier certVerifier = new ECDSAVerifier(publicKey);
+        boolean isValid = certJwt.verify(certVerifier);
 
         if (!isValid) {
-            logger.error("phoneNumberCert signature validation failed.");
+            logger.error("JWT signature validation failed.");
         } else {
             logger.info("JWT validation successful.");
         }
