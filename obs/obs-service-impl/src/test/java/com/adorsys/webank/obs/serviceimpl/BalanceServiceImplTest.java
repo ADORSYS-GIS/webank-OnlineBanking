@@ -5,6 +5,8 @@ import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BalanceBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
+import com.adorsys.webank.obs.security.JwtCertValidator;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,6 +30,9 @@ class BalanceServiceImplTest {
     @InjectMocks
     private BalanceServiceImpl balanceService;
 
+    @Mock
+    private JwtCertValidator jwtCertValidator;  // Mocking JwtCertValidator
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -38,7 +43,7 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
-        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
+        String accountCertificateJwt = "valid-jwt-token"; // Provide a mock valid JWT token
 
         AmountBO amount = new AmountBO();
         amount.setCurrency(Currency.getInstance("XAF"));
@@ -50,12 +55,13 @@ class BalanceServiceImplTest {
 
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(accountDetails);
+        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(true);
 
         // Act
         String result = balanceService.getBalance(request, accountCertificateJwt);
 
         // Assert
-        assertEquals("1000", result);
+        assertEquals("1000", result, "Balance should be '1000' when account has a valid balance");
     }
 
     @Test
@@ -63,19 +69,20 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
-        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
+        String accountCertificateJwt = "valid-jwt-token"; // Provide a mock valid JWT token
 
         BankAccountDetailsBO accountDetails = new BankAccountDetailsBO();
         accountDetails.setBalances(Collections.emptyList());
 
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(accountDetails);
+        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(true);
 
         // Act
         String result = balanceService.getBalance(request, accountCertificateJwt);
 
         // Assert
-        assertEquals("Balance empty", result);
+        assertEquals("Balance empty", result, "Balance should be empty when no balance is found.");
     }
 
     @Test
@@ -83,40 +90,32 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
-        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
+        String accountCertificateJwt = "valid-jwt-token"; // Provide a mock valid JWT token
 
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(null);
+        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(true);
 
         // Act
         String result = balanceService.getBalance(request, accountCertificateJwt);
 
         // Assert
-        assertEquals("Balance empty", result);
+        assertEquals("Balance empty", result, "Balance should be empty when account details are null.");
     }
 
     @Test
-    void testGetBalance_WithNoBalanceAvailable() {
+    void testGetBalance_WithInvalidJWT() {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
-        String accountCertificateJwt = "dummy-jwt-token"; // Provide a mock JWT token
+        String accountCertificateJwt = "invalid-jwt-token"; // Provide an invalid JWT token
 
-        AmountBO amount = new AmountBO();
-        amount.setCurrency(Currency.getInstance("XAF"));
-        amount.setAmount(new BigDecimal("1000"));
-        BalanceBO balance = new BalanceBO();
-        balance.setAmount(amount);
-        BankAccountDetailsBO accountDetails = new BankAccountDetailsBO();
-        accountDetails.setBalances(Collections.singletonList(balance));
-
-        when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
-                .thenReturn(accountDetails);
+        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(false);
 
         // Act
         String result = balanceService.getBalance(request, accountCertificateJwt);
 
         // Assert
-        assertEquals("1000", result);
+        assertEquals("Invalid certificate or JWT. Account creation failed", result, "Should return error message for invalid JWT.");
     }
 }
