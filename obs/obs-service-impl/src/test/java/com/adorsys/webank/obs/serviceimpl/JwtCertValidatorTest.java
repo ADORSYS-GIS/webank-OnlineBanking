@@ -11,7 +11,7 @@ import com.nimbusds.jose.jwk.gen.*;
 import java.lang.reflect.Field;
 
 
-public class aJwtCertValidatorTest {
+public class JwtCertValidatorTest {
 
     // Test Case 1: Valid JWT with correct signatures
     @Test
