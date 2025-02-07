@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
-@RequestMapping("/api/accounts/balance")
 public class TransRest implements TransRestApi {
     @Autowired
     private TransServiceApi transService;

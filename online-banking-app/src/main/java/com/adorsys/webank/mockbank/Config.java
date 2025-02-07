@@ -5,22 +5,29 @@
 
 package com.adorsys.webank.mockbank;
 
-@org.springframework.context.annotation.Configuration
-public class Config {
-    @org.springframework.context.annotation.Bean
-    public MockBankConfigSource configSource() {
-        return new MockBankConfigSource();
-    }
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-	@org.springframework.context.annotation.Bean
-	public java.security.Principal getPrincipal(){
+@Configuration
+public class Config {
+
+	@Bean
+	public MockBankConfigSource configSource() {
+		return new MockBankConfigSource();
+	}
+
+	@Bean
+	public java.security.Principal getPrincipal() {
 		return () -> "anonymous";
 	}
-	
-	@org.springframework.context.annotation.Bean
-	public com.fasterxml.jackson.databind.ObjectMapper objectMapper() {
-		return new com.fasterxml.jackson.databind.ObjectMapper()
-				.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		
+
+	@Bean
+	public ObjectMapper objectMapper() {
+		return new ObjectMapper()
+				.registerModule(new JavaTimeModule())
+				.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 }

@@ -19,7 +19,7 @@ public interface TransRestApi {
             @ApiResponse(responseCode = "200", description = "Trans successfully retrieved"),
             @ApiResponse(responseCode = "400", description = "Invalid request to get Trans")
     })
-    @PostMapping(value = "/trans", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/transactions", consumes = "application/json", produces = "application/json")
     ResponseEntity<String> getTrans(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody TransRequest request);
 
 }

@@ -71,7 +71,7 @@ class TransServiceImplTest {
         String result = transService.getTrans(transRequest, accountCertificateJwt);
 
         // Assert
-        String expected = "Transaction ID: txn-001, Amount: 100.5";
+        String expected = "Transaction ID: txn-001, Informations: null, Amount: 100.5";
         assertEquals(expected, result);
     }
 

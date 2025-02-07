@@ -3,9 +3,11 @@ package com.adorsys.webank.obs.serviceimpl;
 import com.adorsys.webank.obs.dto.TransRequest;
 import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.adorsys.webank.obs.service.TransServiceApi;
+import de.adorsys.ledgers.postings.api.service.LedgerService;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
+import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +21,9 @@ public class TransServiceImpl implements TransServiceApi {
     private final BankAccountService bankAccountService;
     private final JwtCertValidator jwtCertValidator;
 
+
     @Autowired
-    public TransServiceImpl(BankAccountService bankAccountService, JwtCertValidator jwtCertValidator) {
+    public TransServiceImpl(BankAccountService bankAccountService, JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, LedgerService ledgerService) {
         this.bankAccountService = bankAccountService;
         this.jwtCertValidator = jwtCertValidator;
     }
@@ -28,7 +31,7 @@ public class TransServiceImpl implements TransServiceApi {
     @Override
     public String getTrans(TransRequest transRequest, String accountCertificateJwt) {
         try {
-            // Validate the JWT certificate
+            //Validate the JWT certificate
             boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
             if (!isValid) {
                 return "Invalid certificate or JWT. Transaction retrieval failed.";
@@ -58,7 +61,7 @@ public class TransServiceImpl implements TransServiceApi {
 
             // Map the posting lines to a string of transaction details
             List<String> transactionDetails = postingLines.stream()
-                    .map(postingLine -> "Transaction ID: " + postingLine.getTransactionId() + ", Amount: " + postingLine.getTransactionAmount().getAmount())
+                    .map(postingLine -> "Transaction ID: " + postingLine.getTransactionId() + ", Informations: " + postingLine.getAdditionalInformation() + ", Amount: " + postingLine.getTransactionAmount().getAmount())
                     .collect(Collectors.toList());
 
             return String.join(", ", transactionDetails);
