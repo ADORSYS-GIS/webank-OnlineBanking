@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Trans", description = "Operations related to Trans processing")
@@ -18,7 +19,7 @@ public interface TransRestApi {
             @ApiResponse(responseCode = "200", description = "Trans successfully retrieved"),
             @ApiResponse(responseCode = "400", description = "Invalid request to get Trans")
     })
-    @PostMapping(value = "/trans", consumes = "application/json", produces = "application/json")
-    String getTrans(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody TransRequest request);
+    @PostMapping(value = "/transactions", consumes = "application/json", produces = "application/json")
+    ResponseEntity<String> getTrans(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody TransRequest request);
 
 }

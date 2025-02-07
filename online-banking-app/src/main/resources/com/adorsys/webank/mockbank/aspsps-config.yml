@@ -41,6 +41,9 @@ clearingAccounts:
     accountNbr: 11034
 bankParentAccount: 2332
 
+#CashACCOUNTS
+cashAccount: 1000
+
 
 ### Marker used to prevent repeated processing of this config file.
 updateMarkerAccountNbr: 2320
