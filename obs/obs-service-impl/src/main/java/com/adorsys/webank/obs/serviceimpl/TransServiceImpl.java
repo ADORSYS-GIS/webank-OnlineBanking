@@ -25,7 +25,7 @@ public class TransServiceImpl implements TransServiceApi {
     private final JwtCertValidator jwtCertValidator;
 
     @Autowired
-    public TransServiceImpl(BankAccountService bankAccountService, JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, LedgerService ledgerService) {
+    public TransServiceImpl(BankAccountService bankAccountService, JwtCertValidator jwtCertValidator) {
         this.bankAccountService = bankAccountService;
         this.jwtCertValidator = jwtCertValidator;
     }

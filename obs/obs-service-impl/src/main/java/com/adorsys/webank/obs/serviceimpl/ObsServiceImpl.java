@@ -96,7 +96,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             String accountId = lines[2];
 
             String deposit = makeTrans(accountId);
-            log.info("Created account with id: " + accountId);
+            log.info("Created account with id: " + accountId + " and deposit amount: " + deposit);
 
             return "Bank account successfully created. Details: " + createdAccountResult;
         } catch (Exception e) {
@@ -144,7 +144,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             return "5 transactions completed successfully for account " + accountId;
 
         } catch (Exception e) {
-            e.printStackTrace();
             return "An error occurred while processing the transactions: "
                     + (e.getMessage() != null ? e.getMessage() : e.toString());
         }
