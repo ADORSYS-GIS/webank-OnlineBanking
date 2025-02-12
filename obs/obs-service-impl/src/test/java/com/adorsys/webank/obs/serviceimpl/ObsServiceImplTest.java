@@ -1,18 +1,14 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 
-import com.adorsys.webank.obs.dto.RegistrationRequest;
-import com.adorsys.webank.obs.security.JwtCertValidator;
-import de.adorsys.webank.bank.api.domain.BankAccountBO;
-import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import static org.mockito.Mockito.*;
+import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.security.*;
+import de.adorsys.webank.bank.api.service.util.*;
+import org.junit.jupiter.api.*;
+import org.mockito.*;
+
 import static org.junit.jupiter.api.Assertions.*;
-import org.mockito.Mockito;
+import static org.mockito.Mockito.*;
 
 
 public class ObsServiceImplTest {
@@ -53,37 +49,6 @@ public class ObsServiceImplTest {
         verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
         verify(bankAccountCertificateCreationService, times(0)).registerNewBankAccount(any(), any(), any(), anyString(), anyString());
     }
-
-//    @Test
-//    void testRegisterAccount_success() {
-//        // Prepare test data
-//        RegistrationRequest registrationRequest = new RegistrationRequest();
-//        registrationRequest.setPhoneNumber("1234567890");
-//        registrationRequest.setPublicKey("publicKey123");
-//
-//        String phoneNumberCertificateJwt = "validJwt";
-//
-//        // Mock JwtCertValidator's validateJWT method to return true
-//        when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(true);
-//
-//        // Mock BankAccountCertificateCreationService's registerNewBankAccount method
-//        String mockResult = "Account ID: 12345";
-//
-//        Mockito.when(bankAccountCertificateCreationService.registerNewBankAccount(
-//                Mockito.eq("1234567890"),  Mockito.eq("publicKey123"),
-//                Mockito.any(BankAccountBO.class),  Mockito.anyString(),  Mockito.anyString()
-//        )).thenReturn(mockResult);
-//
-//        // Call the method to test
-//        String result = obsService.registerAccount(registrationRequest, phoneNumberCertificateJwt);
-//
-//        // Verify the result
-//        assertEquals("Bank account successfully created. Details: Account ID: 12345", result);
-//
-//        // Verify the interactions with the mocks
-//        verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
-//        verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(any(), any(), any(), anyString(), anyString());
-//    }
 
 
 }
