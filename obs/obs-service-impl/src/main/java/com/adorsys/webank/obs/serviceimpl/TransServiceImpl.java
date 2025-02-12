@@ -69,7 +69,7 @@ public class TransServiceImpl implements TransServiceApi {
                             "}")
                     .toList();
 
-            log.info("Transaction details: " + transactionDetails.toString());
+            log.info("Transaction details: {} " , transactionDetails);
 
             return "[\n" + String.join(",\n", transactionDetails) + "\n]";
 
