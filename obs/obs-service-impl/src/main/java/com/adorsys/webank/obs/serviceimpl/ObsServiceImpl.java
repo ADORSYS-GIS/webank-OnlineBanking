@@ -17,22 +17,23 @@ import java.util.*;
 public class ObsServiceImpl implements RegistrationServiceApi {
 
     private static final Logger log = LoggerFactory.getLogger(ObsServiceImpl.class);
-    @Autowired
+
     private BankAccountCertificateCreationService bankAccountCertificateCreationService;
 
-    @Autowired
+
     private BankAccountService bankAccountService;
 
-    @Autowired
+
     private final JwtCertValidator jwtCertValidator;
 
-    @Autowired
+
     private final BankAccountTransactionService bankAccountTransactionService;
 
 
-    public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService) {
+    public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, BankAccountService bankAccountService) {
         this.jwtCertValidator = jwtCertValidator;
         this.bankAccountTransactionService = bankAccountTransactionService;
+        this.bankAccountService = bankAccountService;
     }
 
 
