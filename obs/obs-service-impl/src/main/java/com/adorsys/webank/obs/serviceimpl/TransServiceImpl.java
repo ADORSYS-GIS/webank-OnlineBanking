@@ -67,7 +67,7 @@ public class TransServiceImpl implements TransServiceApi {
                             "  \"amount\": \"" + postingLine.getTransactionAmount().getAmount() + "\",\n" +
                             "  \"title\": \"" + "Deposit" + "\"\n" +
                             "}")
-                    .collect(Collectors.toList());
+                    .toList();
 
             log.info("Transaction details: " + transactionDetails.toString());
 
