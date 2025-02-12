@@ -37,10 +37,16 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     private final BankAccountTransactionService bankAccountTransactionService;
 
 
-    public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService) {
+    public ObsServiceImpl(JwtCertValidator jwtCertValidator,
+                          BankAccountTransactionService bankAccountTransactionService,
+                          BankAccountCertificateCreationService bankAccountCertificateCreationService,
+                          BankAccountService bankAccountService) {
         this.jwtCertValidator = jwtCertValidator;
         this.bankAccountTransactionService = bankAccountTransactionService;
+        this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
+        this.bankAccountService = bankAccountService;
     }
+
 
 
     @Override
