@@ -8,6 +8,8 @@ import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +20,9 @@ import java.util.stream.Collectors;
 @Service
 public class TransServiceImpl implements TransServiceApi {
 
+    private static final Logger log = LoggerFactory.getLogger(TransServiceImpl.class);
     private final BankAccountService bankAccountService;
     private final JwtCertValidator jwtCertValidator;
-
 
     @Autowired
     public TransServiceImpl(BankAccountService bankAccountService, JwtCertValidator jwtCertValidator) {
@@ -28,10 +30,12 @@ public class TransServiceImpl implements TransServiceApi {
         this.jwtCertValidator = jwtCertValidator;
     }
 
+
+
     @Override
     public String getTrans(TransRequest transRequest, String accountCertificateJwt) {
         try {
-            //Validate the JWT certificate
+            // Validate the JWT certificate
             boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
             if (!isValid) {
                 return "Invalid certificate or JWT. Transaction retrieval failed.";
@@ -59,12 +63,21 @@ public class TransServiceImpl implements TransServiceApi {
                 return "No transactions found for the given account and date range.";
             }
 
-            // Map the posting lines to a string of transaction details
+            // Map the posting lines to a properly formatted JSON string
             List<String> transactionDetails = postingLines.stream()
-                    .map(postingLine -> "Transaction ID: " + postingLine.getTransactionId() + ", Informations: " + postingLine.getAdditionalInformation() + ", Amount: " + postingLine.getTransactionAmount().getAmount())
+                    .map(postingLine -> "{\n" +
+                            "  \"id\": \"" + postingLine.getTransactionId() + "\",\n" +
+                            "  \"date\": \"" + postingLine.getBookingDate().toString() + "\",\n" +
+                            "  \"amount\": \"" + postingLine.getTransactionAmount().getAmount() + "\",\n" +
+                            "  \"title\": \"" + "Deposit" + "\"\n" +
+                            "}")
                     .collect(Collectors.toList());
 
-            return String.join(", ", transactionDetails);
+            log.info("Transaction details: " + transactionDetails.toString());
+
+            return "[\n" + String.join(",\n", transactionDetails) + "\n]";
+
+
 
         } catch (Exception e) {
             return "An error occurred while processing the request: " + e.getMessage();

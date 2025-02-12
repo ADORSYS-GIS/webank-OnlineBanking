@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Currency;
@@ -62,6 +63,7 @@ class TransServiceImplTest {
         // Create an AmountBO instance with EUR and an amount of 100.50
         AmountBO amount = new AmountBO(Currency.getInstance("EUR"), BigDecimal.valueOf(100.50));
         transaction.setTransactionAmount(amount);
+        transaction.setBookingDate(LocalDate.from(LocalDateTime.now())); // Make sure to set the booking date
 
         List<TransactionDetailsBO> transactions = List.of(transaction);
         when(bankAccountService.getTransactionsByDates(anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
@@ -71,9 +73,17 @@ class TransServiceImplTest {
         String result = transService.getTrans(transRequest, accountCertificateJwt);
 
         // Assert
-        String expected = "Transaction ID: txn-001, Informations: null, Amount: 100.5";
+        String expected = "[\n" +
+                "{\n" +
+                "  \"id\": \"txn-001\",\n" +
+                "  \"date\": \"" + transaction.getBookingDate().toString() + "\",\n" +
+                "  \"amount\": \"" + transaction.getTransactionAmount().getAmount() + "\",\n" +
+                "  \"title\": \"Deposit\"\n" +
+                "}\n" +
+                "]";
         assertEquals(expected, result);
     }
+
 
     @Test
     void testGetTrans_InvalidJWT() {
