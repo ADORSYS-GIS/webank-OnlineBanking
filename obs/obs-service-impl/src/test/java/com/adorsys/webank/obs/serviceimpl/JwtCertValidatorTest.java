@@ -11,11 +11,11 @@ import com.nimbusds.jose.jwk.gen.*;
 import java.lang.reflect.Field;
 
 
-public class JwtCertValidatorTest {
+class JwtCertValidatorTest {
 
     // Test Case 1: Valid JWT with correct signatures
     @Test
-    public void testValidJwt_ReturnsTrue() throws  Exception {
+     void testValidJwt_ReturnsTrue() throws  Exception {
         // Generate EC key pair for phoneNumberCert
         ECKey phoneNumberKey = generateECKey();
         String publicKeyJson = phoneNumberKey.toPublicJWK().toJSONString();
@@ -30,14 +30,14 @@ public class JwtCertValidatorTest {
 
     // Test Case 2: Invalid outer JWT format
     @Test
-    public void testInvalidJwtFormat_ReturnsFalse() throws Exception {
+     void testInvalidJwtFormat_ReturnsFalse() throws Exception {
         JwtCertValidator validator = createValidator("dummy-key");
         assertFalse(validator.validateJWT("invalid.token"));
     }
 
     // Test Case 3: Missing phoneNumberJwt in header
     @Test
-    public void testMissingPhoneNumberJwt_ReturnsFalse() throws Exception {
+     void testMissingPhoneNumberJwt_ReturnsFalse() throws Exception {
         // Create outer JWT without phoneNumberJwt header
         SignedJWT outerJwt = new SignedJWT(
                 new JWSHeader.Builder(JWSAlgorithm.ES256).build(),
@@ -51,7 +51,7 @@ public class JwtCertValidatorTest {
 
     // Test Case 4: Empty public key configuration
     @Test
-    public void testEmptyPublicKey_ReturnsFalse() throws Exception {
+     void testEmptyPublicKey_ReturnsFalse() throws Exception {
         SignedJWT phoneNumberJwt = createSignedJWT(generateECKey(), "sub", "user123");
         JwtCertValidator validator = createValidator("");
         assertFalse(validator.validateJWT(createOuterToken(phoneNumberJwt.serialize())));
@@ -59,7 +59,7 @@ public class JwtCertValidatorTest {
 
     // Test Case 5: Non-EC public key
     @Test
-    public void testNonEcPublicKey_ReturnsFalse() throws Exception {
+     void testNonEcPublicKey_ReturnsFalse() throws Exception {
         RSAKey rsaKey = new RSAKeyGenerator(2048).generate();
         JwtCertValidator validator = createValidator(rsaKey.toPublicJWK().toJSONString());
         assertFalse(validator.validateJWT(createOuterToken("any-cert")));
@@ -67,7 +67,7 @@ public class JwtCertValidatorTest {
 
     // Test Case 6: EC private key instead of public
     @Test
-    public void testEcPrivateKey_ReturnsFalse() throws Exception {
+     void testEcPrivateKey_ReturnsFalse() throws Exception {
         ECKey privateKey = generateECKey();
         JwtCertValidator validator = createValidator(privateKey.toJSONString());
         assertFalse(validator.validateJWT(createOuterToken("any-cert")));
@@ -75,7 +75,7 @@ public class JwtCertValidatorTest {
 
     // Test Case 7: Signature verification failure
     @Test
-    public void testSignatureVerificationFailure_ReturnsFalse() throws Exception {
+     void testSignatureVerificationFailure_ReturnsFalse() throws Exception {
         ECKey validKey = generateECKey();
         ECKey invalidKey = generateECKey();
 
@@ -87,7 +87,7 @@ public class JwtCertValidatorTest {
 
     // Test Case 8: Invalid public key JSON
     @Test
-    public void testInvalidPublicKeyJson_ReturnsFalse() throws Exception {
+     void testInvalidPublicKeyJson_ReturnsFalse() throws Exception {
         JwtCertValidator validator = createValidator("{invalid-json}");
         assertFalse(validator.validateJWT(createOuterToken("any-cert")));
     }
