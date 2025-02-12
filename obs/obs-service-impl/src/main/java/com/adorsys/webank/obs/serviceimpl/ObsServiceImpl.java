@@ -90,7 +90,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             String accountId = lines[2];
 
             String deposit = makeTrans(accountId);
-            log.info("Created account with id: " + accountId + " and deposit amount: " + deposit);
+            log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
 
             return "Bank account successfully created. Details: " + createdAccountResult;
         } catch (Exception e) {
