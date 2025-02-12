@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
-public class ObsServiceImplTest {
+class ObsServiceImplTest {
 
     @Mock
     private JwtCertValidator jwtCertValidator;
