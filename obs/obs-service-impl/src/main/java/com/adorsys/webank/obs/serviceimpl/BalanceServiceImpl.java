@@ -5,7 +5,6 @@ import com.adorsys.webank.obs.security.*;
 import com.adorsys.webank.obs.service.*;
 import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
-import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
 import java.time.*;

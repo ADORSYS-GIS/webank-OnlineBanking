@@ -1,11 +1,8 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.RegistrationRequest;
-import com.adorsys.webank.obs.service.RegistrationServiceApi;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
+import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.service.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
