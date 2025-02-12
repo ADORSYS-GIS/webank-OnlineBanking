@@ -10,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 public class TransRest implements TransRestApi {
-    @Autowired
+
     private TransServiceApi transService;
+    public TransRest( TransServiceApi transService) {
+        this.transService = transService;
+    }
 
     @Override
     public ResponseEntity<String> getTrans(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody TransRequest request) {
