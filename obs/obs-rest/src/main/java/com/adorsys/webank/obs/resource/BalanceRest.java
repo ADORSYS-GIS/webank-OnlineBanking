@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 @RestController
 public class BalanceRest implements BalanceRestApi {
 
-    @Autowired
     private  BalanceServiceApi balanceService;
 
     public BalanceRest( BalanceServiceApi balanceService) {
