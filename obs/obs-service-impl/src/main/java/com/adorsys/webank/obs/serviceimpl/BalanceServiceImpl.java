@@ -16,7 +16,7 @@ public class BalanceServiceImpl implements BalanceServiceApi {
 
     private final BankAccountService bankAccountService;
 
-    @Autowired
+
     private final JwtCertValidator jwtCertValidator;
 
 
