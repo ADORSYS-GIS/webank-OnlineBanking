@@ -12,8 +12,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/registration")
 public class RegistrationResource implements RegistrationResourceApi {
 
-    @Autowired
+
     private RegistrationServiceApi registrationService;
+
+   public RegistrationResource( RegistrationServiceApi registrationService) {
+       this.registrationService = registrationService;
+   }
+
     @Override
     @PostMapping
     public ResponseEntity<String> registerAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody RegistrationRequest registrationRequest) {
