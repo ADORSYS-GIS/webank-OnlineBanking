@@ -88,7 +88,7 @@ class RegistrationResourceTest {
 
 
     @Test
-    void testGetBalance_NullRequestBody() {
+    void testRegisterAccount_NullRequestBody() {
         // Arrange
         String jwtToken = "valid-jwt-token";
 
