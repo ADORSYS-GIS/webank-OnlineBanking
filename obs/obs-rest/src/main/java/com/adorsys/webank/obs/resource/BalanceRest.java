@@ -14,8 +14,17 @@ public class BalanceRest implements BalanceRestApi {
     @Autowired
     private  BalanceServiceApi balanceService;
 
+    public BalanceRest( BalanceServiceApi balanceService) {
+        this.balanceService = balanceService;
+    }
+
     @Override
     public ResponseEntity<String> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BalanceRequest balanceRequest) {
+        // Check for null balanceRequest
+        if (balanceRequest == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
+        }
+
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             String result = balanceService.getBalance(balanceRequest, jwtToken) ;
