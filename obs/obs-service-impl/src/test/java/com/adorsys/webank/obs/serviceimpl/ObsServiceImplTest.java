@@ -79,9 +79,9 @@ public class ObsServiceImplTest {
         // Return a multi-line string so that lines[2] exists.
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
 
-        Mockito.when(bankAccountCertificateCreationService.registerNewBankAccount(
-                Mockito.eq("1234567890"),  Mockito.eq("publicKey123"),
-                Mockito.any(BankAccountBO.class),  Mockito.anyString(),  Mockito.anyString()
+        when(bankAccountCertificateCreationService.registerNewBankAccount(
+                eq("1234567890"),  eq("publicKey123"),
+                any(BankAccountBO.class),  anyString(),  anyString()
         )).thenReturn(mockResult);
 
         // Call the method to test
