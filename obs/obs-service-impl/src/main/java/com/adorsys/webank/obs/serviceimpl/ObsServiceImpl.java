@@ -1,24 +1,17 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.RegistrationRequest;
-import com.adorsys.webank.obs.dto.TransRequest;
-import com.adorsys.webank.obs.security.JwtCertValidator;
-import com.adorsys.webank.obs.service.RegistrationServiceApi;
-import de.adorsys.webank.bank.api.domain.AmountBO;
-import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
-import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
-import de.adorsys.webank.bank.api.domain.AccountTypeBO;
-import de.adorsys.webank.bank.api.domain.AccountUsageBO;
-import de.adorsys.webank.bank.api.domain.BankAccountBO;
-import de.adorsys.webank.bank.api.service.BankAccountService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.security.*;
+import com.adorsys.webank.obs.service.*;
+import de.adorsys.webank.bank.api.domain.*;
+import de.adorsys.webank.bank.api.service.*;
+import de.adorsys.webank.bank.api.service.util.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.math.BigDecimal;
-import java.util.Currency;
-import java.util.UUID;
+import java.math.*;
+import java.util.*;
 
 @Service
 public class ObsServiceImpl implements RegistrationServiceApi {
@@ -37,10 +30,16 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     private final BankAccountTransactionService bankAccountTransactionService;
 
 
-    public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService) {
+    public ObsServiceImpl(JwtCertValidator jwtCertValidator,
+                          BankAccountTransactionService bankAccountTransactionService,
+                          BankAccountCertificateCreationService bankAccountCertificateCreationService,
+                          BankAccountService bankAccountService) {
         this.jwtCertValidator = jwtCertValidator;
         this.bankAccountTransactionService = bankAccountTransactionService;
+        this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
+        this.bankAccountService = bankAccountService;
     }
+
 
 
     @Override
