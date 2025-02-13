@@ -1,21 +1,16 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.TransRequest;
-import com.adorsys.webank.obs.security.JwtCertValidator;
-import com.adorsys.webank.obs.service.TransServiceApi;
-import de.adorsys.ledgers.postings.api.service.LedgerService;
-import de.adorsys.webank.bank.api.domain.BankAccountBO;
-import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
-import de.adorsys.webank.bank.api.service.BankAccountService;
-import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.security.*;
+import com.adorsys.webank.obs.service.*;
+import de.adorsys.webank.bank.api.domain.*;
+import de.adorsys.webank.bank.api.service.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.*;
+import java.util.*;
 
 @Service
 public class TransServiceImpl implements TransServiceApi {
@@ -71,9 +66,9 @@ public class TransServiceImpl implements TransServiceApi {
                             "  \"amount\": \"" + postingLine.getTransactionAmount().getAmount() + "\",\n" +
                             "  \"title\": \"" + "Deposit" + "\"\n" +
                             "}")
-                    .collect(Collectors.toList());
+                    .toList();
 
-            log.info("Transaction details: " + transactionDetails.toString());
+            log.info("Transaction details: {} " , transactionDetails);
 
             return "[\n" + String.join(",\n", transactionDetails) + "\n]";
 

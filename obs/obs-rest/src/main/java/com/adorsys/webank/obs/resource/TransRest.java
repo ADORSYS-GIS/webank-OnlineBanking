@@ -1,17 +1,17 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.TransRequest;
-import com.adorsys.webank.obs.service.TransServiceApi;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.service.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 public class TransRest implements TransRestApi {
-    @Autowired
+
     private TransServiceApi transService;
+    public TransRest( TransServiceApi transService) {
+        this.transService = transService;
+    }
 
     @Override
     public ResponseEntity<String> getTrans(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody TransRequest request) {

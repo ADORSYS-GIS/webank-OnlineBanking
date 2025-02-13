@@ -3,8 +3,10 @@ package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.*;
 import com.adorsys.webank.obs.security.*;
+
 import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
+
 import de.adorsys.webank.bank.api.service.util.*;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
@@ -58,6 +60,7 @@ class ObsServiceImplTest {
         verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
         verify(bankAccountCertificateCreationService, times(0)).registerNewBankAccount(any(), any(), any(), anyString(), anyString());
     }
+
 
     @Test
     void testRegisterAccount_success() {
@@ -157,9 +160,5 @@ class ObsServiceImplTest {
 
         assertEquals("Bank account not found for ID: " + accountId, result);
     }
-
-
-
-
 
 }

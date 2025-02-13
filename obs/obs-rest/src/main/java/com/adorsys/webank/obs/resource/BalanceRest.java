@@ -1,17 +1,13 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.BalanceRequest;
-import com.adorsys.webank.obs.service.BalanceServiceApi;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.service.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 public class BalanceRest implements BalanceRestApi {
 
-    @Autowired
     private  BalanceServiceApi balanceService;
 
     public BalanceRest( BalanceServiceApi balanceService) {

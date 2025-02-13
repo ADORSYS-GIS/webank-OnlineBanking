@@ -7,37 +7,37 @@ import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
 import de.adorsys.webank.bank.api.service.util.*;
 import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
+
 import org.springframework.stereotype.*;
 
 import java.math.*;
 import java.util.*;
 
+
 @Service
 public class ObsServiceImpl implements RegistrationServiceApi {
 
     private static final Logger log = LoggerFactory.getLogger(ObsServiceImpl.class);
-    @Autowired
+
     private BankAccountCertificateCreationService bankAccountCertificateCreationService;
 
-    @Autowired
+
     private BankAccountService bankAccountService;
 
-    @Autowired
+
     private final JwtCertValidator jwtCertValidator;
 
-    @Autowired
+
     private final BankAccountTransactionService bankAccountTransactionService;
 
 
-    public ObsServiceImpl(JwtCertValidator jwtCertValidator,
-                          BankAccountTransactionService bankAccountTransactionService,
-                          BankAccountCertificateCreationService bankAccountCertificateCreationService,
-                          BankAccountService bankAccountService) {
+
+    public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, BankAccountService bankAccountService, BankAccountCertificateCreationService bankAccountCertificateCreationService) {
         this.jwtCertValidator = jwtCertValidator;
         this.bankAccountTransactionService = bankAccountTransactionService;
-        this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
         this.bankAccountService = bankAccountService;
+        this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
+
     }
 
 
@@ -95,7 +95,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             String accountId = lines[2];
 
             String deposit = makeTrans(accountId);
-            log.info("Created account with id: " + accountId + " and deposit amount: " + deposit);
+            log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
 
             return "Bank account successfully created. Details: " + createdAccountResult;
         } catch (Exception e) {
