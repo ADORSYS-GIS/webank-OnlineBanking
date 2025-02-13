@@ -15,6 +15,9 @@ public class TransRest implements TransRestApi {
 
     @Override
     public ResponseEntity<String> getTrans(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody TransRequest request) {
+        if (request == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
+        }
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             String result = transService.getTrans(request, jwtToken) ;

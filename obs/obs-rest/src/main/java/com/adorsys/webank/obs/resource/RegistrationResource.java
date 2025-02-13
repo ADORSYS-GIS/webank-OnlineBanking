@@ -17,6 +17,9 @@ public class RegistrationResource implements RegistrationResourceApi {
     @Override
     @PostMapping
     public ResponseEntity<String> registerAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody RegistrationRequest registrationRequest) {
+        if (registrationRequest == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
+        }
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             String result = registrationService.registerAccount(registrationRequest, jwtToken);
