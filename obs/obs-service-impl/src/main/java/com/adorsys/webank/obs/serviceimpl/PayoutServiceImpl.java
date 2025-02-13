@@ -1,5 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.obs.dto.PayoutRequest;
 import com.adorsys.webank.obs.dto.TransRequest;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
 
     @Override
-    public String payout(TransRequest transRequest, String accountCertificateJwt) {
+    public String payout(PayoutRequest payoutRequest, String accountCertificateJwt) {
         return "Success";
     }
 
