@@ -7,6 +7,7 @@ import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
 import de.adorsys.webank.bank.api.service.util.*;
 import org.slf4j.*;
+
 import org.springframework.stereotype.*;
 
 import java.math.*;
@@ -30,12 +31,15 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     private final BankAccountTransactionService bankAccountTransactionService;
 
 
+
     public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, BankAccountService bankAccountService, BankAccountCertificateCreationService bankAccountCertificateCreationService) {
         this.jwtCertValidator = jwtCertValidator;
         this.bankAccountTransactionService = bankAccountTransactionService;
         this.bankAccountService = bankAccountService;
         this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
+
     }
+
 
 
     @Override
