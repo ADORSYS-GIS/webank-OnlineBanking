@@ -5,7 +5,6 @@ public class PayoutRequest {
         private String otherAccountID;
         private String amount;
 
-
     public String getAmount() {
         return amount;
     }
