@@ -32,11 +32,7 @@ import java.util.*;
 @Service
 public class PayoutServiceImpl implements PayoutServiceApi {
     private static final Logger LOG = LoggerFactory.getLogger(PayoutServiceImpl.class);
-    private static final String CURRENCY_CODE = "XAF";
 
-    private final TransactionService transactionService;
-    private final BankAccountService bankAccountService;
-    private final JwtCertValidator jwtCertValidator;
     @Value("${server.private.key.json}")
     private String SERVER_PRIVATE_KEY_JSON;
 
@@ -48,6 +44,11 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
     @Value("${jwt.expiration-time-ms}")
     private Long expirationTimeMs;
+    private static final String CURRENCY_CODE = "XAF";
+
+    private final TransactionService transactionService;
+    private final BankAccountService bankAccountService;
+    private final JwtCertValidator jwtCertValidator;
 
     public PayoutServiceImpl(TransactionService transactionService, BankAccountService bankAccountService, JwtCertValidator jwtCertValidator) {
         this.transactionService = transactionService;
@@ -69,14 +70,6 @@ public class PayoutServiceImpl implements PayoutServiceApi {
             return "Amount must be a positive number";
         }
         String accountId = payoutRequest.getAccountID();
-        String otherAccountID = payoutRequest.getOtherAccountID();
-        String amount = payoutRequest.getAmount();
-        log.info("amount from frontend is {}", payoutRequest.getAmount());
-        log.info("Fetching IBANs for account IDs: {} and {}", accountId, otherAccountID);
-
-        // Retrieve the bank accounts using the provided getAccountById method.
-        BankAccountBO account1 = bankAccountService.getAccountById(accountId);
-        BankAccountBO account2 = bankAccountService.getAccountById(otherAccountID);
 
         BigDecimal currentBalance = getCurrentBalance(accountId);
         if (currentBalance == null) {
@@ -142,15 +135,28 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
         if (errorMap.isEmpty()) {
             LOG.info("Mock transaction for account {} booked successfully.", accountId);
-            return accountId + " Success";
         } else {
             LOG.error("Errors occurred while booking transaction(s): {}", errorMap);
             return "Transaction failed due to booking errors";
         }
-        String transactionCert = generateTransactionCert(accountId, otherAccountID, amount);
+        String transactionCert = generateTransactionCert(accountId, otherAccountId, String.valueOf(amount));
 
         return transactionCert +  " Success";
     }
+
+    private MockBookingDetailsBO createMockTransaction(String iban1, String iban2, BigDecimal amount) {
+        MockBookingDetailsBO mockTransaction = new MockBookingDetailsBO();
+        mockTransaction.setUserAccount(iban1);
+        mockTransaction.setOtherAccount(iban2);
+        mockTransaction.setAmount(amount);
+        mockTransaction.setCurrency(Currency.getInstance(CURRENCY_CODE));
+        mockTransaction.setBookingDate(LocalDate.now());
+        mockTransaction.setValueDate(LocalDate.now().plusDays(1));
+        mockTransaction.setCrDrName("Test User");
+        mockTransaction.setRemittance("Payment for testing purposes");
+        return mockTransaction;
+    }
+
     public String generateTransactionCert(String senderAccount, String receiverAccount, String amount) {
         try {
 
@@ -166,7 +172,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
             // Parse server's public key
             ECKey serverPublicKey = (ECKey) JWK.parse(SERVER_PUBLIC_KEY_JSON);
 
-            // Compute SHA-256 hash of the server’s public JWK to use as `kid`
+            // Compute SHA-256 hash of the server's public JWK to use as `kid`
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(serverPublicKey.toPublicJWK().toJSONString().getBytes(StandardCharsets.UTF_8));
 
@@ -198,24 +204,12 @@ public class PayoutServiceImpl implements PayoutServiceApi {
             signedJWT.sign(signer);
 
 
-            log.info("Transaction Cert Is: {}", signedJWT.serialize());
+            LOG.info("Transaction Cert Is: {}", signedJWT.serialize());
             return signedJWT.serialize();
 
         } catch (Exception e) {
             throw new IllegalStateException("Error generating transaction certificate", e);
         }
-    }
 
-    private MockBookingDetailsBO createMockTransaction(String iban1, String iban2, BigDecimal amount) {
-        MockBookingDetailsBO mockTransaction = new MockBookingDetailsBO();
-        mockTransaction.setUserAccount(iban1);
-        mockTransaction.setOtherAccount(iban2);
-        mockTransaction.setAmount(amount);
-        mockTransaction.setCurrency(Currency.getInstance(CURRENCY_CODE));
-        mockTransaction.setBookingDate(LocalDate.now());
-        mockTransaction.setValueDate(LocalDate.now().plusDays(1));
-        mockTransaction.setCrDrName("Test User");
-        mockTransaction.setRemittance("Payment for testing purposes");
-        return mockTransaction;
-    }
-}
+
+    }}
