@@ -149,11 +149,16 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
             // Create JWT Payload
             long issuedAt = System.currentTimeMillis() / 1000; // Convert to seconds
+            long paymentTime = System.currentTimeMillis(); // Use current time as payment time
+            String transactionId = UUID.randomUUID().toString(); // Generate a unique transaction ID
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .issuer(issuer)
                     .claim("amount", amount) // Transaction amount
                     .claim("from", senderAccount) // Sender account
                     .claim("to", receiverAccount) // Receiver account
+                    .claim("paymentMethod", "Bank deposit")
+                    .claim("TranactionID", transactionId)
+                    .claim("paymentTime", paymentTime)
                     .issueTime(new Date(issuedAt * 1000))
                     .expirationTime(new Date((issuedAt + (expirationTimeMs / 1000)) * 1000)) // Convert to milliseconds
                     .build();
