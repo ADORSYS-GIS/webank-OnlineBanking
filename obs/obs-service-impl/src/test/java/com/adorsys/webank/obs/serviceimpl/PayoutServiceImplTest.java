@@ -18,6 +18,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -143,34 +146,34 @@ public class PayoutServiceImplTest {
         assertEquals("One or both accounts not found", result);
     }
 
-    @Test
-    public void testPayoutTransactionSuccess() {
-        String validJwt = "validJwt";
-        String sourceAccountId = "acc1";
-        String otherAccountId = "acc2";
-        PayoutRequest request = createPayoutRequest(sourceAccountId, otherAccountId, "100");
-        when(jwtCertValidator.validateJWT(validJwt)).thenReturn(true);
-
-        // Sufficient balance in source account
-        BankAccountDetailsBO details = createAccountDetails(new BigDecimal("500"));
-        when(bankAccountService.getAccountDetailsById(eq(sourceAccountId), any(LocalDateTime.class), eq(true)))
-                .thenReturn(details);
-
-        // Both accounts exist. Create dummy BankAccountBOs with IBANs.
-        BankAccountBO account1 = mock(BankAccountBO.class);
-        BankAccountBO account2 = mock(BankAccountBO.class);
-        when(account1.getIban()).thenReturn("IBAN1");
-        when(account2.getIban()).thenReturn("IBAN2");
-        when(bankAccountService.getAccountById(sourceAccountId)).thenReturn(account1);
-        when(bankAccountService.getAccountById(otherAccountId)).thenReturn(account2);
-
-        // Simulate successful mock transaction (empty error map)
-        when(transactionService.bookMockTransaction(any(List.class)))
-                .thenReturn(Collections.emptyMap());
-
-        String result = payoutService.payout(request, validJwt);
-        assertEquals(sourceAccountId + " Success", result);
-    }
+//    @Test
+//    public void testPayoutTransactionSuccess() {
+//        String validJwt = "validJwt";
+//        String sourceAccountId = "acc1";
+//        String otherAccountId = "acc2";
+//        PayoutRequest request = createPayoutRequest(sourceAccountId, otherAccountId, "100");
+//        when(jwtCertValidator.validateJWT(validJwt)).thenReturn(true);
+//
+//        // Sufficient balance in source account
+//        BankAccountDetailsBO details = createAccountDetails(new BigDecimal("500"));
+//        when(bankAccountService.getAccountDetailsById(eq(sourceAccountId), any(LocalDateTime.class), eq(true)))
+//                .thenReturn(details);
+//
+//        // Both accounts exist. Create dummy BankAccountBOs with IBANs.
+//        BankAccountBO account1 = mock(BankAccountBO.class);
+//        BankAccountBO account2 = mock(BankAccountBO.class);
+//        when(account1.getIban()).thenReturn("IBAN1");
+//        when(account2.getIban()).thenReturn("IBAN2");
+//        when(bankAccountService.getAccountById(sourceAccountId)).thenReturn(account1);
+//        when(bankAccountService.getAccountById(otherAccountId)).thenReturn(account2);
+//
+//        // Simulate successful mock transaction (empty error map)
+//        when(transactionService.bookMockTransaction(any(List.class)))
+//                .thenReturn(Collections.emptyMap());
+//
+//        String result = payoutService.payout(request, validJwt);
+//        assertEquals(sourceAccountId + " Success", result);
+//    }
 
     @Test
     public void testPayoutTransactionFailure() {

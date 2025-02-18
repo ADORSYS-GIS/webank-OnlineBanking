@@ -3,6 +3,15 @@ package com.adorsys.webank.obs.serviceimpl;
 import com.adorsys.webank.obs.dto.PayoutRequest;
 import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
@@ -10,9 +19,12 @@ import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -20,6 +32,18 @@ import java.util.*;
 @Service
 public class PayoutServiceImpl implements PayoutServiceApi {
     private static final Logger LOG = LoggerFactory.getLogger(PayoutServiceImpl.class);
+
+    @Value("${server.private.key.json}")
+    private String SERVER_PRIVATE_KEY_JSON;
+
+    @Value("${server.public.key.json}")
+    private String SERVER_PUBLIC_KEY_JSON;
+
+    @Value("${jwt.issuer}")
+    private String issuer;
+
+    @Value("${jwt.expiration-time-ms}")
+    private Long expirationTimeMs;
     private static final String CURRENCY_CODE = "XAF";
 
     private final TransactionService transactionService;
@@ -111,11 +135,13 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
         if (errorMap.isEmpty()) {
             LOG.info("Mock transaction for account {} booked successfully.", accountId);
-            return accountId + " Success";
         } else {
             LOG.error("Errors occurred while booking transaction(s): {}", errorMap);
             return "Transaction failed due to booking errors";
         }
+        String transactionCert = generateTransactionCert(accountId, otherAccountId, String.valueOf(amount));
+
+        return transactionCert +  " Success";
     }
 
     private MockBookingDetailsBO createMockTransaction(String iban1, String iban2, BigDecimal amount) {
@@ -130,4 +156,56 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         mockTransaction.setRemittance("Payment for testing purposes");
         return mockTransaction;
     }
-}
+
+    public String generateTransactionCert(String senderAccount, String receiverAccount, String amount) {
+        try {
+
+            // Parse server's private key from JWK JSON
+            ECKey serverPrivateKey = (ECKey) JWK.parse(SERVER_PRIVATE_KEY_JSON);
+            if (serverPrivateKey.getD() == null) {
+                throw new IllegalStateException("Private key 'd' (private) parameter is missing.");
+            }
+
+            // Signer using server's private key
+            JWSSigner signer = new ECDSASigner(serverPrivateKey);
+
+            // Parse server's public key
+            ECKey serverPublicKey = (ECKey) JWK.parse(SERVER_PUBLIC_KEY_JSON);
+
+
+            // Create the JWT header with the JWK object (the server public key)
+            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
+                    .type(JOSEObjectType.JWT)
+                    .jwk(serverPublicKey.toPublicJWK())
+                    .build();
+
+            // Create JWT Payload
+            long issuedAt = System.currentTimeMillis() / 1000; // Convert to seconds
+            long paymentTime = System.currentTimeMillis(); // Use current time as payment time
+            String transactionId = UUID.randomUUID().toString(); // Generate a unique transaction ID
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .issuer(issuer)
+                    .claim("amount", amount) // Transaction amount
+                    .claim("from", senderAccount) // Sender account
+                    .claim("to", receiverAccount) // Receiver account
+                    .claim("paymentMethod", "Bank deposit")
+                    .claim("TranactionID", transactionId)
+                    .claim("paymentTime", paymentTime)
+                    .issueTime(new Date(issuedAt * 1000))
+                    .expirationTime(new Date((issuedAt + (expirationTimeMs / 1000)) * 1000)) // Convert to milliseconds
+                    .build();
+
+            // Create JWT token
+            SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+            signedJWT.sign(signer);
+
+
+            LOG.info("Transaction Cert Is: {}", signedJWT.serialize());
+            return signedJWT.serialize();
+
+        } catch (Exception e) {
+            throw new IllegalStateException("Error generating transaction certificate", e);
+        }
+
+
+    }}
