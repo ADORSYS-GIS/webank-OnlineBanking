@@ -166,6 +166,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SERVER_PUBLIC_KEY_JSON: ${{ vars.SERVER_PUBLIC_KEY_JSON }}
+      SERVER_PRIVATE_KEY_JSON: ${{ vars.SERVER_PRIVATE_KEY_JSON }}
+      JWT_ISSUER: ${{ vars.JWT_ISSUER }}
+      JWT_EXPIRATION_TIME_MS: ${{ vars.JWT_EXPIRATION_TIME_MS }}
+
 
     steps:
       - uses: actions/checkout@v4
