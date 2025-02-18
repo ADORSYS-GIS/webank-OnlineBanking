@@ -13,6 +13,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
+import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
@@ -25,10 +26,14 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class PayoutServiceImpl implements PayoutServiceApi {
+    private static final Logger LOG = LoggerFactory.getLogger(PayoutServiceImpl.class);
+    private static final String CURRENCY_CODE = "XAF";
+
     private final TransactionService transactionService;
     private final BankAccountService bankAccountService;
     private final JwtCertValidator jwtCertValidator;
@@ -44,8 +49,6 @@ public class PayoutServiceImpl implements PayoutServiceApi {
     @Value("${jwt.expiration-time-ms}")
     private Long expirationTimeMs;
 
-    private static final Logger log = LoggerFactory.getLogger(PayoutServiceImpl.class);
-
     public PayoutServiceImpl(TransactionService transactionService, BankAccountService bankAccountService, JwtCertValidator jwtCertValidator) {
         this.transactionService = transactionService;
         this.bankAccountService = bankAccountService;
@@ -54,21 +57,17 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
     @Override
     public String payout(PayoutRequest payoutRequest, String accountCertificateJwt) {
-        try {
-            //validate the JWT token passed from the frontend
-            boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
-            log.info("The AccountCert is : {}", accountCertificateJwt);
-
-            if (!isValid) {
-                return "Invalid certificate or JWT. Payout Request failed";
-            }
+        if (!isValidJwt(accountCertificateJwt)) {
+            return "Invalid certificate or JWT. Payout Request failed";
         }
-        catch (Exception e){
-             return "An error occurred while processing the request: " + e.getMessage();
-            }
 
-
-        // The particular account IBAN for which you want to mock transactions.
+        BigDecimal amountToSend = parseAmount(payoutRequest.getAmount());
+        if (amountToSend == null) {
+            return "Invalid amount format: " + payoutRequest.getAmount();
+        }
+        if (amountToSend.compareTo(BigDecimal.ZERO) <= 0) {
+            return "Amount must be a positive number";
+        }
         String accountId = payoutRequest.getAccountID();
         String otherAccountID = payoutRequest.getOtherAccountID();
         String amount = payoutRequest.getAmount();
@@ -79,43 +78,74 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         BankAccountBO account1 = bankAccountService.getAccountById(accountId);
         BankAccountBO account2 = bankAccountService.getAccountById(otherAccountID);
 
+        BigDecimal currentBalance = getCurrentBalance(accountId);
+        if (currentBalance == null) {
+            return "Unable to retrieve balance for the source account";
+        }
 
-        // Extract the IBANs from the retrieved accounts.
-        String iban1 = account1.getIban();
-        String iban2 = account2.getIban();
+        if (currentBalance.compareTo(amountToSend) < 0) {
+            return "Insufficient balance. Current balance: " + currentBalance + " XAF";
+        }
 
-        // Log the retrieved IBANs.
-        log.debug("Retrieved IBANs: {} and {}", iban1, iban2);
-        // Create a mock transaction detail object.
-        MockBookingDetailsBO mockTransaction = new MockBookingDetailsBO();
+        String otherAccountId = payoutRequest.getOtherAccountID();
+        return processTransaction(accountId, otherAccountId, amountToSend);
+    }
 
-        // Set the account you want to test. For a payment transaction, typically this is the user account.
-        mockTransaction.setUserAccount(iban1);
-        // Set the counterparty account (beneficiary, merchant, etc.). This might be any valid IBAN.
-        mockTransaction.setOtherAccount(iban2);
+    private boolean isValidJwt(String accountCertificateJwt) {
+        try {
+            boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
+            LOG.info("The AccountCert is: {}", accountCertificateJwt);
+            return isValid;
+        } catch (Exception e) {
+            LOG.error("JWT validation error: {}", e.getMessage());
+            return false;
+        }
+    }
 
-        // Set the transaction amount, currency, and other details.
-        mockTransaction.setAmount(new BigDecimal(amount));
-        mockTransaction.setCurrency(Currency.getInstance("XAF"));
-        mockTransaction.setBookingDate(LocalDate.now());
-        mockTransaction.setValueDate(LocalDate.now().plusDays(1));
-        mockTransaction.setCrDrName("Test User");
-        mockTransaction.setRemittance("Payment for testing purposes");
+    private BigDecimal parseAmount(String amount) {
+        try {
+            return new BigDecimal(amount);
+        } catch (NumberFormatException e) {
+            LOG.error("Invalid amount format: {}", amount);
+            return null;
+        }
+    }
 
+    private BigDecimal getCurrentBalance(String accountId) {
+        try {
+            BankAccountDetailsBO accountDetails = bankAccountService.getAccountDetailsById(accountId, LocalDateTime.now(), true);
+            if (accountDetails == null || accountDetails.getBalances().isEmpty()) {
+                return null;
+            }
+            return accountDetails.getBalances().stream()
+                    .findFirst()
+                    .map(balance -> balance.getAmount().getAmount())
+                    .orElse(null);
+        } catch (Exception e) {
+            LOG.error("Failed to retrieve account balance: {}", e.getMessage());
+            return null;
+        }
+    }
 
+    private String processTransaction(String accountId, String otherAccountId, BigDecimal amount) {
+        BankAccountBO account1 = bankAccountService.getAccountById(accountId);
+        BankAccountBO account2 = bankAccountService.getAccountById(otherAccountId);
 
-        // Add the mock transaction to a list (the service accepts a list of transactions).
-        List<MockBookingDetailsBO> transactions = new ArrayList<>();
-        transactions.add(mockTransaction);
+        if (account1 == null || account2 == null) {
+            return "One or both accounts not found";
+        }
 
-        // Call the service to process the mock transactions.
+        MockBookingDetailsBO mockTransaction = createMockTransaction(account1.getIban(), account2.getIban(), amount);
+
+        List<MockBookingDetailsBO> transactions = Collections.singletonList(mockTransaction);
         Map<String, String> errorMap = transactionService.bookMockTransaction(transactions);
 
-        // Check for errors and output the result.
         if (errorMap.isEmpty()) {
-            log.info("Mock transaction for account {} booked successfully.", accountId);
+            LOG.info("Mock transaction for account {} booked successfully.", accountId);
+            return accountId + " Success";
         } else {
-            log.error("Errors occurred while booking transaction(s): {}", errorMap);
+            LOG.error("Errors occurred while booking transaction(s): {}", errorMap);
+            return "Transaction failed due to booking errors";
         }
         String transactionCert = generateTransactionCert(accountId, otherAccountID, amount);
 
@@ -175,4 +205,17 @@ public class PayoutServiceImpl implements PayoutServiceApi {
             throw new IllegalStateException("Error generating transaction certificate", e);
         }
     }
+
+    private MockBookingDetailsBO createMockTransaction(String iban1, String iban2, BigDecimal amount) {
+        MockBookingDetailsBO mockTransaction = new MockBookingDetailsBO();
+        mockTransaction.setUserAccount(iban1);
+        mockTransaction.setOtherAccount(iban2);
+        mockTransaction.setAmount(amount);
+        mockTransaction.setCurrency(Currency.getInstance(CURRENCY_CODE));
+        mockTransaction.setBookingDate(LocalDate.now());
+        mockTransaction.setValueDate(LocalDate.now().plusDays(1));
+        mockTransaction.setCrDrName("Test User");
+        mockTransaction.setRemittance("Payment for testing purposes");
+        return mockTransaction;
     }
+}
