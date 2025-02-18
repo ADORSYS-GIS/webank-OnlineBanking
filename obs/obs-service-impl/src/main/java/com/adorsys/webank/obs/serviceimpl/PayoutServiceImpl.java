@@ -172,10 +172,6 @@ public class PayoutServiceImpl implements PayoutServiceApi {
             // Parse server's public key
             ECKey serverPublicKey = (ECKey) JWK.parse(SERVER_PUBLIC_KEY_JSON);
 
-            // Compute SHA-256 hash of the server's public JWK to use as `kid`
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(serverPublicKey.toPublicJWK().toJSONString().getBytes(StandardCharsets.UTF_8));
-
 
             // Create the JWT header with the JWK object (the server public key)
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
