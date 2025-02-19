@@ -60,12 +60,16 @@ public class TransServiceImpl implements TransServiceApi {
 
             // Map the posting lines to a properly formatted JSON string
             List<String> transactionDetails = postingLines.stream()
-                    .map(postingLine -> "{\n" +
-                            "  \"id\": \"" + postingLine.getTransactionId() + "\",\n" +
-                            "  \"date\": \"" + postingLine.getBookingDate().toString() + "\",\n" +
-                            "  \"amount\": \"" + postingLine.getTransactionAmount().getAmount() + "\",\n" +
-                            "  \"title\": \"" + "Deposit" + "\"\n" +
-                            "}")
+                    .map(postingLine -> {
+                        String amount = String.valueOf(postingLine.getTransactionAmount().getAmount());
+                        String title = amount.startsWith("-") ? "Withdrawal" : "Deposit";
+                        return "{\n" +
+                                "  \"id\": \"" + postingLine.getTransactionId() + "\",\n" +
+                                "  \"date\": \"" + postingLine.getBookingDate().toString() + "\",\n" +
+                                "  \"amount\": \"" + amount + "\",\n" +
+                                "  \"title\": \"" + title + "\"\n" +
+                                "}";
+                    })
                     .toList();
 
             log.info("Transaction details: {} " , transactionDetails);
