@@ -2,29 +2,43 @@ package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.PayoutRequest;
 import com.adorsys.webank.obs.security.JwtCertValidator;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import de.adorsys.webank.bank.api.domain.AmountBO;
+import de.adorsys.webank.bank.api.domain.BalanceBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
-import de.adorsys.webank.bank.api.domain.BalanceBO;
-import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class PayoutServiceImplTest {
@@ -37,9 +51,24 @@ public class PayoutServiceImplTest {
 
     @Mock
     private JwtCertValidator jwtCertValidator;
+    private ECKey serverKeyPair;
 
     @InjectMocks
     private PayoutServiceImpl payoutService;
+    @BeforeEach
+    void setUp() throws Exception {
+        serverKeyPair = new ECKeyGenerator(Curve.P_256).keyID("server-key").generate();
+        injectField("SERVER_PRIVATE_KEY_JSON", serverKeyPair.toJSONString());
+        injectField("SERVER_PUBLIC_KEY_JSON", serverKeyPair.toPublicJWK().toJSONString());
+        injectField("issuer", "https://webank.com");
+        injectField("expirationTimeMs", 60000L);
+    }
+
+    private void injectField(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field field = PayoutServiceImpl.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(payoutService, value);
+    }
 
     // Helper method to create a basic PayoutRequest
     private PayoutRequest createPayoutRequest(String accountId, String otherAccountId, String amount) {
@@ -202,5 +231,31 @@ public class PayoutServiceImplTest {
 
         String result = payoutService.payout(request, validJwt);
         assertEquals("Transaction failed due to booking errors", result);
+    }
+    @Test
+    void generateTransactionCert_ValidJwtStructure() throws ParseException {
+        String cert = payoutService.generateTransactionCert("sender123", "receiver456", "1000");
+        SignedJWT signedJWT = SignedJWT.parse(cert);
+        assertEquals(JWSAlgorithm.ES256, signedJWT.getHeader().getAlgorithm());
+        signedJWT.getHeader().getJWK();
+    }
+
+    @Test
+    void generateTransactionCert_ValidClaims() throws ParseException {
+        String cert = payoutService.generateTransactionCert("sender123", "receiver456", "1000");
+        JWTClaimsSet claims = SignedJWT.parse(cert).getJWTClaimsSet();
+        assertEquals("https://webank.com", claims.getIssuer());
+        assertEquals("1000", claims.getClaim("amount"));
+        assertEquals("sender123", claims.getClaim("from"));
+        assertEquals("receiver456", claims.getClaim("to"));
+        Assertions.assertNotNull(claims.getClaim("TranactionID"));
+    }
+
+    @Test
+    void generateTransactionCert_ValidSignature() throws JOSEException, ParseException {
+        String cert = payoutService.generateTransactionCert("sender123", "receiver456", "1000");
+        SignedJWT signedJWT = SignedJWT.parse(cert);
+        JWSVerifier verifier = new ECDSAVerifier(serverKeyPair.toPublicJWK());
+        assertTrue(signedJWT.verify(verifier), "Signature validation failed");
     }
 }
