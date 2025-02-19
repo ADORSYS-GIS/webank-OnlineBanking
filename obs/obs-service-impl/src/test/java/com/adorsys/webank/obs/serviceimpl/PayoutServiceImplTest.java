@@ -70,10 +70,10 @@ class PayoutServiceImplTest {
     }
 
     // Helper method to create a basic PayoutRequest
-    private PayoutRequest createPayoutRequest(String accountId, String otherAccountId, String amount) {
+    private PayoutRequest createPayoutRequest(String senderAccountId, String recipientAccountId, String amount) {
         PayoutRequest request = new PayoutRequest();
-        request.setAccountID(accountId);
-        request.setOtherAccountID(otherAccountId);
+        request.setSenderAccountId(senderAccountId);
+        request.setRecipientAccountId(recipientAccountId);
         request.setAmount(amount);
         return request;
     }

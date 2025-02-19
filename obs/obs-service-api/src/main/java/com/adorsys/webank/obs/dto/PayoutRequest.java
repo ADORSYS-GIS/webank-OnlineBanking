@@ -1,8 +1,8 @@
 package com.adorsys.webank.obs.dto;
 
 public class PayoutRequest {
-        private String accountID;
-        private String otherAccountID;
+        private String recipientAccountId;
+        private String senderAccountId;
         private String amount;
 
     public String getAmount() {
@@ -13,20 +13,19 @@ public class PayoutRequest {
         this.amount = amount;
     }
 
-    // Getters and Setters
-        public String getAccountID() {
-            return accountID;
-        }
+    public String getRecipientAccountId() {
+        return recipientAccountId;
+    }
 
-        public void setAccountID(String accountID) {
-            this.accountID = accountID;
-        }
+    public void setRecipientAccountId(String recipientAccountId) {
+        this.recipientAccountId = recipientAccountId;
+    }
 
-        public String getOtherAccountID() {
-            return otherAccountID;
-        }
+    public String getSenderAccountId() {
+        return senderAccountId;
+    }
 
-        public void setOtherAccountID(String otherAccountID) {
-            this.otherAccountID = otherAccountID;
-        }
+    public void setSenderAccountId(String senderAccountId) {
+        this.senderAccountId = senderAccountId;
+    }
 }
