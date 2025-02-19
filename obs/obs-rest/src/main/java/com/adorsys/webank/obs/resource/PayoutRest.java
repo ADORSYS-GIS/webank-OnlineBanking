@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PayoutRest implements PayoutRestApi {
 
-    private PayoutServiceApi payoutService;
+    private final PayoutServiceApi payoutService;
 
     public PayoutRest(PayoutServiceApi payoutService) {
         this.payoutService = payoutService;
