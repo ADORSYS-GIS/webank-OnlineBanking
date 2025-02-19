@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PayoutServiceImplTest {
+class PayoutServiceImplTest {
 
     @Mock
     private TransactionService transactionService;
@@ -96,7 +96,7 @@ public class PayoutServiceImplTest {
     }
 
     @Test
-    public void testPayoutInvalidJwt() {
+    void testPayoutInvalidJwt() {
         String invalidJwt = "invalidJwt";
         PayoutRequest request = createPayoutRequest("acc1", "acc2", "100");
         when(jwtCertValidator.validateJWT(invalidJwt)).thenReturn(false);
@@ -106,7 +106,7 @@ public class PayoutServiceImplTest {
     }
 
     @Test
-    public void testPayoutInvalidAmountFormat() {
+    void testPayoutInvalidAmountFormat() {
         String validJwt = "validJwt";
         PayoutRequest request = createPayoutRequest("acc1", "acc2", "abc");
         when(jwtCertValidator.validateJWT(validJwt)).thenReturn(true);
@@ -116,7 +116,7 @@ public class PayoutServiceImplTest {
     }
 
     @Test
-    public void testPayoutNonPositiveAmount() {
+    void testPayoutNonPositiveAmount() {
         String validJwt = "validJwt";
         // Try with zero
         PayoutRequest request = createPayoutRequest("acc1", "acc2", "0");
@@ -127,7 +127,7 @@ public class PayoutServiceImplTest {
     }
 
     @Test
-    public void testPayoutUnableToRetrieveBalance() {
+    void testPayoutUnableToRetrieveBalance() {
         String validJwt = "validJwt";
         PayoutRequest request = createPayoutRequest("acc1", "acc2", "100");
         when(jwtCertValidator.validateJWT(validJwt)).thenReturn(true);
@@ -141,7 +141,7 @@ public class PayoutServiceImplTest {
     }
 
     @Test
-    public void testPayoutInsufficientBalance() {
+    void testPayoutInsufficientBalance() {
         String validJwt = "validJwt";
         PayoutRequest request = createPayoutRequest("acc1", "acc2", "1000");
         when(jwtCertValidator.validateJWT(validJwt)).thenReturn(true);
@@ -156,7 +156,7 @@ public class PayoutServiceImplTest {
     }
 
     @Test
-    public void testPayoutAccountNotFound() {
+    void testPayoutAccountNotFound() {
         String validJwt = "validJwt";
         PayoutRequest request = createPayoutRequest("acc1", "acc2", "100");
         when(jwtCertValidator.validateJWT(validJwt)).thenReturn(true);
@@ -175,7 +175,7 @@ public class PayoutServiceImplTest {
     }
 
 @Test
-public void testPayoutTransactionSuccess() throws ParseException, JOSEException {
+void testPayoutTransactionSuccess() throws ParseException {
     String validJwt = "validJwt";
     String sourceAccountId = "acc1";
     String otherAccountId = "acc2";
@@ -212,7 +212,7 @@ public void testPayoutTransactionSuccess() throws ParseException, JOSEException 
 
 
     @Test
-    public void testPayoutTransactionFailure() {
+    void testPayoutTransactionFailure() {
         String validJwt = "validJwt";
         String sourceAccountId = "acc1";
         String otherAccountId = "acc2";
