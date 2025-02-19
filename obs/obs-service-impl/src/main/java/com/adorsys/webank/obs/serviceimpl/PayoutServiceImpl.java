@@ -15,6 +15,7 @@ import com.nimbusds.jwt.SignedJWT;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
+import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
 import org.slf4j.Logger;
@@ -149,6 +150,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
     private MockBookingDetailsBO createMockTransaction(String sendingAccountIban, String receivingAccountIban, BigDecimal amount) {
         MockBookingDetailsBO mockTransaction = new MockBookingDetailsBO();
+        // Note: Adjust the assignment below if you intend a different order for the IBANs.
         mockTransaction.setUserAccount(receivingAccountIban);
         mockTransaction.setOtherAccount(sendingAccountIban);
         mockTransaction.setAmount(amount);
@@ -162,6 +164,19 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
     public String generateTransactionCert(String senderAccountId, String recipientAccountId, String amount) {
         try {
+            // Retrieve the latest transaction for senderAccountId within the last month.
+            LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
+            LocalDateTime dateTo = LocalDateTime.now();
+            List<TransactionDetailsBO> transactions = bankAccountService.getTransactionsByDates(senderAccountId, dateFrom, dateTo);
+            Optional<TransactionDetailsBO> latestTransactionOpt = transactions.stream()
+                    .max(Comparator.comparing(TransactionDetailsBO::getBookingDate));
+            String transactionId;
+            if (latestTransactionOpt.isPresent()) {
+                transactionId = latestTransactionOpt.get().getTransactionId();
+            } else {
+                transactionId = "1";
+            }
+
             // Parse server's private key from JWK JSON.
             ECKey serverPrivateKey = (ECKey) JWK.parse(SERVER_PRIVATE_KEY_JSON);
             if (serverPrivateKey.getD() == null) {
@@ -183,7 +198,6 @@ public class PayoutServiceImpl implements PayoutServiceApi {
             // Create the JWT payload.
             long issuedAt = System.currentTimeMillis() / 1000; // seconds
             long paymentTime = System.currentTimeMillis();
-            String transactionId = UUID.randomUUID().toString();
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .issuer(issuer)
                     .claim("amount", amount)              // Transaction amount.
