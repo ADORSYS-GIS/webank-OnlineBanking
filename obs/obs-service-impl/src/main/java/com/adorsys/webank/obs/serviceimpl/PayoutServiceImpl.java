@@ -70,7 +70,6 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
         // Retrieve account IDs from the DTO using the given names.
         String senderAccountId = payoutRequest.getSenderAccountId();
-        String recipientAccountId = payoutRequest.getRecipientAccountId();
 
         // Check the balance for the sender account.
         BigDecimal currentBalance = getCurrentBalance(senderAccountId);
@@ -80,6 +79,8 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         if (currentBalance.compareTo(amountToSend) < 0) {
             return "Insufficient balance. Current balance: " + currentBalance + " XAF";
         }
+
+        String recipientAccountId = payoutRequest.getRecipientAccountId();
 
         // Call processTransaction with senderAccountId first and recipientAccountId second.
         return processTransaction(senderAccountId, recipientAccountId, amountToSend);
