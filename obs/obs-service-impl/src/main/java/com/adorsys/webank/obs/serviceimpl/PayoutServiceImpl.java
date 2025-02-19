@@ -15,6 +15,7 @@ import com.nimbusds.jwt.SignedJWT;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
+import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
 import org.slf4j.Logger;
@@ -23,8 +24,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -69,19 +68,23 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         if (amountToSend.compareTo(BigDecimal.ZERO) <= 0) {
             return "Amount must be a positive number";
         }
-        String accountId = payoutRequest.getAccountID();
 
-        BigDecimal currentBalance = getCurrentBalance(accountId);
+        // Retrieve account IDs from the DTO using the given names.
+        String senderAccountId = payoutRequest.getSenderAccountId();
+
+        // Check the balance for the sender account.
+        BigDecimal currentBalance = getCurrentBalance(senderAccountId);
         if (currentBalance == null) {
             return "Unable to retrieve balance for the source account";
         }
-
         if (currentBalance.compareTo(amountToSend) < 0) {
             return "Insufficient balance. Current balance: " + currentBalance + " XAF";
         }
 
-        String otherAccountId = payoutRequest.getOtherAccountID();
-        return processTransaction(accountId, otherAccountId, amountToSend);
+        String recipientAccountId = payoutRequest.getRecipientAccountId();
+
+        // Call processTransaction with senderAccountId first and recipientAccountId second.
+        return processTransaction(senderAccountId, recipientAccountId, amountToSend);
     }
 
     private boolean isValidJwt(String accountCertificateJwt) {
@@ -120,34 +123,36 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         }
     }
 
-    private String processTransaction(String accountId, String otherAccountId, BigDecimal amount) {
-        BankAccountBO account1 = bankAccountService.getAccountById(accountId);
-        BankAccountBO account2 = bankAccountService.getAccountById(otherAccountId);
+    private String processTransaction(String senderAccountId, String recipientAccountId, BigDecimal amount) {
+        BankAccountBO sendingAccount = bankAccountService.getAccountById(senderAccountId);
+        BankAccountBO receivingAccount = bankAccountService.getAccountById(recipientAccountId);
 
-        if (account1 == null || account2 == null) {
+        if (sendingAccount == null || receivingAccount == null) {
             return "One or both accounts not found";
         }
 
-        MockBookingDetailsBO mockTransaction = createMockTransaction(account1.getIban(), account2.getIban(), amount);
-
+        // Create the mock transaction using the proper IBANs.
+        MockBookingDetailsBO mockTransaction = createMockTransaction(sendingAccount.getIban(), receivingAccount.getIban(), amount);
         List<MockBookingDetailsBO> transactions = Collections.singletonList(mockTransaction);
         Map<String, String> errorMap = transactionService.bookMockTransaction(transactions);
 
         if (errorMap.isEmpty()) {
-            LOG.info("Mock transaction for account {} booked successfully.", accountId);
+            LOG.info("Mock transaction for sender account {} and recipient account {} booked successfully.", senderAccountId, recipientAccountId);
         } else {
             LOG.error("Errors occurred while booking transaction(s): {}", errorMap);
             return "Transaction failed due to booking errors";
         }
-        String transactionCert = generateTransactionCert(accountId, otherAccountId, String.valueOf(amount));
 
-        return transactionCert +  " Success";
+        // Generate the transaction certificate with the correct order.
+        String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));
+        return transactionCert + " Success";
     }
 
-    private MockBookingDetailsBO createMockTransaction(String iban1, String iban2, BigDecimal amount) {
+    private MockBookingDetailsBO createMockTransaction(String sendingAccountIban, String receivingAccountIban, BigDecimal amount) {
         MockBookingDetailsBO mockTransaction = new MockBookingDetailsBO();
-        mockTransaction.setUserAccount(iban1);
-        mockTransaction.setOtherAccount(iban2);
+        // Note: Adjust the assignment below if you intend a different order for the IBANs.
+        mockTransaction.setUserAccount(receivingAccountIban);
+        mockTransaction.setOtherAccount(sendingAccountIban);
         mockTransaction.setAmount(amount);
         mockTransaction.setCurrency(Currency.getInstance(CURRENCY_CODE));
         mockTransaction.setBookingDate(LocalDate.now());
@@ -157,48 +162,57 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         return mockTransaction;
     }
 
-    public String generateTransactionCert(String senderAccount, String receiverAccount, String amount) {
+    public String generateTransactionCert(String senderAccountId, String recipientAccountId, String amount) {
         try {
+            // Retrieve the latest transaction for senderAccountId within the last month.
+            LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
+            LocalDateTime dateTo = LocalDateTime.now();
+            List<TransactionDetailsBO> transactions = bankAccountService.getTransactionsByDates(senderAccountId, dateFrom, dateTo);
+            Optional<TransactionDetailsBO> latestTransactionOpt = transactions.stream()
+                    .max(Comparator.comparing(TransactionDetailsBO::getBookingDate));
+            String transactionId;
+            if (latestTransactionOpt.isPresent()) {
+                transactionId = latestTransactionOpt.get().getTransactionId();
+            } else {
+                transactionId = "1";
+            }
 
-            // Parse server's private key from JWK JSON
+            // Parse server's private key from JWK JSON.
             ECKey serverPrivateKey = (ECKey) JWK.parse(SERVER_PRIVATE_KEY_JSON);
             if (serverPrivateKey.getD() == null) {
                 throw new IllegalStateException("Private key 'd' (private) parameter is missing.");
             }
 
-            // Signer using server's private key
+            // Create a signer using the server's private key.
             JWSSigner signer = new ECDSASigner(serverPrivateKey);
 
-            // Parse server's public key
+            // Parse server's public key.
             ECKey serverPublicKey = (ECKey) JWK.parse(SERVER_PUBLIC_KEY_JSON);
 
-
-            // Create the JWT header with the JWK object (the server public key)
+            // Create the JWT header with the server public key.
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                     .type(JOSEObjectType.JWT)
                     .jwk(serverPublicKey.toPublicJWK())
                     .build();
 
-            // Create JWT Payload
-            long issuedAt = System.currentTimeMillis() / 1000; // Convert to seconds
-            long paymentTime = System.currentTimeMillis(); // Use current time as payment time
-            String transactionId = UUID.randomUUID().toString(); // Generate a unique transaction ID
+            // Create the JWT payload.
+            long issuedAt = System.currentTimeMillis() / 1000; // seconds
+            long paymentTime = System.currentTimeMillis();
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .issuer(issuer)
-                    .claim("amount", amount) // Transaction amount
-                    .claim("from", senderAccount) // Sender account
-                    .claim("to", receiverAccount) // Receiver account
+                    .claim("amount", amount)              // Transaction amount.
+                    .claim("from", senderAccountId)         // Sender account.
+                    .claim("to", recipientAccountId)        // Recipient account.
                     .claim("paymentMethod", "Bank deposit")
                     .claim("TranactionID", transactionId)
                     .claim("paymentTime", paymentTime)
                     .issueTime(new Date(issuedAt * 1000))
-                    .expirationTime(new Date((issuedAt + (expirationTimeMs / 1000)) * 1000)) // Convert to milliseconds
+                    .expirationTime(new Date((issuedAt + (expirationTimeMs / 1000)) * 1000))
                     .build();
 
-            // Create JWT token
+            // Create and sign the JWT.
             SignedJWT signedJWT = new SignedJWT(header, claimsSet);
             signedJWT.sign(signer);
-
 
             LOG.info("Transaction Cert Is: {}", signedJWT.serialize());
             return signedJWT.serialize();
@@ -206,6 +220,5 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         } catch (Exception e) {
             throw new IllegalStateException("Error generating transaction certificate", e);
         }
-
-
-    }}
+    }
+}
