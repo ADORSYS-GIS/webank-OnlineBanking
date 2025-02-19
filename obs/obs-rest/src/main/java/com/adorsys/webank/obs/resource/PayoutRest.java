@@ -1,7 +1,6 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.PayoutRequest;
-import com.adorsys.webank.obs.dto.TransRequest;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
