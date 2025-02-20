@@ -1,5 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.obs.config.RegistrationCache; // Add import for RegistrationCache
 import com.adorsys.webank.obs.dto.*;
 import com.adorsys.webank.obs.security.*;
 import com.adorsys.webank.obs.service.*;
@@ -7,12 +8,10 @@ import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
 import de.adorsys.webank.bank.api.service.util.*;
 import org.slf4j.*;
-
 import org.springframework.stereotype.*;
 
 import java.math.*;
 import java.util.*;
-
 
 @Service
 public class ObsServiceImpl implements RegistrationServiceApi {
@@ -20,58 +19,54 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     private static final Logger log = LoggerFactory.getLogger(ObsServiceImpl.class);
 
     private BankAccountCertificateCreationService bankAccountCertificateCreationService;
-
-
     private BankAccountService bankAccountService;
-
-
     private final JwtCertValidator jwtCertValidator;
-
-
     private final BankAccountTransactionService bankAccountTransactionService;
 
+    // Add RegistrationCache as a dependency
+    private final RegistrationCache registrationCache;
 
-
-    public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, BankAccountService bankAccountService, BankAccountCertificateCreationService bankAccountCertificateCreationService) {
+    public ObsServiceImpl(JwtCertValidator jwtCertValidator,
+                          BankAccountTransactionService bankAccountTransactionService,
+                          BankAccountService bankAccountService,
+                          BankAccountCertificateCreationService bankAccountCertificateCreationService,
+                          RegistrationCache registrationCache) {
         this.jwtCertValidator = jwtCertValidator;
         this.bankAccountTransactionService = bankAccountTransactionService;
         this.bankAccountService = bankAccountService;
         this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
-
+        this.registrationCache = registrationCache;  // Initialize RegistrationCache
     }
 
-
-
     @Override
-    public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt ) {
-
+    public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt) {
         try {
-
-            //validate the JWT token passed from the frontend
+            // Validate the JWT token passed from the frontend
             boolean isValid = jwtCertValidator.validateJWT(phoneNumberCertificateJwt);
 
-            if (!isValid){
+            if (!isValid) {
                 return "Invalid certificate or JWT. Account creation failed";
             }
-            // Iban will come from configuration
+
+            // Get phone number from registration request
+            String phoneNumber = registrationRequest.getPhoneNumber();
+
+            // Check if the phone number is already registered (present in the cache)
+            if (registrationCache.isRegistered(phoneNumber)) {
+                return "Phone number already registered.";
+            }
+
+            // Create and populate BankAccountBO
             String iban = UUID.randomUUID().toString();
-            String msidn = registrationRequest.getPhoneNumber();
-            // currency will come from config
             Currency currency = Currency.getInstance("XAF");
-            // As name we will use the public key id for now. FixMe
-            String name = iban;
-            // product will come from config
+            String name = iban; // As name, we'll use the IBAN for now
             String product = "Standard";
-            // Bic will come from ASPSP config
             String bic = "72070032";
-            // Branch will come from config
             String branch = "OBS";
 
-
-            // Create and populate BankAccountBO with balance set
             BankAccountBO bankAccountBO = BankAccountBO.builder()
                     .iban(iban)
-                    .msisdn(msidn)
+                    .msisdn(phoneNumber)
                     .currency(currency)
                     .name(name)
                     .displayName(name)
@@ -86,7 +81,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     .build();
 
             // Call the service to create the account
-            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(registrationRequest.getPhoneNumber(), registrationRequest.getPublicKey(), bankAccountBO, UUID.randomUUID().toString(), "OBS");
+            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(
+                    registrationRequest.getPhoneNumber(),
+                    registrationRequest.getPublicKey(),
+                    bankAccountBO,
+                    UUID.randomUUID().toString(),
+                    "OBS");
 
             // Split the string by newlines
             String[] lines = createdAccountResult.split("\n");
@@ -94,8 +94,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             // Access the account ID, which is in the third line (index 2)
             String accountId = lines[2];
 
+            // Make the initial transaction (deposit)
             String deposit = makeTrans(accountId);
             log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
+
+            // After account creation, add the phone number to the registration cache
+            registrationCache.addToCache(phoneNumber);
 
             return "Bank account successfully created. Details: " + createdAccountResult;
         } catch (Exception e) {
@@ -115,14 +119,13 @@ public class ObsServiceImpl implements RegistrationServiceApi {
      */
     public String makeTrans(String accountId) {
         try {
-
-            // Fetch the account details.
+            // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
             if (bankAccount == null) {
                 return "Bank account not found for ID: " + accountId;
             }
 
-            // Define multiple deposit values.
+            // Define multiple deposit values
             BigDecimal[] depositValues = {
                     new BigDecimal("1000.00"),
                     new BigDecimal("500.50"),
@@ -134,7 +137,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             Currency currency = Currency.getInstance("XAF");
             String recordUser = "Default name";
 
-            // Process each transaction.
+            // Process each transaction
             for (BigDecimal depositValue : depositValues) {
                 AmountBO depositAmount = new AmountBO(currency, depositValue);
                 bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
@@ -147,6 +150,4 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     + (e.getMessage() != null ? e.getMessage() : e.toString());
         }
     }
-
 }
-
