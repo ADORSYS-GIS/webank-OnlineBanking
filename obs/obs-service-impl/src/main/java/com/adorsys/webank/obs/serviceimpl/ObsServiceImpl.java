@@ -7,12 +7,12 @@ import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
 import de.adorsys.webank.bank.api.service.util.*;
 import org.slf4j.*;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.*;
 
 import java.math.*;
 import java.util.*;
-
 
 @Service
 public class ObsServiceImpl implements RegistrationServiceApi {
@@ -20,53 +20,50 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     private static final Logger log = LoggerFactory.getLogger(ObsServiceImpl.class);
 
     private BankAccountCertificateCreationService bankAccountCertificateCreationService;
-
-
     private BankAccountService bankAccountService;
-
-
     private final JwtCertValidator jwtCertValidator;
-
-
     private final BankAccountTransactionService bankAccountTransactionService;
 
-
+    // Injecting RedisTemplate
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
 
     public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, BankAccountService bankAccountService, BankAccountCertificateCreationService bankAccountCertificateCreationService) {
         this.jwtCertValidator = jwtCertValidator;
         this.bankAccountTransactionService = bankAccountTransactionService;
         this.bankAccountService = bankAccountService;
         this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
-
     }
 
-
-
     @Override
-    public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt ) {
-
+    public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt) {
         try {
+            String phoneNumber = registrationRequest.getPhoneNumber();
 
-            //validate the JWT token passed from the frontend
+            // Check if the phone number is already in the cache
+            if (redisTemplate.hasKey(phoneNumber)) {
+                log.warn("Phone number {} is already registered in Redis.", phoneNumber);
+                return "Phone number is already registered.";
+            }
+
+            log.info("Checking JWT certificate for phone number: {}", phoneNumber);
+            // Validate the JWT token passed from the frontend
             boolean isValid = jwtCertValidator.validateJWT(phoneNumberCertificateJwt);
 
-            if (!isValid){
+            if (!isValid) {
+                log.error("Invalid certificate or JWT for phone number: {}", phoneNumber);
                 return "Invalid certificate or JWT. Account creation failed";
             }
+
+            log.info("Creating new bank account for phone number: {}", phoneNumber);
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
             String msidn = registrationRequest.getPhoneNumber();
-            // currency will come from config
             Currency currency = Currency.getInstance("XAF");
-            // As name we will use the public key id for now. FixMe
             String name = iban;
-            // product will come from config
             String product = "Standard";
-            // Bic will come from ASPSP config
             String bic = "72070032";
-            // Branch will come from config
             String branch = "OBS";
-
 
             // Create and populate BankAccountBO with balance set
             BankAccountBO bankAccountBO = BankAccountBO.builder()
@@ -94,35 +91,31 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             // Access the account ID, which is in the third line (index 2)
             String accountId = lines[2];
 
+            // Make the deposit transaction
             String deposit = makeTrans(accountId);
             log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
 
+            // Store the phone number in Redis to prevent re-registration
+            redisTemplate.opsForValue().set(phoneNumber, "registered");
+            log.info("Phone number {} added to Redis as registered.", phoneNumber);
+
             return "Bank account successfully created. Details: " + createdAccountResult;
         } catch (Exception e) {
+            log.error("An error occurred while processing the request for phone number: {}: {}", registrationRequest.getPhoneNumber(), e.getMessage(), e);
             return "An error occurred while processing the request: " + e.getMessage();
         }
     }
 
-    /**
-     * Makes a transaction (in this case, a deposit) into a particular account.
-     * <p>
-     * The method:
-     * 1. Validates the provided JWT.
-     * 2. Retrieves the bank account using the account ID from the request.
-     * 3. Extracts the deposit details (amount, currency, record user) from the request.
-     * 4. Creates an AmountBO instance representing the deposit.
-     * 5. Calls the depositCash method on the BankAccountService.
-     */
     public String makeTrans(String accountId) {
         try {
-
-            // Fetch the account details.
+            // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
             if (bankAccount == null) {
+                log.error("Bank account not found for accountId: {}", accountId);
                 return "Bank account not found for ID: " + accountId;
             }
 
-            // Define multiple deposit values.
+            // Define multiple deposit values
             BigDecimal[] depositValues = {
                     new BigDecimal("1000.00"),
                     new BigDecimal("500.50"),
@@ -134,19 +127,19 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             Currency currency = Currency.getInstance("XAF");
             String recordUser = "Default name";
 
-            // Process each transaction.
+            // Process each transaction
             for (BigDecimal depositValue : depositValues) {
                 AmountBO depositAmount = new AmountBO(currency, depositValue);
+                log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
                 bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
             }
 
             return "5 transactions completed successfully for account " + accountId;
 
         } catch (Exception e) {
+            log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
             return "An error occurred while processing the transactions: "
                     + (e.getMessage() != null ? e.getMessage() : e.toString());
         }
     }
-
 }
-
