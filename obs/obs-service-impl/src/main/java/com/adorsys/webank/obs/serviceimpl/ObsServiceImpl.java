@@ -8,7 +8,6 @@ import de.adorsys.webank.bank.api.service.*;
 import de.adorsys.webank.bank.api.service.util.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.*;
 
 import java.math.*;
@@ -26,7 +25,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
     // Injecting RedisTemplate
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
 
     public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, BankAccountService bankAccountService, BankAccountCertificateCreationService bankAccountCertificateCreationService) {
         this.jwtCertValidator = jwtCertValidator;
@@ -40,11 +38,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
         try {
             String phoneNumber = registrationRequest.getPhoneNumber();
 
-            // Check if the phone number is already in the cache
-            if (redisTemplate.hasKey(phoneNumber)) {
-                log.warn("Phone number {} is already registered in Redis.", phoneNumber);
-                return "Phone number is already registered.";
-            }
 
             log.info("Checking JWT certificate for phone number: {}", phoneNumber);
             // Validate the JWT token passed from the frontend
@@ -95,9 +88,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             String deposit = makeTrans(accountId);
             log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
 
-            // Store the phone number in Redis to prevent re-registration
-            redisTemplate.opsForValue().set(phoneNumber, "registered");
-            log.info("Phone number {} added to Redis as registered.", phoneNumber);
 
             return "Bank account successfully created. Details: " + createdAccountResult;
         } catch (Exception e) {
