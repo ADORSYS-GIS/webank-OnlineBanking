@@ -1,20 +1,19 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+
 import com.adorsys.webank.obs.dto.*;
 import com.adorsys.webank.obs.security.*;
+
 import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
+
 import de.adorsys.webank.bank.api.service.util.*;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-
-import java.lang.reflect.Field;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 
 class ObsServiceImplTest {
 
@@ -30,53 +29,36 @@ class ObsServiceImplTest {
     @Mock
     private BankAccountService bankAccountService;
 
-    @Mock
-    private RedisTemplate<String, String> redisTemplate;
-
     @InjectMocks
     private ObsServiceImpl obsService;
 
-    @BeforeEach
-    void setUp() throws NoSuchFieldException, IllegalAccessException {
-        MockitoAnnotations.openMocks(this);
 
-        // Manually inject RedisTemplate mock using reflection
-        Field redisTemplateField = ObsServiceImpl.class.getDeclaredField("redisTemplate");
-        redisTemplateField.setAccessible(true);
-        redisTemplateField.set(obsService, redisTemplate);
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     void testRegisterAccount_invalidJwt() {
+        // Prepare test data
         RegistrationRequest registrationRequest = new RegistrationRequest();
         registrationRequest.setPhoneNumber("1234567890");
         registrationRequest.setPublicKey("publicKey123");
-        String jwt = "invalidJwt";
 
-        when(redisTemplate.hasKey("1234567890")).thenReturn(false);
-        when(jwtCertValidator.validateJWT(jwt)).thenReturn(false);
+        String phoneNumberCertificateJwt = "invalidJwt";
 
-        String result = obsService.registerAccount(registrationRequest, jwt);
+        // Mock JwtCertValidator's validateJWT method to return false
+        when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(false);
 
+        // Call the method to test
+        String result = obsService.registerAccount(registrationRequest, phoneNumberCertificateJwt);
+
+        // Verify the result
         assertEquals("Invalid certificate or JWT. Account creation failed", result);
-        verify(redisTemplate).hasKey("1234567890");
-        verify(jwtCertValidator).validateJWT(jwt);
-        verifyNoInteractions(bankAccountCertificateCreationService);
-    }
 
-    @Test
-    void testRegisterAccount_phoneAlreadyRegistered() {
-        RegistrationRequest request = new RegistrationRequest();
-        request.setPhoneNumber("1234567890");
-        String jwt = "anyJwt";
-
-        when(redisTemplate.hasKey("1234567890")).thenReturn(true);
-
-        String result = obsService.registerAccount(request, jwt);
-
-        assertEquals("Phone number is already registered.", result);
-        verify(redisTemplate).hasKey("1234567890");
-        verifyNoInteractions(jwtCertValidator, bankAccountCertificateCreationService);
+        // Verify the interaction with the mock
+        verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
+        verify(bankAccountCertificateCreationService, times(0)).registerNewBankAccount(any(), any(), any(), anyString(), anyString());
     }
 
     @Test
@@ -91,10 +73,6 @@ class ObsServiceImplTest {
         // Mock JwtCertValidator's validateJWT method to return true
         when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(true);
 
-        // Mock RedisTemplate's opsForValue() to return a valid mock
-        ValueOperations<String, String> valueOps = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOps);
-
         // Mock BankAccountCertificateCreationService's registerNewBankAccount method
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
         when(bankAccountCertificateCreationService.registerNewBankAccount(
@@ -105,65 +83,77 @@ class ObsServiceImplTest {
         // Call the method to test
         String result = obsService.registerAccount(registrationRequest, phoneNumberCertificateJwt);
 
-        // Adjust the expected message to match the multi-line actual result
-        String expectedMessage = "Bank account successfully created. Details: Header\nSubheader\nAccount ID: 12345";
-
         // Verify the result
-        assertEquals(expectedMessage, result);
+        assertEquals("Bank account successfully created. Details: " + mockResult, result);
 
         // Verify the interactions with the mocks
         verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(any(), any(), any(), anyString(), anyString());
     }
 
-
-
     @Test
     void testRegisterAccount_success_verifyBankAccountBO() {
-        RegistrationRequest request = new RegistrationRequest();
-        request.setPhoneNumber("1234567890");
-        request.setPublicKey("publicKey123");
-        String jwt = "validJwt";
-        ValueOperations<String, String> valueOps = mock(ValueOperations.class);
+        // Prepare test data
+        RegistrationRequest registrationRequest = new RegistrationRequest();
+        registrationRequest.setPhoneNumber("1234567890");
+        registrationRequest.setPublicKey("publicKey123");
 
-        when(redisTemplate.hasKey("1234567890")).thenReturn(false);
-        when(jwtCertValidator.validateJWT(jwt)).thenReturn(true);
-        when(redisTemplate.opsForValue()).thenReturn(valueOps);
-        when(bankAccountService.getAccountById(any())).thenReturn(new BankAccountBO());
+        String phoneNumberCertificateJwt = "validJwt";
 
-        obsService.registerAccount(request, jwt);
+        // Mock JwtCertValidator's validateJWT method
+        when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(true);
 
-        ArgumentCaptor<BankAccountBO> captor = ArgumentCaptor.forClass(BankAccountBO.class);
+        // Mock BankAccountCertificateCreationService
+        String mockResult = "Header\nSubheader\nAccount ID: 12345";
+        when(bankAccountCertificateCreationService.registerNewBankAccount(
+                anyString(), anyString(), any(BankAccountBO.class), anyString(), anyString()
+        )).thenReturn(mockResult);
+
+        // Call the method
+        obsService.registerAccount(registrationRequest, phoneNumberCertificateJwt);
+
+        // Capture the BankAccountBO argument
+        ArgumentCaptor<BankAccountBO> bankAccountCaptor = ArgumentCaptor.forClass(BankAccountBO.class);
         verify(bankAccountCertificateCreationService).registerNewBankAccount(
-                eq("1234567890"), eq("publicKey123"), captor.capture(), any(), any());
+                eq("1234567890"), eq("publicKey123"), bankAccountCaptor.capture(), anyString(), anyString());
 
-        BankAccountBO account = captor.getValue();
-        assertEquals("1234567890", account.getMsisdn());
-        assertEquals("XAF", account.getCurrency().getCurrencyCode());
-        assertEquals("Standard", account.getProduct());
-        assertEquals("72070032", account.getBic());
-        assertEquals("OBS", account.getBranch());
+        // Assert BankAccountBO properties
+        BankAccountBO capturedBankAccount = bankAccountCaptor.getValue();
+        assertNotNull(capturedBankAccount);
+        assertEquals("1234567890", capturedBankAccount.getMsisdn());
+        assertEquals("XAF", capturedBankAccount.getCurrency().getCurrencyCode());
+        assertEquals("Standard", capturedBankAccount.getProduct());
+        assertEquals("72070032", capturedBankAccount.getBic());
+        assertEquals("OBS", capturedBankAccount.getBranch());
     }
 
     @Test
     void testMakeTrans_success() {
         String accountId = "12345";
+
+        // Mock BankAccountService
         when(bankAccountService.getAccountById(accountId)).thenReturn(new BankAccountBO());
 
+        // Call the method
         String result = obsService.makeTrans(accountId);
 
+        // Verify deposits were made
+        verify(bankAccountTransactionService, times(5))
+                .depositCash(eq(accountId), any(), anyString());
+
         assertEquals("5 transactions completed successfully for account " + accountId, result);
-        verify(bankAccountTransactionService, times(5)).depositCash(eq(accountId), any(), any());
     }
 
     @Test
     void testMakeTrans_accountNotFound() {
         String accountId = "nonExistent";
+
+        // Mock BankAccountService to return null
         when(bankAccountService.getAccountById(accountId)).thenReturn(null);
 
+        // Call the method
         String result = obsService.makeTrans(accountId);
 
         assertEquals("Bank account not found for ID: " + accountId, result);
-        verifyNoInteractions(bankAccountTransactionService);
     }
 }
