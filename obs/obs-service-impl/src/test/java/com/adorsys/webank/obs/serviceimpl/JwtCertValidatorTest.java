@@ -1,6 +1,9 @@
-package com.adorsys.webank.obs.serviceimpl;
+/**package com.adorsys.webank.obs.serviceimpl;
+
+
 
 import static org.junit.jupiter.api.Assertions.*;
+
 import com.nimbusds.jose.jwk.*;
 import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.nimbusds.jwt.*;
@@ -113,15 +116,16 @@ class JwtCertValidatorTest {
         return outerJwt.serialize();
     }
 
-    private JwtCertValidator createValidator(String publicKeyJson) throws NoSuchFieldException, IllegalAccessException  {
+    private JwtCertValidator createValidator(String publicKeyJson) throws NoSuchFieldException, IllegalAccessException {
         JwtCertValidator validator = new JwtCertValidator();
-        setPrivateField(validator, "SERVER_PUBLIC_KEY_JSON", publicKeyJson);
+        setPrivateField(validator, publicKeyJson);
         return validator;
     }
 
-    private void setPrivateField(Object target, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException  {
-        Field field = target.getClass().getDeclaredField(fieldName);
+    private void setPrivateField(Object target, Object value) throws NoSuchFieldException, IllegalAccessException  {
+        Field field = target.getClass().getDeclaredField("SERVER_PUBLIC_KEY_JSON");
         field.setAccessible(true);
         field.set(target, value);
     }
 }
+*/

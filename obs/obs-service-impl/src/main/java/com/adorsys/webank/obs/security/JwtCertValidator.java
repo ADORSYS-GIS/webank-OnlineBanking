@@ -17,7 +17,6 @@ public class JwtCertValidator {
 
     @Value("${server.public.key.json}")
     private String SERVER_PUBLIC_KEY_JSON;
-
     /**
      * Validates the JWT by extracting either accountJwt or phoneNumberJwt from its header and verifying signatures.
      *
@@ -31,7 +30,10 @@ public class JwtCertValidator {
             SignedJWT certJwt = parseJWT(cert);
             ECKey publicKey = loadPublicKey();
 
-            return verifySignature(certJwt, publicKey);
+            // Validate the accountCert
+            boolean isValidCert = verifySignature(certJwt, publicKey);
+
+            return isValidCert;
         } catch (Exception e) {
             logger.error("Error during JWT validation: ", e);
             return false;
