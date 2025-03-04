@@ -16,7 +16,7 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JwtCertValidatorTest {
+class JwtCertValidatorTest {
 
     private JwtCertValidator validator;
     private ECKey ecJwk;
