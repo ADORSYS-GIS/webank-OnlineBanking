@@ -136,7 +136,7 @@ public class TransactionHelper {
         Map<String, String> errorMap = transactionService.bookMockTransaction(transactions);
 
         if (errorMap.isEmpty()) {
-            logger.info("Transaction booked: {} -> {}", senderAccountId, recipientAccountId);
+            logger.info("Transaction booked:");
         } else {
             logger.error("Booking errors: {}", errorMap);
             return "Transaction failed due to booking errors";
