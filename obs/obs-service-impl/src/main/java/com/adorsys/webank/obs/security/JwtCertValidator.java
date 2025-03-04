@@ -31,9 +31,7 @@ public class JwtCertValidator {
             ECKey publicKey = loadPublicKey();
 
             // Validate the accountCert
-            boolean isValidCert = verifySignature(certJwt, publicKey);
-
-            return isValidCert;
+            return verifySignature(certJwt, publicKey);
         } catch (Exception e) {
             logger.error("Error during JWT validation: ", e);
             return false;

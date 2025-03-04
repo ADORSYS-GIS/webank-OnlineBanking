@@ -161,15 +161,10 @@ public class TransactionHelper {
 
     public String generateTransactionCert(String senderId, String recipientId, String amount, Logger logger) {
         try {
-            LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
-            List<TransactionDetailsBO> transactions = bankAccountService.getTransactionsByDates(senderId, dateFrom, LocalDateTime.now());
-            String transactionId = transactions.stream()
-                    .max(Comparator.comparing(TransactionDetailsBO::getBookingDate))
-                    .map(TransactionDetailsBO::getTransactionId)
-                    .orElse("1");
-
             ECKey privateKey = (ECKey) JWK.parse(serverPrivateKeyJson);
-            if (privateKey.getD() == null) throw new IllegalStateException("Missing private key parameter");
+            if (privateKey.getD() == null) {
+                throw new IllegalStateException("Missing private key parameter");
+            }
 
             JWSSigner signer = new ECDSASigner(privateKey);
             ECKey publicKey = (ECKey) JWK.parse(serverPublicKeyJson);
@@ -178,6 +173,14 @@ public class TransactionHelper {
                     .type(JOSEObjectType.JWT)
                     .jwk(publicKey.toPublicJWK())
                     .build();
+
+            LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
+            List<TransactionDetailsBO> transactions = bankAccountService.getTransactionsByDates(senderId, dateFrom, LocalDateTime.now());
+
+            String transactionId = transactions.stream()
+                    .max(Comparator.comparing(TransactionDetailsBO::getBookingDate))
+                    .map(TransactionDetailsBO::getTransactionId)
+                    .orElse("1");
 
             long issuedAt = System.currentTimeMillis() / 1000;
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
