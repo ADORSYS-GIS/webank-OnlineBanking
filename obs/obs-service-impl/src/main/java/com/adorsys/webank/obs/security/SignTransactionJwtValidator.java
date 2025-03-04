@@ -20,7 +20,7 @@ public class SignTransactionJwtValidator {
     private static final Logger logger = LoggerFactory.getLogger(SignTransactionJwtValidator.class);
 
     @Value("${server.public.key.json}")
-    String SERVER_PUBLIC_KEY_JSON;
+    String serverPublicKeyJson;
     /**
      * Validates the transaction JWT by extracting it from the main JWT header,
      * then verifying its signature using its own public key.
@@ -119,11 +119,11 @@ public class SignTransactionJwtValidator {
 
     private ECKey loadPublicKey() throws ParseException {
         logger.info("Loading public key from configured backend...");
-        if (SERVER_PUBLIC_KEY_JSON == null || SERVER_PUBLIC_KEY_JSON.isEmpty()) {
+        if (serverPublicKeyJson == null || serverPublicKeyJson.isEmpty()) {
             throw new IllegalStateException("Public key JSON is not configured properly.");
         }
-        logger.info("server public key: {}", SERVER_PUBLIC_KEY_JSON);
-        JWK jwk = JWK.parse(SERVER_PUBLIC_KEY_JSON);
+        logger.info("server public key: {}", serverPublicKeyJson);
+        JWK jwk = JWK.parse(serverPublicKeyJson);
         logger.info("Loaded JWK from backend: {}", jwk);
 
         if (!(jwk instanceof ECKey publicKey) || jwk.isPrivate()) {
@@ -137,11 +137,6 @@ public class SignTransactionJwtValidator {
             throws JOSEException, BadJWTException {
         logger.info("Verifying signature for JWS object...");
         var verifier = ecKey.toECPublicKey();
-        boolean isVerified = jwsObject.verify(new ECDSAVerifier(verifier));
-        if (!isVerified) {
-            throw new BadJWTException("Invalid signature.");
-        }
-        logger.info("Signature verified successfully.");
-        return false;
+        return jwsObject.verify(new ECDSAVerifier(verifier));
     }
 }

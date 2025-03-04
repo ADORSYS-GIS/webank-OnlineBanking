@@ -198,7 +198,6 @@ public class TransactionHelper {
             SignedJWT jwt = new SignedJWT(header, claims);
             jwt.sign(signer);
 
-            logger.info("Generated Transaction Cert: {}", jwt.serialize());
             return jwt.serialize();
         } catch (Exception e) {
             throw new IllegalStateException("Certificate generation failed", e);

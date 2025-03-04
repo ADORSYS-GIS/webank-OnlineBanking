@@ -1,131 +1,119 @@
-/**package com.adorsys.webank.obs.serviceimpl;
+package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.obs.security.JwtCertValidator;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.nimbusds.jose.jwk.*;
-import com.adorsys.webank.obs.security.JwtCertValidator;
-import com.nimbusds.jwt.*;
-import org.junit.jupiter.api.Test;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.*;
-import com.nimbusds.jose.jwk.gen.*;
-import java.lang.reflect.Field;
+public class JwtCertValidatorTest {
 
+    private JwtCertValidator validator;
+    private ECKey ecJwk;
 
-class JwtCertValidatorTest {
+    @BeforeEach
+    public void setUp() throws JOSEException {
+        ecJwk = new ECKeyGenerator(Curve.P_256)
+                .keyID("test-key-id")
+                .generate();
+        String publicKeyJson = ecJwk.toPublicJWK().toJSONString();
 
-    // Test Case 1: Valid JWT with correct signatures
-    @Test
-     void testValidJwt_ReturnsTrue() throws  Exception {
-        // Generate EC key pair for phoneNumberCert
-        ECKey phoneNumberKey = generateECKey();
-        String publicKeyJson = phoneNumberKey.toPublicJWK().toJSONString();
-
-        // Create valid phoneNumberCert JWT
-        SignedJWT phoneNumberJwt = createSignedJWT(phoneNumberKey, "sub", "user123");
-        String outerToken = createOuterToken(phoneNumberJwt.serialize());
-
-        JwtCertValidator validator = createValidator(publicKeyJson);
-        assertTrue(validator.validateJWT(outerToken));
+        // Instantiate the validator and inject the public key JSON
+        validator = new JwtCertValidator();
+        ReflectionTestUtils.setField(validator, "serverPublicKeyJson", publicKeyJson);
     }
 
-    // Test Case 2: Invalid outer JWT format
-    @Test
-     void testInvalidJwtFormat_ReturnsFalse() throws Exception {
-        JwtCertValidator validator = createValidator("dummy-key");
-        assertFalse(validator.validateJWT("invalid.token"));
-    }
-
-    // Test Case 3: Missing phoneNumberJwt in header
-    @Test
-     void testMissingPhoneNumberJwt_ReturnsFalse() throws Exception {
-        // Create outer JWT without phoneNumberJwt header
-        SignedJWT outerJwt = new SignedJWT(
-                new JWSHeader.Builder(JWSAlgorithm.ES256).build(),
-                new JWTClaimsSet.Builder().build()
-        );
-        outerJwt.sign(new ECDSASigner(generateECKey()));
-
-        JwtCertValidator validator = createValidator("dummy-key");
-        assertFalse(validator.validateJWT(outerJwt.serialize()));
-    }
-
-    // Test Case 4: Empty public key configuration
-    @Test
-     void testEmptyPublicKey_ReturnsFalse() throws Exception {
-        SignedJWT phoneNumberJwt = createSignedJWT(generateECKey(), "sub", "user123");
-        JwtCertValidator validator = createValidator("");
-        assertFalse(validator.validateJWT(createOuterToken(phoneNumberJwt.serialize())));
-    }
-
-    // Test Case 5: Non-EC public key
-    @Test
-     void testNonEcPublicKey_ReturnsFalse() throws Exception {
-        RSAKey rsaKey = new RSAKeyGenerator(2048).generate();
-        JwtCertValidator validator = createValidator(rsaKey.toPublicJWK().toJSONString());
-        assertFalse(validator.validateJWT(createOuterToken("any-cert")));
-    }
-
-    // Test Case 6: EC private key instead of public
-    @Test
-     void testEcPrivateKey_ReturnsFalse() throws Exception {
-        ECKey privateKey = generateECKey();
-        JwtCertValidator validator = createValidator(privateKey.toJSONString());
-        assertFalse(validator.validateJWT(createOuterToken("any-cert")));
-    }
-
-    // Test Case 7: Signature verification failure
-    @Test
-     void testSignatureVerificationFailure_ReturnsFalse() throws Exception {
-        ECKey validKey = generateECKey();
-        ECKey invalidKey = generateECKey();
-
-        SignedJWT phoneNumberJwt = createSignedJWT(validKey, "sub", "user123");
-        JwtCertValidator validator = createValidator(invalidKey.toPublicJWK().toJSONString());
-
-        assertFalse(validator.validateJWT(createOuterToken(phoneNumberJwt.serialize())));
-    }
-
-    // Test Case 8: Invalid public key JSON
-    @Test
-     void testInvalidPublicKeyJson_ReturnsFalse() throws Exception {
-        JwtCertValidator validator = createValidator("{invalid-json}");
-        assertFalse(validator.validateJWT(createOuterToken("any-cert")));
-    }
-
-    // Helper methods
-    private ECKey generateECKey() throws JOSEException {
-        return new ECKeyGenerator(Curve.P_256).generate();
-    }
-
-    private SignedJWT createSignedJWT(ECKey key, String claimKey, String claimValue) throws JOSEException {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder().claim(claimKey, claimValue).build();
-        SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).build(), claims);
-        jwt.sign(new ECDSASigner(key));
-        return jwt;
-    }
-
-    private String createOuterToken(String phoneNumberCert) throws JOSEException {
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-                .customParam("phoneNumberJwt", phoneNumberCert)
+    /**
+     * Helper method to generate a signed certificate JWT.
+     * This JWT will be used as the certificate embedded in the outer JWT header.
+     */
+    private String generateCertJWT(ECKey signingKey) throws JOSEException {
+        JWSSigner signer = new ECDSASigner(signingKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .issuer("test-issuer")
+                .issueTime(new Date())
                 .build();
-        SignedJWT outerJwt = new SignedJWT(header, new JWTClaimsSet.Builder().build());
-        outerJwt.sign(new ECDSASigner(generateECKey()));
+
+        SignedJWT certJwt = new SignedJWT(
+                new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(signingKey.getKeyID()).build(),
+                claimsSet
+        );
+        certJwt.sign(signer);
+        return certJwt.serialize();
+    }
+
+    /**
+     * Helper method to generate an outer JWT with the provided header entry for cert.
+     */
+    private String generateOuterJWT(String certJwt) throws JOSEException {
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .issuer("outer-issuer")
+                .issueTime(new Date())
+                .build();
+
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
+                .customParam("accountJwt", certJwt)
+                .build();
+
+        SignedJWT outerJwt = new SignedJWT(header, claimsSet);
+        outerJwt.sign(new ECDSASigner(ecJwk));
         return outerJwt.serialize();
     }
 
-    private JwtCertValidator createValidator(String publicKeyJson) throws NoSuchFieldException, IllegalAccessException {
-        JwtCertValidator validator = new JwtCertValidator();
-        setPrivateField(validator, publicKeyJson);
-        return validator;
+    @Test
+    public void testValidateJWT_Success() throws JOSEException {
+        String certJwt = generateCertJWT(ecJwk);
+        String outerJwt = generateOuterJWT(certJwt);
+
+        boolean isValid = validator.validateJWT(outerJwt);
+        assertTrue(isValid, "Expected JWT to be valid");
     }
 
-    private void setPrivateField(Object target, Object value) throws NoSuchFieldException, IllegalAccessException  {
-        Field field = target.getClass().getDeclaredField("SERVER_PUBLIC_KEY_JSON");
-        field.setAccessible(true);
-        field.set(target, value);
+    @Test
+    public void testValidateJWT_InvalidSignature() throws JOSEException {
+        String certJwt = generateCertJWT(ecJwk);
+        String tamperedCertJwt = certJwt.substring(0, certJwt.length() - 2) + "aa";
+
+        String outerJwt = generateOuterJWT(tamperedCertJwt);
+
+        boolean isValid = validator.validateJWT(outerJwt);
+        assertFalse(isValid, "Expected JWT validation to fail due to invalid signature");
+    }
+
+    @Test
+    public void testValidateJWT_MissingCertificateField() throws JOSEException {
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .issuer("outer-issuer")
+                .issueTime(new Date())
+                .build();
+
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256).build();
+        SignedJWT outerJwt = new SignedJWT(header, claimsSet);
+        outerJwt.sign(new ECDSASigner(ecJwk));
+        String token = outerJwt.serialize();
+
+        boolean isValid = validator.validateJWT(token);
+        assertFalse(isValid, "Expected JWT validation to fail due to missing certificate field");
+    }
+
+    @Test
+    public void testValidateJWT_InvalidPublicKeyConfiguration() throws JOSEException {
+        ReflectionTestUtils.setField(validator, "serverPublicKeyJson", "");
+
+        String certJwt = generateCertJWT(ecJwk);
+        String outerJwt = generateOuterJWT(certJwt);
+
+        boolean isValid = validator.validateJWT(outerJwt);
+        assertFalse(isValid, "Expected JWT validation to fail due to invalid public key configuration");
     }
 }
-*/
