@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.PayoutRequest;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ public class PayoutServiceImpl implements PayoutServiceApi {
     }
 
     @Override
-    public String payout(PayoutRequest request, String accountCertJwt) {
+    public String payout(MoneyTransferRequestDto moneyTransferRequestDto, String accountCertJwt) {
         return transactionHelper.validateAndProcessTransaction(
-                request.getSenderAccountId(),
-                request.getRecipientAccountId(),
-                request.getAmount(),
+                moneyTransferRequestDto.getSenderAccountId(),
+                moneyTransferRequestDto.getRecipientAccountId(),
+                moneyTransferRequestDto.getAmount(),
                 accountCertJwt,
                 LOG
         );

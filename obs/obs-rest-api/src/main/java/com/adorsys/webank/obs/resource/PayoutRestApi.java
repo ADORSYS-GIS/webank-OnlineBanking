@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.PayoutRequest;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -25,6 +25,6 @@ public interface PayoutRestApi {
 
     })
     @PostMapping(value = "/payout", consumes = "application/json", produces = "application/json")
-    ResponseEntity<String> payout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody PayoutRequest request);
+    ResponseEntity<String> payout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request);
 
 }

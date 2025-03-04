@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.WithdrawRequest;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,5 +23,5 @@ public interface WithdrawRestApi {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping(value = "/withdraw", consumes = "application/json", produces = "application/json")
-    ResponseEntity<String> withdraw(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody WithdrawRequest request);
+    ResponseEntity<String> withdraw(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request);
 }

@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.WithdrawRequest;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
 import com.adorsys.webank.obs.service.WithdrawServiceApi;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ public class WithdrawServiceImpl implements WithdrawServiceApi {
     }
 
     @Override
-    public String withdraw(WithdrawRequest request, String accountCertJwt) {
+    public String withdraw(MoneyTransferRequestDto request, String accountCertJwt) {
         // First, verify the transaction JWT
         if (!signTransactionValidator.validateSignTransactionJWT(accountCertJwt)) {
             return "Invalid transaction JWT";

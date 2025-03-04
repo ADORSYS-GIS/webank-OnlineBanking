@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.PayoutRequest;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,7 @@ public class PayoutRest implements PayoutRestApi {
 
 
     @Override
-    public ResponseEntity<String> payout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody PayoutRequest request) {
+    public ResponseEntity<String> payout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request) {
         if (request == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
         }

@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.WithdrawRequest;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.service.WithdrawServiceApi;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ public class WithdrawRestServer implements WithdrawRestApi {
     }
 
     @Override
-    public ResponseEntity<String> withdraw(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody WithdrawRequest request) {
+    public ResponseEntity<String> withdraw(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request) {
         if (request == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
         }
