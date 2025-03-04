@@ -142,7 +142,7 @@ public class TransactionHelper {
             return "Transaction failed due to booking errors";
         }
 
-        String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount), logger);
+        String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));
         return transactionCert + " Success";
     }
 
@@ -159,7 +159,7 @@ public class TransactionHelper {
         return transaction;
     }
 
-    public String generateTransactionCert(String senderId, String recipientId, String amount, Logger logger) {
+    public String generateTransactionCert(String senderId, String recipientId, String amount) {
         try {
             ECKey privateKey = (ECKey) JWK.parse(serverPrivateKeyJson);
             if (privateKey.getD() == null) {
