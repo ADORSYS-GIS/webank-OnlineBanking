@@ -19,6 +19,8 @@ import java.text.ParseException;
 public class SignTransactionJwtValidator {
     private static final Logger logger = LoggerFactory.getLogger(SignTransactionJwtValidator.class);
 
+    @Value("${server.public.key.json}")
+    String SERVER_PUBLIC_KEY_JSON;
     /**
      * Validates the transaction JWT by extracting it from the main JWT header,
      * then verifying its signature using its own public key.
@@ -117,9 +119,6 @@ public class SignTransactionJwtValidator {
 
     private ECKey loadPublicKey() throws ParseException {
         logger.info("Loading public key from configured backend...");
-        //@Value("${server.public.key.json}")
-        String SERVER_PUBLIC_KEY_JSON = "{ \"kty\": \"EC\", \"crv\": \"P-256\", \"x\": \"PHlAcVDiqi7130xWiMn5CEbOyg_Yo0qfOhabhPlDV_s\", \"y\": \"N5bqvbDjbsX2uo2_lzKrwPt7fySMweZVeFSAv99TEEc\" }";
-        logger.info("server public key: {}", SERVER_PUBLIC_KEY_JSON);
         if (SERVER_PUBLIC_KEY_JSON == null || SERVER_PUBLIC_KEY_JSON.isEmpty()) {
             throw new IllegalStateException("Public key JSON is not configured properly.");
         }
