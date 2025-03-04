@@ -134,7 +134,7 @@ public class SignTransactionJwtValidator {
     }
 
     private static boolean verifySignature(JWSObject jwsObject, ECKey ecKey)
-            throws JOSEException, BadJWTException {
+            throws JOSEException{
         logger.info("Verifying signature for JWS object...");
         var verifier = ecKey.toECPublicKey();
         return jwsObject.verify(new ECDSAVerifier(verifier));
