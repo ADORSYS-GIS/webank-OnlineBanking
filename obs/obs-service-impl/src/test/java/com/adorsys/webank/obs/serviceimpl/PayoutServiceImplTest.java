@@ -21,7 +21,7 @@ public class PayoutServiceImplTest {
     private PayoutServiceImpl payoutService;
 
     @Test
-    public void testPayoutSuccess() {
+    void testPayoutSuccess() {
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("sender123");
         request.setRecipientAccountId("recipient456");
@@ -51,7 +51,7 @@ public class PayoutServiceImplTest {
     }
 
     @Test
-    public void testPayoutWhenHelperReturnsError() {
+    void testPayoutWhenHelperReturnsError() {
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("sender789");
         request.setRecipientAccountId("recipient012");

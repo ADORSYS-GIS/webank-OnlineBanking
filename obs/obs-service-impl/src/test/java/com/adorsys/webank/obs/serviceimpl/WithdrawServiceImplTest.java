@@ -25,7 +25,7 @@ public class WithdrawServiceImplTest {
     private WithdrawServiceImpl withdrawService;
 
     @Test
-    public void testWithdrawFailsDueToInvalidTransactionJWT() {
+    void testWithdrawFailsDueToInvalidTransactionJWT() {
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("senderABC");
         request.setRecipientAccountId("recipientXYZ");
@@ -44,7 +44,7 @@ public class WithdrawServiceImplTest {
     }
 
     @Test
-    public void testWithdrawSuccess() {
+    void testWithdrawSuccess() {
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("senderDEF");
         request.setRecipientAccountId("recipientUVW");

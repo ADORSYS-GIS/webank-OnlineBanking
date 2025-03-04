@@ -22,7 +22,7 @@ public class JwtCertValidatorTest {
     private ECKey ecJwk;
 
     @BeforeEach
-    public void setUp() throws JOSEException {
+    void setUp() throws JOSEException {
         ecJwk = new ECKeyGenerator(Curve.P_256)
                 .keyID("test-key-id")
                 .generate();
@@ -37,7 +37,7 @@ public class JwtCertValidatorTest {
      * Helper method to generate a signed certificate JWT.
      * This JWT will be used as the certificate embedded in the outer JWT header.
      */
-    private String generateCertJWT(ECKey signingKey) throws JOSEException {
+    String generateCertJWT(ECKey signingKey) throws JOSEException {
         JWSSigner signer = new ECDSASigner(signingKey);
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .issuer("test-issuer")
@@ -71,7 +71,7 @@ public class JwtCertValidatorTest {
     }
 
     @Test
-    public void testValidateJWT_Success() throws JOSEException {
+    void testValidateJWT_Success() throws JOSEException {
         String certJwt = generateCertJWT(ecJwk);
         String outerJwt = generateOuterJWT(certJwt);
 
@@ -80,7 +80,7 @@ public class JwtCertValidatorTest {
     }
 
     @Test
-    public void testValidateJWT_InvalidSignature() throws JOSEException {
+    void testValidateJWT_InvalidSignature() throws JOSEException {
         String certJwt = generateCertJWT(ecJwk);
         String tamperedCertJwt = certJwt.substring(0, certJwt.length() - 2) + "aa";
 
@@ -91,7 +91,7 @@ public class JwtCertValidatorTest {
     }
 
     @Test
-    public void testValidateJWT_MissingCertificateField() throws JOSEException {
+    void testValidateJWT_MissingCertificateField() throws JOSEException {
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .issuer("outer-issuer")
                 .issueTime(new Date())
@@ -107,7 +107,7 @@ public class JwtCertValidatorTest {
     }
 
     @Test
-    public void testValidateJWT_InvalidPublicKeyConfiguration() throws JOSEException {
+    void testValidateJWT_InvalidPublicKeyConfiguration() throws JOSEException {
         ReflectionTestUtils.setField(validator, "serverPublicKeyJson", "");
 
         String certJwt = generateCertJWT(ecJwk);
