@@ -2,7 +2,7 @@ package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.security.JwtValidator;
-import com.adorsys.webank.obs.service.PayoutServiceApi;
+import com.adorsys.webank.obs.service.WithdrawServiceApi;
 import com.nimbusds.jose.jwk.JWK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,27 +14,25 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class PayoutRest implements PayoutRestApi {
+public class WithdrawRestServer implements WithdrawRestApi {
 
-    private static final Logger log = LoggerFactory.getLogger(PayoutRest.class);
-    private final PayoutServiceApi payoutService;
+    private static final Logger log = LoggerFactory.getLogger(WithdrawRestServer.class);
+    private final WithdrawServiceApi withdrawServiceApi;
 
-    public PayoutRest(PayoutServiceApi payoutService) {
-        this.payoutService = payoutService;
+    public WithdrawRestServer(WithdrawServiceApi withdrawServiceApi) {
+        this.withdrawServiceApi = withdrawServiceApi;
     }
 
-
     @Override
-    public ResponseEntity<String> payout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request) {
+    public ResponseEntity<String> withdraw(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request) {
         if (request == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
         }
-
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
-            JwtValidator.validateAndExtract(jwtToken, request.getAmount(), request.getRecipientAccountId(), request.getSenderAccountId());
-            log.info("Payout request validated successfully");
-            String result = payoutService.payout(request, jwtToken) ;
+            JwtValidator.validateAndExtract(jwtToken, request.getSenderAccountId(), request.getRecipientAccountId(), request.getAmount());
+            log.info("Withdrawal request validated successfully");
+            String result = withdrawServiceApi.withdraw(request, jwtToken) ;
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
             // Log the exception (optional)

@@ -1,13 +1,18 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.security.JwtValidator;
 import com.adorsys.webank.obs.service.*;
+import com.nimbusds.jose.jwk.JWK;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class TransRest implements TransRestApi {
 
+    private static final Logger log = LoggerFactory.getLogger(TransRest.class);
     private TransServiceApi transService;
     public TransRest( TransServiceApi transService) {
         this.transService = transService;
@@ -20,6 +25,8 @@ public class TransRest implements TransRestApi {
         }
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
+            JwtValidator.validateAndExtract(jwtToken, request.getAccountID());
+            log.info("Transaction request validated successfully");
             String result = transService.getTrans(request, jwtToken) ;
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
