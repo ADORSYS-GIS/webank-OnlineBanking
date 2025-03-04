@@ -1,7 +1,11 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.security.JwtValidator;
 import com.adorsys.webank.obs.service.*;
+import com.nimbusds.jose.jwk.JWK;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class RegistrationResource implements RegistrationResourceApi {
 
 
+    private static final Logger log = LoggerFactory.getLogger(RegistrationResource.class);
     private RegistrationServiceApi registrationService;
 
    public RegistrationResource( RegistrationServiceApi registrationService) {
@@ -24,6 +29,8 @@ public class RegistrationResource implements RegistrationResourceApi {
         }
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
+            JwtValidator.validateAndExtract(jwtToken, registrationRequest.getPhoneNumber(), registrationRequest.getPublicKey());
+            log.info("Registration request validated successfully");
             String result = registrationService.registerAccount(registrationRequest, jwtToken);
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
