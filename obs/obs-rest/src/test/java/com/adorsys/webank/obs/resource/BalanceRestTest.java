@@ -1,12 +1,19 @@
 package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.service.*;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
-import org.springframework.http.*;
+import com.adorsys.webank.obs.dto.BalanceRequest;
+import com.adorsys.webank.obs.security.JwtValidator;
+import com.adorsys.webank.obs.service.BalanceServiceApi;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class BalanceRestTest {
@@ -29,15 +36,21 @@ class BalanceRestTest {
         BalanceRequest balanceRequest = new BalanceRequest();
         String expectedResponse = "Balance Retrieved Successfully";
 
-        when(balanceService.getBalance(balanceRequest, jwtToken)).thenReturn(expectedResponse);
+        // Stub the static JwtValidator.validateAndExtract to do nothing.
+        try (MockedStatic<JwtValidator> jwtValidatorMock = mockStatic(JwtValidator.class)) {
+            jwtValidatorMock.when(() -> JwtValidator.validateAndExtract(any(), any()))
+                    .thenAnswer(invocation -> null);
 
-        // Act
-        ResponseEntity<String> response = balanceRest.getBalance("Bearer " + jwtToken, balanceRequest);
+            when(balanceService.getBalance(balanceRequest, jwtToken)).thenReturn(expectedResponse);
 
-        // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody());
-        verify(balanceService, times(1)).getBalance(balanceRequest, jwtToken);
+            // Act
+            ResponseEntity<String> response = balanceRest.getBalance("Bearer " + jwtToken, balanceRequest);
+
+            // Assert
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertEquals(expectedResponse, response.getBody());
+            verify(balanceService, times(1)).getBalance(balanceRequest, jwtToken);
+        }
     }
 
     @Test
@@ -46,7 +59,7 @@ class BalanceRestTest {
         String invalidAuthorizationHeader = "invalid-header";
         BalanceRequest balanceRequest = new BalanceRequest();
 
-        // Act
+        // No need to mock the static call since the error happens before JwtValidator is invoked.
         ResponseEntity<String> response = balanceRest.getBalance(invalidAuthorizationHeader, balanceRequest);
 
         // Assert
@@ -60,7 +73,6 @@ class BalanceRestTest {
         // Arrange
         BalanceRequest balanceRequest = new BalanceRequest();
 
-        // Act
         ResponseEntity<String> response = balanceRest.getBalance(null, balanceRequest);
 
         // Assert
@@ -75,15 +87,20 @@ class BalanceRestTest {
         String jwtToken = "valid-jwt-token";
         BalanceRequest balanceRequest = new BalanceRequest();
 
-        when(balanceService.getBalance(balanceRequest, jwtToken)).thenThrow(new RuntimeException("Service Error"));
+        try (MockedStatic<JwtValidator> jwtValidatorMock = mockStatic(JwtValidator.class)) {
+            jwtValidatorMock.when(() -> JwtValidator.validateAndExtract(any(), any()))
+                    .thenAnswer(invocation -> null);
 
-        // Act
-        ResponseEntity<String> response = balanceRest.getBalance("Bearer " + jwtToken, balanceRequest);
+            when(balanceService.getBalance(balanceRequest, jwtToken)).thenThrow(new RuntimeException("Service Error"));
 
-        // Assert
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("An error occurred while processing the request.", response.getBody());
-        verify(balanceService, times(1)).getBalance(balanceRequest, jwtToken);
+            // Act
+            ResponseEntity<String> response = balanceRest.getBalance("Bearer " + jwtToken, balanceRequest);
+
+            // Assert
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            assertEquals("An error occurred while processing the request.", response.getBody());
+            verify(balanceService, times(1)).getBalance(balanceRequest, jwtToken);
+        }
     }
 
     @Test
@@ -91,7 +108,6 @@ class BalanceRestTest {
         // Arrange
         String jwtToken = "valid-jwt-token";
 
-        // Act
         ResponseEntity<String> response = balanceRest.getBalance("Bearer " + jwtToken, null);
 
         // Assert
@@ -99,5 +115,4 @@ class BalanceRestTest {
         assertEquals("Request body cannot be null.", response.getBody());
         verify(balanceService, never()).getBalance(any(), any());
     }
-
 }

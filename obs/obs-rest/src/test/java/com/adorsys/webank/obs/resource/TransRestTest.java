@@ -1,13 +1,19 @@
 package com.adorsys.webank.obs.resource;
 
+import com.adorsys.webank.obs.dto.TransRequest;
+import com.adorsys.webank.obs.security.JwtValidator;
+import com.adorsys.webank.obs.service.TransServiceApi;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.service.*;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
-import org.springframework.http.*;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class TransRestTest {
@@ -30,15 +36,21 @@ class TransRestTest {
         TransRequest transRequest = new TransRequest();
         String expectedResponse = "Transaction Retrieved Successfully";
 
-        when(transService.getTrans(transRequest, jwtToken)).thenReturn(expectedResponse);
+        // Stub the static call for JWT validation
+        try (MockedStatic<JwtValidator> jwtValidatorMock = mockStatic(JwtValidator.class)) {
+            jwtValidatorMock.when(() -> JwtValidator.validateAndExtract(any(String.class), any()))
+                    .thenAnswer(invocation -> null);
 
-        // Act
-        ResponseEntity<String> response = transRest.getTrans("Bearer " + jwtToken, transRequest);
+            when(transService.getTrans(transRequest, jwtToken)).thenReturn(expectedResponse);
 
-        // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody());
-        verify(transService, times(1)).getTrans(transRequest, jwtToken);
+            // Act
+            ResponseEntity<String> response = transRest.getTrans("Bearer " + jwtToken, transRequest);
+
+            // Assert
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertEquals(expectedResponse, response.getBody());
+            verify(transService, times(1)).getTrans(transRequest, jwtToken);
+        }
     }
 
     @Test
@@ -76,15 +88,21 @@ class TransRestTest {
         String jwtToken = "valid-jwt-token";
         TransRequest transRequest = new TransRequest();
 
-        when(transService.getTrans(transRequest, jwtToken)).thenThrow(new RuntimeException("Service Error"));
+        // Stub the static call for JWT validation
+        try (MockedStatic<JwtValidator> jwtValidatorMock = mockStatic(JwtValidator.class)) {
+            jwtValidatorMock.when(() -> JwtValidator.validateAndExtract(any(String.class), any()))
+                    .thenAnswer(invocation -> null);
 
-        // Act
-        ResponseEntity<String> response = transRest.getTrans("Bearer " + jwtToken, transRequest);
+            when(transService.getTrans(transRequest, jwtToken)).thenThrow(new RuntimeException("Service Error"));
 
-        // Assert
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("An error occurred while processing the request.", response.getBody());
-        verify(transService, times(1)).getTrans(transRequest, jwtToken);
+            // Act
+            ResponseEntity<String> response = transRest.getTrans("Bearer " + jwtToken, transRequest);
+
+            // Assert
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            assertEquals("An error occurred while processing the request.", response.getBody());
+            verify(transService, times(1)).getTrans(transRequest, jwtToken);
+        }
     }
 
     @Test
@@ -100,5 +118,4 @@ class TransRestTest {
         assertEquals("Request body cannot be null.", response.getBody());
         verify(transService, never()).getTrans(any(), any());
     }
-
 }

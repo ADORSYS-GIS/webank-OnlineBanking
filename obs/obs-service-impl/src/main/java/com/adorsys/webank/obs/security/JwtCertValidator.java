@@ -16,8 +16,7 @@ public class JwtCertValidator {
     private static final Logger logger = LoggerFactory.getLogger(JwtCertValidator.class);
 
     @Value("${server.public.key.json}")
-    private String SERVER_PUBLIC_KEY_JSON;
-
+    private String serverPublicKeyJson;
     /**
      * Validates the JWT by extracting either accountJwt or phoneNumberJwt from its header and verifying signatures.
      *
@@ -31,6 +30,7 @@ public class JwtCertValidator {
             SignedJWT certJwt = parseJWT(cert);
             ECKey publicKey = loadPublicKey();
 
+            // Validate the accountCert
             return verifySignature(certJwt, publicKey);
         } catch (Exception e) {
             logger.error("Error during JWT validation: ", e);
@@ -64,10 +64,10 @@ public class JwtCertValidator {
     }
 
     private ECKey loadPublicKey() throws ParseException {
-        if (SERVER_PUBLIC_KEY_JSON == null || SERVER_PUBLIC_KEY_JSON.isEmpty()) {
+        if (serverPublicKeyJson == null || serverPublicKeyJson.isEmpty()) {
             throw new IllegalStateException("Public key JSON is not configured properly.");
         }
-        JWK jwk = JWK.parse(SERVER_PUBLIC_KEY_JSON);
+        JWK jwk = JWK.parse(serverPublicKeyJson);
         logger.info("Loaded JWK from backend: {}", jwk);
 
         if (!(jwk instanceof ECKey publicKey) || jwk.isPrivate()) {

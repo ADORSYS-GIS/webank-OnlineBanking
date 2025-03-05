@@ -12,19 +12,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@Tag(name = "Trans", description = "Operations related to Trans processing")
+@Tag(name = "Trans", description = "Operations related to transaction processing")
 @RequestMapping("/api/accounts/")
-public interface PayoutRestApi {
+public interface WithdrawRestApi {
 
-
-    @Operation(summary = "Topup a an Account", description = "Topup an account from another Account (Payout)")
+    @Operation(summary = "Withdraw from an account", description = "Withdraw funds from an account to another account (Payout)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Account Topup successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request to Topup account"),
+            @ApiResponse(responseCode = "200", description = "Account withdrawal successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid request to withdraw funds"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
-
     })
-    @PostMapping(value = "/payout", consumes = "application/json", produces = "application/json")
-    ResponseEntity<String> payout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request);
-
+    @PostMapping(value = "/withdraw", consumes = "application/json", produces = "application/json")
+    ResponseEntity<String> withdraw(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request);
 }

@@ -1,9 +1,9 @@
 package com.adorsys.webank.obs.dto;
 
-public class PayoutRequest {
-        private String recipientAccountId;
-        private String senderAccountId;
-        private String amount;
+public class MoneyTransferRequestDto {
+    private String recipientAccountId;
+    private String senderAccountId;
+    private String amount;
 
     public String getAmount() {
         return amount;
