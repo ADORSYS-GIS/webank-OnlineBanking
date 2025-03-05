@@ -46,7 +46,7 @@ public class SignTransactionJwtValidator {
             logger.info("Public key extracted and validated: {}", transactionPublicKey);
 
             // Verify the transaction JWT signature using its public key
-            if (verifySignature(transactionJWT, (ECKey) transactionPublicKey)) {
+            if (!verifySignature(transactionJWT, (ECKey) transactionPublicKey)) {
                 logger.warn("Transaction JWT signature verification failed.");
                 return false;
             }
@@ -58,7 +58,7 @@ public class SignTransactionJwtValidator {
             ECKey appPublicKey = loadPublicKey();
 
             // Verify the account certificate signature
-            if (verifySignature(accountCertJwt, appPublicKey)) {
+            if (!verifySignature(accountCertJwt, appPublicKey)) {
                 logger.warn("Account certificate signature verification failed.");
                 return false;
             }
