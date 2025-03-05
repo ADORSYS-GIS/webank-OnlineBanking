@@ -23,6 +23,11 @@ import static com.adorsys.webank.obs.security.JwtExtractor.extractPayloadHash;
 @Service
 public class JwtValidator {
 
+    // Private constructor to prevent instantiation
+    private JwtValidator() {
+        // Utility class; do not instantiate.
+    }
+
     /**
      * Validates the JWT, verifies the signature, and checks the payload hash.
      *

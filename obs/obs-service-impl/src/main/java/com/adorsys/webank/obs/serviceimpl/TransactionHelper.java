@@ -136,13 +136,13 @@ public class TransactionHelper {
         Map<String, String> errorMap = transactionService.bookMockTransaction(transactions);
 
         if (errorMap.isEmpty()) {
-            logger.info("Transaction booked: {} -> {}", senderAccountId, recipientAccountId);
+            logger.info("Transaction booked");
         } else {
             logger.error("Booking errors: {}", errorMap);
             return "Transaction failed due to booking errors";
         }
 
-        String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount), logger);
+        String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));
         return transactionCert + " Success";
     }
 
@@ -159,7 +159,7 @@ public class TransactionHelper {
         return transaction;
     }
 
-    public String generateTransactionCert(String senderId, String recipientId, String amount, Logger logger) {
+    public String generateTransactionCert(String senderId, String recipientId, String amount) {
         try {
             ECKey privateKey = (ECKey) JWK.parse(serverPrivateKeyJson);
             if (privateKey.getD() == null) {
