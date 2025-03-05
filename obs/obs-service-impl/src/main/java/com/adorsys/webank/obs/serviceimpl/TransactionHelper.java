@@ -16,6 +16,7 @@ import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @Component
 public class TransactionHelper {
     @Value("${server.private.key.json}")
@@ -143,6 +145,7 @@ public class TransactionHelper {
         }
 
         String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));
+        log.info("Transaction certificate: {}", transactionCert);
         return transactionCert + " Success";
     }
 
@@ -160,29 +163,46 @@ public class TransactionHelper {
     }
 
     public String generateTransactionCert(String senderId, String recipientId, String amount) {
+        log.info("Starting certificate generation for transaction: senderId={}, recipientId={}, amount={}", senderId, recipientId, amount);
         try {
+            // Parse the server's private key
+            log.debug("Parsing server private key from JSON.");
             ECKey privateKey = (ECKey) JWK.parse(serverPrivateKeyJson);
             if (privateKey.getD() == null) {
+                log.error("Private key parameter 'D' is missing in the server private key.");
                 throw new IllegalStateException("Missing private key parameter");
             }
+            log.debug("Server private key parsed successfully.");
 
+            // Create signer using the private key
             JWSSigner signer = new ECDSASigner(privateKey);
-            ECKey publicKey = (ECKey) JWK.parse(serverPublicKeyJson);
+            log.debug("JWSSigner created successfully using the private key.");
 
+            // Parse the server's public key and build the JWT header
+            log.debug("Parsing server public key from JSON.");
+            ECKey publicKey = (ECKey) JWK.parse(serverPublicKeyJson);
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                     .type(JOSEObjectType.JWT)
                     .jwk(publicKey.toPublicJWK())
                     .build();
+            log.debug("JWT header constructed successfully.");
 
+            // Determine the period for transactions lookup and fetch transactions
             LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
+            log.info("Fetching transactions for senderId={} from {} to {}", senderId, dateFrom, LocalDateTime.now());
             List<TransactionDetailsBO> transactions = bankAccountService.getTransactionsByDates(senderId, dateFrom, LocalDateTime.now());
+            log.debug("Retrieved {} transactions", transactions.size());
 
+            // Determine the transaction ID from the most recent transaction
             String transactionId = transactions.stream()
                     .max(Comparator.comparing(TransactionDetailsBO::getBookingDate))
                     .map(TransactionDetailsBO::getTransactionId)
                     .orElse("1");
+            log.info("Using transaction ID {} for certificate generation", transactionId);
 
+            // Build the JWT claims
             long issuedAt = System.currentTimeMillis() / 1000;
+            log.debug("Building JWT claims with issuedAt={}, expirationTimeMs={}", issuedAt, expirationTimeMs);
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
                     .issuer(issuer)
                     .claim("amount", amount)
@@ -194,13 +214,20 @@ public class TransactionHelper {
                     .issueTime(new Date(issuedAt * 1000))
                     .expirationTime(new Date((issuedAt + expirationTimeMs / 1000) * 1000))
                     .build();
+            log.debug("JWT claims built successfully.");
 
+            // Create and sign the JWT
             SignedJWT jwt = new SignedJWT(header, claims);
             jwt.sign(signer);
+            log.info("JWT signed successfully.");
 
-            return jwt.serialize();
+            String serializedJWT = jwt.serialize();
+            log.info("Certificate generation completed successfully.");
+            return serializedJWT;
         } catch (Exception e) {
+            log.error("Certificate generation failed: {}", e.getMessage(), e);
             throw new IllegalStateException("Certificate generation failed", e);
         }
     }
+
 }
