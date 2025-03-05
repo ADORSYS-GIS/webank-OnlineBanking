@@ -55,6 +55,14 @@ public class SignTransactionJwtValidator {
             // Extract and validate `accountJwt` from the transaction JWT header
             String accountCert = extractAccountCert(transactionJWT);
             SignedJWT accountCertJwt = parseJWT(accountCert);
+
+            // Extract and validate the accountId from both `accountJwt` and `transactionJWT`
+            if (!compareAccountIds(accountCertJwt, transactionJWT)) {
+                logger.warn("Account ID mismatch between accountJwt and transactionJWT.");
+                return false;
+            }
+            logger.info("Account ID comparison verified successfully.");
+
             ECKey appPublicKey = loadPublicKey();
 
             // Verify the account certificate signature
@@ -138,5 +146,36 @@ public class SignTransactionJwtValidator {
         logger.info("Verifying signature for JWS object...");
         var verifier = ecKey.toECPublicKey();
         return jwsObject.verify(new ECDSAVerifier(verifier));
+    }
+
+    /**
+     * Compares the `accountId` between the `accountJwt` and `transactionJwt`.
+     *
+     * @param accountCertJwt The accountJwt parsed as a SignedJWT.
+     * @param transactionJWT The transaction JWT parsed as a SignedJWT.
+     * @return True if the accountIds match, false otherwise.
+     */
+    private boolean compareAccountIds(SignedJWT accountCertJwt, SignedJWT transactionJWT) {
+        try {
+            // Extract the payloads
+            JWTClaimsSet accountCertClaims = accountCertJwt.getJWTClaimsSet();
+            JWTClaimsSet transactionClaims = transactionJWT.getJWTClaimsSet();
+
+            // Extract accountId from both JWTs
+            String accountIdFromAccountCert = accountCertClaims.getStringClaim("acc");
+            String accountIdFromTransaction = transactionClaims.getStringClaim("accountId");
+
+            logger.debug("Extracted accountId from accountCert: {}", accountIdFromAccountCert);
+            logger.debug("Extracted accountId from transactionJWT: {}", accountIdFromTransaction);
+
+
+            // Compare the accountId from both JWTs
+            logger.info("Comparing accountId: {} with accountId: {}", accountIdFromAccountCert, accountIdFromTransaction);
+
+            return accountIdFromAccountCert != null && accountIdFromAccountCert.equals(accountIdFromTransaction);
+        } catch (Exception e) {
+            logger.error("Error comparing accountIds: ", e);
+            return false;
+        }
     }
 }

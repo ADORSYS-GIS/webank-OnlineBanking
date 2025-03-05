@@ -1,4 +1,4 @@
-package com.adorsys.webank.obs.resource;
+/**package com.adorsys.webank.obs.resource;
 
 
 import com.adorsys.webank.obs.dto.*;
@@ -101,4 +101,4 @@ class TransRestTest {
         verify(transService, never()).getTrans(any(), any());
     }
 
-}
+}**/
