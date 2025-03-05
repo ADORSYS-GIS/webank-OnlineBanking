@@ -1,13 +1,17 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.security.JwtValidator;
 import com.adorsys.webank.obs.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class BalanceRest implements BalanceRestApi {
 
+    private static final Logger log = LoggerFactory.getLogger(BalanceRest.class);
     private  BalanceServiceApi balanceService;
 
     public BalanceRest( BalanceServiceApi balanceService) {
@@ -23,6 +27,8 @@ public class BalanceRest implements BalanceRestApi {
 
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
+            JwtValidator.validateAndExtract(jwtToken, balanceRequest.getAccountID());
+            log.info("balance request validated successfully");
             String result = balanceService.getBalance(balanceRequest, jwtToken) ;
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {

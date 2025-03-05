@@ -89,6 +89,12 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.adorsys.webank</groupId>
+            <artifactId>obs-service-impl</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Other existing dependencies -->
     </dependencies>
