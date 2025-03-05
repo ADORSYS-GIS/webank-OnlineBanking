@@ -1,12 +1,19 @@
-/*package com.adorsys.webank.obs.resource;
+package com.adorsys.webank.obs.resource;
 
-import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.service.*;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
-import org.springframework.http.*;
+import com.adorsys.webank.obs.dto.RegistrationRequest;
+import com.adorsys.webank.obs.security.JwtValidator;
+import com.adorsys.webank.obs.service.RegistrationServiceApi;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class RegistrationResourceTest {
@@ -29,15 +36,21 @@ class RegistrationResourceTest {
         RegistrationRequest registrationRequest = new RegistrationRequest();
         String expectedResponse = "Account Registered Successfully";
 
-        when(registrationService.registerAccount(registrationRequest, jwtToken)).thenReturn(expectedResponse);
+        // Stub the static call so that it does nothing.
+        try (MockedStatic<JwtValidator> jwtValidatorMock = mockStatic(JwtValidator.class)) {
+            jwtValidatorMock.when(() -> JwtValidator.validateAndExtract(any(), any(), any()))
+                    .thenAnswer(invocation -> null);
 
-        // Act
-        ResponseEntity<String> response = registrationResource.registerAccount("Bearer " + jwtToken, registrationRequest);
+            when(registrationService.registerAccount(registrationRequest, jwtToken)).thenReturn(expectedResponse);
 
-        // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody());
-        verify(registrationService, times(1)).registerAccount(registrationRequest, jwtToken);
+            // Act
+            ResponseEntity<String> response = registrationResource.registerAccount("Bearer " + jwtToken, registrationRequest);
+
+            // Assert
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertEquals(expectedResponse, response.getBody());
+            verify(registrationService, times(1)).registerAccount(registrationRequest, jwtToken);
+        }
     }
 
     @Test
@@ -46,7 +59,7 @@ class RegistrationResourceTest {
         String invalidAuthorizationHeader = "invalid-header";
         RegistrationRequest registrationRequest = new RegistrationRequest();
 
-        // Act
+        // No need to stub static call as it should fail before it is invoked.
         ResponseEntity<String> response = registrationResource.registerAccount(invalidAuthorizationHeader, registrationRequest);
 
         // Assert
@@ -60,7 +73,6 @@ class RegistrationResourceTest {
         // Arrange
         RegistrationRequest registrationRequest = new RegistrationRequest();
 
-        // Act
         ResponseEntity<String> response = registrationResource.registerAccount(null, registrationRequest);
 
         // Assert
@@ -75,30 +87,32 @@ class RegistrationResourceTest {
         String jwtToken = "valid-jwt-token";
         RegistrationRequest registrationRequest = new RegistrationRequest();
 
-        when(registrationService.registerAccount(registrationRequest, jwtToken)).thenThrow(new RuntimeException("Service Error"));
+        try (MockedStatic<JwtValidator> jwtValidatorMock = mockStatic(JwtValidator.class)) {
+            jwtValidatorMock.when(() -> JwtValidator.validateAndExtract(any(), any(), any()))
+                    .thenAnswer(invocation -> null);
 
-        // Act
-        ResponseEntity<String> response = registrationResource.registerAccount("Bearer " + jwtToken, registrationRequest);
+            when(registrationService.registerAccount(registrationRequest, jwtToken)).thenThrow(new RuntimeException("Service Error"));
 
-        // Assert
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("An error occurred while processing the request.", response.getBody());
-        verify(registrationService, times(1)).registerAccount(registrationRequest, jwtToken);
+            // Act
+            ResponseEntity<String> response = registrationResource.registerAccount("Bearer " + jwtToken, registrationRequest);
+
+            // Assert
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+            assertEquals("An error occurred while processing the request.", response.getBody());
+            verify(registrationService, times(1)).registerAccount(registrationRequest, jwtToken);
+        }
     }
-
 
     @Test
     void testRegisterAccount_NullRequestBody() {
         // Arrange
         String jwtToken = "valid-jwt-token";
 
-        // Act
         ResponseEntity<String> response = registrationResource.registerAccount("Bearer " + jwtToken, null);
-
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Request body cannot be null.", response.getBody());
         verify(registrationService, never()).registerAccount(any(), any());
     }
-}**/
+}
