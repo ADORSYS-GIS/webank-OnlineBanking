@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class WithdrawServiceImpl implements WithdrawServiceApi {
     private static final Logger LOG = LoggerFactory.getLogger(WithdrawServiceImpl.class);
-
     private final TransactionHelper transactionHelper;
     private final SignTransactionJwtValidator signTransactionValidator;
 
