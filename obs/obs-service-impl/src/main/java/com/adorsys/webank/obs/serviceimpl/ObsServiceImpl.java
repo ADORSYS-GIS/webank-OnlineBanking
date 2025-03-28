@@ -18,8 +18,8 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
     private static final Logger log = LoggerFactory.getLogger(ObsServiceImpl.class);
 
-    private BankAccountCertificateCreationService bankAccountCertificateCreationService;
-    private BankAccountService bankAccountService;
+    private final BankAccountCertificateCreationService bankAccountCertificateCreationService;
+    private final BankAccountService bankAccountService;
     private final JwtCertValidator jwtCertValidator;
     private final BankAccountTransactionService bankAccountTransactionService;
 

