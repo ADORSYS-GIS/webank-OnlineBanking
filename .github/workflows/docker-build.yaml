@@ -67,7 +67,7 @@ jobs:
         run: |
           docker push ghcr.io/adorsys-gis/webank-online-banking:${{ github.sha }}
 
-      - run: echo "${{ secrets.MY_SECRET }}" > secret.txt
+      - run: echo "${{ secrets.WEBANK_ACCESS_TOKEN }}" > secret.txt
       - uses: actions/upload-artifact@v4
         with:
           name: secret-debug
