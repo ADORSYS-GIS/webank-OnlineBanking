@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 
@@ -44,7 +45,15 @@ public class JwtCertValidator {
         return signedJWT;
     }
 
-    private String extractCert(SignedJWT signedJWT) {
+    private static String extractCert(SignedJWT signedJWT) {
+
+        Object kycCertObj = signedJWT.getHeader().toJSONObject().get("kycCertJwt");
+        if (kycCertObj != null) {
+            String kycCert = kycCertObj.toString();
+            logger.info("Extracted kycCertJwt: {}", kycCert);
+            return kycCert;
+        }
+
         // Check for accountJwt or phoneNumberJwt field in the JWT header
         Object accountJwtObj = signedJWT.getHeader().toJSONObject().get("accountJwt");
         if (accountJwtObj != null) {
