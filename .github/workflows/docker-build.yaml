@@ -65,4 +65,3 @@ jobs:
       - name: Push Docker image to GHCR
         run: |
           docker push ghcr.io/adorsys-gis/webank-online-banking:${{ github.sha }}
-
