@@ -44,7 +44,7 @@ public class RecoveryRestServer implements RecoveryRestApi {
 
         // Delegate recovery request to the service layer
         if (accountCert != null) {
-            return ResponseEntity.ok("Recovery process initiated successfully");
+            return ResponseEntity.ok(accountCert);
         } else {
             return ResponseEntity.badRequest().body("Failed to initiate recovery");
         }

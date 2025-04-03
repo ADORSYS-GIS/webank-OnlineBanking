@@ -19,6 +19,6 @@ public interface RecoveryRestApi {
             @ApiResponse(responseCode = "400", description = "Invalid request for account recovery"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @GetMapping(value = "/recovery", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/recovery", consumes = "application/json", produces = "application/json")
     ResponseEntity<String> recoverAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody RecoveryDto recoveryDto);
 }
