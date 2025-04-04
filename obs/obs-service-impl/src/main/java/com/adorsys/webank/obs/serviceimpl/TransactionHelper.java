@@ -63,6 +63,7 @@ public class TransactionHelper {
                                                 String amountStr, String accountCertJwt,
                                                 Logger logger) {
         if (!isValidJwt(accountCertJwt, logger)) {
+            logger.error("cert : {} ", accountCertJwt);
             return "Invalid certificate or JWT. Payout Request failed";
         }
 

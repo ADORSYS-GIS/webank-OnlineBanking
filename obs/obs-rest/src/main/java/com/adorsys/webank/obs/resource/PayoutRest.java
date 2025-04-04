@@ -30,9 +30,9 @@ public class PayoutRest implements PayoutRestApi {
         }
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
-            String result = payoutService.payout(request, jwtToken) ;
+            log.info("JWT Token: " + jwtToken);
             JwtValidator.validateAndExtract(jwtToken, request.getRecipientAccountId(), request.getAmount(), request.getSenderAccountId());
-            log.info("Payout request validated successfully");
+            String result = payoutService.payout(request, jwtToken) ;
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
             // Log the exception (optional)

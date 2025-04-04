@@ -14,7 +14,7 @@ public class RecoveryServiceImpl implements RecoveryServiceApi {
     }
 
     @Override
-    public String recoverAccount(String accountId, String devPublicKey) {
+    public String recoverAccount( String devPublicKey,String accountId) {
         return bankAccountCertificateCreationService.generateBankAccountCertificate(devPublicKey, accountId);
     }
 }
