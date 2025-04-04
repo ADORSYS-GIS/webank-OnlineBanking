@@ -40,7 +40,9 @@ public class RecoveryRestServer implements RecoveryRestApi {
 
         String accountId = recoveryDto.getAccountId();
 
-        String accountCert = recoveryServiceApi.recoverAccount(accountId, publicKey.toJSONString());
+        log.info("Recovery request received with accountid: {}", accountId);
+
+        String accountCert = recoveryServiceApi.recoverAccount(publicKey.toJSONString(),accountId);
 
         // Delegate recovery request to the service layer
         if (accountCert != null) {
