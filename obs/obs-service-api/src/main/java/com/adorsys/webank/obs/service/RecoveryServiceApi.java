@@ -1,7 +1,6 @@
 package com.adorsys.webank.obs.service;
 
-import com.adorsys.webank.obs.dto.RecoveryDto;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.*;
 
 @Service
 public interface RecoveryServiceApi {
