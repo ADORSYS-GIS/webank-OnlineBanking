@@ -1,18 +1,25 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.security.JwtHeaderExtractor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PayoutServiceImplTest {
+public class PayoutServiceImplTest {
 
     @Mock
     private TransactionHelper transactionHelper;
@@ -20,62 +27,226 @@ class PayoutServiceImplTest {
     @InjectMocks
     private PayoutServiceImpl payoutService;
 
-    @Test
-    void testPayoutSuccess() {
-        MoneyTransferRequestDto request = new MoneyTransferRequestDto();
-        request.setSenderAccountId("sender123");
-        request.setRecipientAccountId("recipient456");
-        request.setAmount("150.00");
+    private static final String VALID_JWT_TOKEN = "valid.jwt.token";
+    private static final String VALID_ACCOUNT_CERT = "valid.account.cert";
+    private static final String VALID_KYC_CERT = "valid.kyc.cert";
+    private static final String SENDER_ACCOUNT_ID = "sender123";
+    private static final String RECIPIENT_ACCOUNT_ID = "recipient456";
+    private static final String TRANSACTION_SUCCESS = "transaction.cert Success";
 
-        String accountCertJwt = "valid-certificate-jwt";
-        String expectedResponse = "transactionCertString Success";
+    private MoneyTransferRequestDto smallAmountRequest;
+    private MoneyTransferRequestDto largeAmountRequest;
 
-        when(transactionHelper.validateAndProcessTransaction(
-                eq("sender123"),
-                eq("recipient456"),
-                eq("150.00"),
-                eq(accountCertJwt),
-                ArgumentMatchers.any())
-        ).thenReturn(expectedResponse);
+    @BeforeEach
+    void setUp() {
+        // Setup small amount request (less than 1000)
+        smallAmountRequest = new MoneyTransferRequestDto();
+        smallAmountRequest.setSenderAccountId(SENDER_ACCOUNT_ID);
+        smallAmountRequest.setRecipientAccountId(RECIPIENT_ACCOUNT_ID);
+        smallAmountRequest.setAmount("500.00");
 
-        String response = payoutService.payout(request, accountCertJwt);
-
-        verify(transactionHelper, times(1)).validateAndProcessTransaction(
-                eq("sender123"),
-                eq("recipient456"),
-                eq("150.00"),
-                eq(accountCertJwt),
-                ArgumentMatchers.any()
-        );
-        assertEquals(expectedResponse, response);
+        // Setup large amount request (greater than 1000)
+        largeAmountRequest = new MoneyTransferRequestDto();
+        largeAmountRequest.setSenderAccountId(SENDER_ACCOUNT_ID);
+        largeAmountRequest.setRecipientAccountId(RECIPIENT_ACCOUNT_ID);
+        largeAmountRequest.setAmount("1500.00");
     }
 
     @Test
-    void testPayoutWhenHelperReturnsError() {
-        MoneyTransferRequestDto request = new MoneyTransferRequestDto();
-        request.setSenderAccountId("sender789");
-        request.setRecipientAccountId("recipient012");
-        request.setAmount("50.00");
+    void payout_withValidSmallAmountRequest_shouldSucceed() {
+        // Arrange
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn(VALID_ACCOUNT_CERT);
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("kycCertJwt")))
+                    .thenReturn(null);
 
-        String accountCertJwt = "invalid-certificate-jwt";
-        String expectedError = "Invalid certificate or JWT. Payout Request failed";
+            when(transactionHelper.validateAndProcessTransaction(
+                    eq(SENDER_ACCOUNT_ID),
+                    eq(RECIPIENT_ACCOUNT_ID),
+                    eq("500.00"),
+                    eq(VALID_JWT_TOKEN),
+                    any(Logger.class)
+            )).thenReturn(TRANSACTION_SUCCESS);
 
-        when(transactionHelper.validateAndProcessTransaction(
-                eq("sender789"),
-                eq("recipient012"),
-                eq("50.00"),
-                eq(accountCertJwt),
-                ArgumentMatchers.any())
-        ).thenReturn(expectedError);
+            // Act
+            String result = payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
 
-        String response = payoutService.payout(request, accountCertJwt);
-        verify(transactionHelper, times(1)).validateAndProcessTransaction(
-                eq("sender789"),
-                eq("recipient012"),
-                eq("50.00"),
-                eq(accountCertJwt),
-                ArgumentMatchers.any()
-        );
-        assertEquals(expectedError, response);
+            // Assert
+            assertEquals(TRANSACTION_SUCCESS, result);
+            verify(transactionHelper).validateAndProcessTransaction(
+                    eq(SENDER_ACCOUNT_ID),
+                    eq(RECIPIENT_ACCOUNT_ID),
+                    eq("500.00"),
+                    eq(VALID_JWT_TOKEN),
+                    any(Logger.class)
+            );
+        }
+    }
+
+    @Test
+    void payout_withValidLargeAmountRequestAndKycCert_shouldSucceed() {
+        // Arrange
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn(VALID_ACCOUNT_CERT);
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("kycCertJwt")))
+                    .thenReturn(VALID_KYC_CERT);
+
+            when(transactionHelper.validateAndProcessTransaction(
+                    eq(SENDER_ACCOUNT_ID),
+                    eq(RECIPIENT_ACCOUNT_ID),
+                    eq("1500.00"),
+                    eq(VALID_JWT_TOKEN),
+                    any(Logger.class)
+            )).thenReturn(TRANSACTION_SUCCESS);
+
+            // Act
+            String result = payoutService.payout(largeAmountRequest, VALID_JWT_TOKEN);
+
+            // Assert
+            assertEquals(TRANSACTION_SUCCESS, result);
+            verify(transactionHelper).validateAndProcessTransaction(
+                    eq(SENDER_ACCOUNT_ID),
+                    eq(RECIPIENT_ACCOUNT_ID),
+                    eq("1500.00"),
+                    eq(VALID_JWT_TOKEN),
+                    any(Logger.class)
+            );
+        }
+    }
+
+    @Test
+    void payout_withLargeAmountRequestWithoutKycCert_shouldThrowException() {
+        // Arrange
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn(VALID_ACCOUNT_CERT);
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("kycCertJwt")))
+                    .thenReturn(null);
+
+            // Act & Assert
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+                payoutService.payout(largeAmountRequest, VALID_JWT_TOKEN);
+            });
+
+            assertEquals("KYC certificate is required for transactions exceeding 10,000 francs.", exception.getMessage());
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+        }
+    }
+
+    @Test
+    void payout_withoutAccountCert_shouldThrowException() {
+        // Arrange
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn(null);
+
+            // Act & Assert
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+                payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+            });
+
+            assertEquals("Account certificate is required for all transactions.", exception.getMessage());
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+        }
+    }
+
+    @Test
+    void payout_withEmptyAccountCert_shouldThrowException() {
+        // Arrange
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn("");
+
+            // Act & Assert
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+                payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+            });
+
+            assertEquals("Account certificate is required for all transactions.", exception.getMessage());
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+        }
+    }
+
+    @Test
+    void payout_withNullJwtToken_shouldThrowException() {
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> {
+            payoutService.payout(smallAmountRequest, null);
+        });
+        verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+    }
+
+    @Test
+    void payout_withInvalidAmountFormat_shouldThrowException() {
+        // Arrange
+        MoneyTransferRequestDto invalidAmountRequest = new MoneyTransferRequestDto();
+        invalidAmountRequest.setSenderAccountId(SENDER_ACCOUNT_ID);
+        invalidAmountRequest.setRecipientAccountId(RECIPIENT_ACCOUNT_ID);
+        invalidAmountRequest.setAmount("not-a-number");
+
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn(VALID_ACCOUNT_CERT);
+
+            // Act & Assert
+            assertThrows(NumberFormatException.class, () -> {
+                payoutService.payout(invalidAmountRequest, VALID_JWT_TOKEN);
+            });
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+        }
+    }
+
+    @Test
+    void payout_transactionHelperThrowsException_shouldPropagateException() {
+        // Arrange
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn(VALID_ACCOUNT_CERT);
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("kycCertJwt")))
+                    .thenReturn(null);
+
+            when(transactionHelper.validateAndProcessTransaction(
+                    anyString(), anyString(), anyString(), anyString(), any(Logger.class)
+            )).thenThrow(new RuntimeException("Transaction processing error"));
+
+            // Act & Assert
+            RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+                payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+            });
+
+            assertEquals("Transaction processing error", exception.getMessage());
+        }
+    }
+
+    @Test
+    void payout_loggingFunctionality_shouldLogCorrectInformation() {
+        // Arrange
+        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class)) {
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
+                    .thenReturn(VALID_ACCOUNT_CERT);
+            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("kycCertJwt")))
+                    .thenReturn(VALID_KYC_CERT);
+
+            when(transactionHelper.validateAndProcessTransaction(
+                    anyString(), anyString(), anyString(), anyString(), any(Logger.class)
+            )).thenReturn(TRANSACTION_SUCCESS);
+
+            // Use ArgumentCaptor to verify logging parameters passed to TransactionHelper
+            ArgumentCaptor<Logger> loggerCaptor = ArgumentCaptor.forClass(Logger.class);
+
+            // Act
+            payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+
+            // Assert
+            verify(transactionHelper).validateAndProcessTransaction(
+                    anyString(), anyString(), anyString(), anyString(), loggerCaptor.capture()
+            );
+
+            Logger capturedLogger = loggerCaptor.getValue();
+            assertNotNull(capturedLogger);
+            assertEquals(PayoutServiceImpl.class.getName(), capturedLogger.getName());
+        }
     }
 }
