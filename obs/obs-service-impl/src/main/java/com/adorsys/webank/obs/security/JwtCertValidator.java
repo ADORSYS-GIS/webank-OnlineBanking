@@ -67,14 +67,14 @@ public class JwtCertValidator {
             return kycJwt;
         }
 
-        Object phoneNumberCertObj = signedJWT.getHeader().toJSONObject().get("phoneNumberJwt");
-        if (phoneNumberCertObj != null) {
-            String phoneNumberCert = phoneNumberCertObj.toString();
-            logger.info("Extracted phoneNumberJwt: {}", phoneNumberCert);
-            return phoneNumberCert;
+        Object devCertObj = signedJWT.getHeader().toJSONObject().get("devJwt");
+        if (devCertObj != null) {
+            String devCert = devCertObj.toString();
+            logger.info("Extracted devJwt: {}", devCert);
+            return devCert;
         }
 
-        throw new IllegalArgumentException("Missing either accountJwt or phoneNumberJwt in JWT header.");
+        throw new IllegalArgumentException("Missing either accountJwt, devJwt or phoneNumberJwt in JWT header.");
     }
 
     private ECKey loadPublicKey() throws ParseException {

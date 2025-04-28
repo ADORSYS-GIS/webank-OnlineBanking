@@ -1,15 +1,8 @@
 package com.adorsys.webank.obs.dto;
 
+import lombok.Data;
+
+@Data
 public class RecoveryDto {
     private String accountId;
-
-    // Getters and Setters
-    public String getAccountId() {
-        return accountId;
-    }
-
-    public void setAccountId(String accountID) {
-        this.accountId = accountID;
-    }
-
 }
