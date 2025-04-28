@@ -1,6 +1,5 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
@@ -10,37 +9,31 @@ import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
 import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.UUID;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class ObsServiceImpl implements RegistrationServiceApi {
-
-    private static final Logger log = LoggerFactory.getLogger(ObsServiceImpl.class);
 
     private final BankAccountCertificateCreationService bankAccountCertificateCreationService;
     private final BankAccountService bankAccountService;
     private final JwtCertValidator jwtCertValidator;
     private final BankAccountTransactionService bankAccountTransactionService;
 
-    // Injecting RedisTemplate
-    @Autowired
-
-    public ObsServiceImpl(JwtCertValidator jwtCertValidator, BankAccountTransactionService bankAccountTransactionService, BankAccountService bankAccountService, BankAccountCertificateCreationService bankAccountCertificateCreationService) {
-        this.jwtCertValidator = jwtCertValidator;
-        this.bankAccountTransactionService = bankAccountTransactionService;
-        this.bankAccountService = bankAccountService;
-        this.bankAccountCertificateCreationService = bankAccountCertificateCreationService;
-    }
-
     @Override
-    public String registerAccount(RegistrationRequest registrationRequest, String registrationJwt) {
+    @Transactional
+    public String registerAccount(String publicKey, String registrationJwt) {
+        if (log.isInfoEnabled()) {
+            log.info("Registering account with publicKey: {} and registrationJwt: {}", publicKey, registrationJwt);
+        }
         try {
             boolean isValid = jwtCertValidator.validateJWT(registrationJwt);
 
@@ -75,7 +68,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     .build();
 
             // Call the service to create the account
-            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(registrationRequest.getPublicKey(), bankAccountBO, UUID.randomUUID().toString(), "OBS");
+            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(publicKey, bankAccountBO, UUID.randomUUID().toString(), "OBS");
 
             // Split the string by newlines
             String[] lines = createdAccountResult.split("\n");
@@ -98,7 +91,11 @@ public class ObsServiceImpl implements RegistrationServiceApi {
         }
     }
 
+    @Transactional
     public String makeTrans(String accountId) {
+        if (log.isInfoEnabled()) {
+            log.info("Processing transaction for accountId: {}", accountId);
+        }
         try {
             // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);

@@ -1,6 +1,5 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.RegistrationRequest;
 import com.adorsys.webank.obs.security.JwtCertValidator;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
@@ -47,8 +46,7 @@ class ObsServiceImplTest {
     @Test
     void registerAccountWithInvalidJwt() {
         // Prepare test data
-        RegistrationRequest registrationRequest = new RegistrationRequest();
-        registrationRequest.setPublicKey("publicKey123");
+        String publicKey = "publicKey123";
 
         String phoneNumberCertificateJwt = "invalidJwt";
 
@@ -56,7 +54,7 @@ class ObsServiceImplTest {
         when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(false);
 
         // Call the method to test
-        String result = obsService.registerAccount(registrationRequest, phoneNumberCertificateJwt);
+        String result = obsService.registerAccount(publicKey, phoneNumberCertificateJwt);
 
         // Verify the result
         assertEquals("Invalid certificate or JWT. Account creation failed", result);
@@ -69,8 +67,7 @@ class ObsServiceImplTest {
     @Test
     void registerAccountSuccessfully() {
         // Prepare test data
-        RegistrationRequest registrationRequest = new RegistrationRequest();
-        registrationRequest.setPublicKey("publicKey123");
+        String publicKey = "publicKey123";
 
         String phoneNumberCertificateJwt = "validJwt";
 
@@ -84,7 +81,7 @@ class ObsServiceImplTest {
         )).thenReturn(mockResult);
 
         // Call the method to test
-        String result = obsService.registerAccount(registrationRequest, phoneNumberCertificateJwt);
+        String result = obsService.registerAccount(publicKey, phoneNumberCertificateJwt);
 
         // Verify the result
         assertEquals("Bank account successfully created. Details: " + mockResult, result);
@@ -97,8 +94,7 @@ class ObsServiceImplTest {
     @Test
     void registerAccountAndVerifyBankAccountProperties() {
         // Prepare test data
-        RegistrationRequest registrationRequest = new RegistrationRequest();
-        registrationRequest.setPublicKey("publicKey123");
+        String publicKey = "publicKey123";
 
         String phoneNumberCertificateJwt = "validJwt";
 
@@ -112,7 +108,7 @@ class ObsServiceImplTest {
         )).thenReturn(mockResult);
 
         // Call the method
-        obsService.registerAccount(registrationRequest, phoneNumberCertificateJwt);
+        obsService.registerAccount(publicKey, phoneNumberCertificateJwt);
 
         // Capture the BankAccountBO argument
         ArgumentCaptor<BankAccountBO> bankAccountCaptor = ArgumentCaptor.forClass(BankAccountBO.class);

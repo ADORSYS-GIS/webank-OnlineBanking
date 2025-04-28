@@ -3,6 +3,7 @@ package com.adorsys.webank.obs.resource;
 import com.adorsys.webank.obs.dto.*;
 import com.adorsys.webank.obs.security.JwtValidator;
 import com.adorsys.webank.obs.service.*;
+import com.nimbusds.jose.jwk.JWK;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -22,15 +23,12 @@ public class RegistrationResource implements RegistrationResourceApi {
 
     @Override
     @PostMapping
-    public ResponseEntity<String> registerAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody RegistrationRequest registrationRequest) {
-        if (registrationRequest == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
-        }
+    public ResponseEntity<String> registerAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
-            JwtValidator.validateAndExtract(jwtToken, registrationRequest.getPublicKey());
+            JWK publicKey = JwtValidator.validateAndExtract(jwtToken);
             log.info("Registration request validated successfully");
-            String result = registrationService.registerAccount(registrationRequest, jwtToken);
+            String result = registrationService.registerAccount(publicKey.toJSONString(), jwtToken);
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
             // Log the exception (optional)
