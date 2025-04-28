@@ -8,10 +8,7 @@ public class RegistrationRequest {
         this.publicKey = testPublicKey;
     }
 
-    /**
-     * Default constructor for RegistrationRequest.
-     */
-    public RegistrationRequest() {
+    public RegistrationRequest() {  
     }
 
     public String getPublicKey() {

@@ -67,13 +67,6 @@ public class JwtCertValidator {
             return kycJwt;
         }
 
-        Object phoneNumberCertObj = signedJWT.getHeader().toJSONObject().get("phoneNumberJwt");
-        if (phoneNumberCertObj != null) {
-            String phoneNumberCert = phoneNumberCertObj.toString();
-            logger.info("Extracted phoneNumberJwt: {}", phoneNumberCert);
-            return phoneNumberCert;
-        }
-
         Object devCertObj = signedJWT.getHeader().toJSONObject().get("devJwt");
         if (devCertObj != null) {
             String devCert = devCertObj.toString();
