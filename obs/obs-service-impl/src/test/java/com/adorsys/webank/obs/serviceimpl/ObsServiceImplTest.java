@@ -1,19 +1,26 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.obs.dto.RegistrationRequest;
+import com.adorsys.webank.obs.security.JwtCertValidator;
+import de.adorsys.webank.bank.api.domain.BankAccountBO;
+import de.adorsys.webank.bank.api.service.BankAccountService;
+import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
+import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.security.*;
-
-import de.adorsys.webank.bank.api.domain.*;
-import de.adorsys.webank.bank.api.service.*;
-
-import de.adorsys.webank.bank.api.service.util.*;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ObsServiceImplTest {
 
@@ -32,17 +39,15 @@ class ObsServiceImplTest {
     @InjectMocks
     private ObsServiceImpl obsService;
 
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void testRegisterAccount_invalidJwt() {
+    void registerAccountWithInvalidJwt() {
         // Prepare test data
         RegistrationRequest registrationRequest = new RegistrationRequest();
-        registrationRequest.setPhoneNumber("1234567890");
         registrationRequest.setPublicKey("publicKey123");
 
         String phoneNumberCertificateJwt = "invalidJwt";
@@ -58,14 +63,13 @@ class ObsServiceImplTest {
 
         // Verify the interaction with the mock
         verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
-        verify(bankAccountCertificateCreationService, times(0)).registerNewBankAccount(any(), any(), any(), anyString(), anyString());
+        verify(bankAccountCertificateCreationService, times(0)).registerNewBankAccount(any(), any(), anyString(), anyString());
     }
 
     @Test
-    void testRegisterAccount_success() {
+    void registerAccountSuccessfully() {
         // Prepare test data
         RegistrationRequest registrationRequest = new RegistrationRequest();
-        registrationRequest.setPhoneNumber("1234567890");
         registrationRequest.setPublicKey("publicKey123");
 
         String phoneNumberCertificateJwt = "validJwt";
@@ -75,8 +79,7 @@ class ObsServiceImplTest {
 
         // Mock BankAccountCertificateCreationService's registerNewBankAccount method
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
-        when(bankAccountCertificateCreationService.registerNewBankAccount(
-                eq("1234567890"), eq("publicKey123"),
+        when(bankAccountCertificateCreationService.registerNewBankAccount(eq("publicKey123"),
                 any(BankAccountBO.class), anyString(), anyString()
         )).thenReturn(mockResult);
 
@@ -88,14 +91,13 @@ class ObsServiceImplTest {
 
         // Verify the interactions with the mocks
         verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
-        verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(any(), any(), any(), anyString(), anyString());
+        verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(any(), any(), anyString(), anyString());
     }
 
     @Test
-    void testRegisterAccount_success_verifyBankAccountBO() {
+    void registerAccountAndVerifyBankAccountProperties() {
         // Prepare test data
         RegistrationRequest registrationRequest = new RegistrationRequest();
-        registrationRequest.setPhoneNumber("1234567890");
         registrationRequest.setPublicKey("publicKey123");
 
         String phoneNumberCertificateJwt = "validJwt";
@@ -106,7 +108,7 @@ class ObsServiceImplTest {
         // Mock BankAccountCertificateCreationService
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
         when(bankAccountCertificateCreationService.registerNewBankAccount(
-                anyString(), anyString(), any(BankAccountBO.class), anyString(), anyString()
+         anyString(), any(BankAccountBO.class), anyString(), anyString()
         )).thenReturn(mockResult);
 
         // Call the method
@@ -115,12 +117,11 @@ class ObsServiceImplTest {
         // Capture the BankAccountBO argument
         ArgumentCaptor<BankAccountBO> bankAccountCaptor = ArgumentCaptor.forClass(BankAccountBO.class);
         verify(bankAccountCertificateCreationService).registerNewBankAccount(
-                eq("1234567890"), eq("publicKey123"), bankAccountCaptor.capture(), anyString(), anyString());
+             eq("publicKey123"), bankAccountCaptor.capture(), anyString(), anyString());
 
         // Assert BankAccountBO properties
         BankAccountBO capturedBankAccount = bankAccountCaptor.getValue();
         assertNotNull(capturedBankAccount);
-        assertEquals("1234567890", capturedBankAccount.getMsisdn());
         assertEquals("XAF", capturedBankAccount.getCurrency().getCurrencyCode());
         assertEquals("Standard", capturedBankAccount.getProduct());
         assertEquals("72070032", capturedBankAccount.getBic());
@@ -128,7 +129,7 @@ class ObsServiceImplTest {
     }
 
     @Test
-    void testMakeTrans_success() {
+    void makeTransactionsSuccessfully() {
         String accountId = "12345";
 
         // Mock BankAccountService
@@ -145,7 +146,7 @@ class ObsServiceImplTest {
     }
 
     @Test
-    void testMakeTrans_accountNotFound() {
+    void makeTransactionsWithNonExistentAccount() {
         String accountId = "nonExistent";
 
         // Mock BankAccountService to return null

@@ -3,8 +3,6 @@ package com.adorsys.webank.obs.resource;
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.security.JwtValidator;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PayoutRest implements PayoutRestApi {
 
-    private static final Logger log = LoggerFactory.getLogger(PayoutRest.class);
     private final PayoutServiceApi payoutService;
 
     public PayoutRest(PayoutServiceApi payoutService) {

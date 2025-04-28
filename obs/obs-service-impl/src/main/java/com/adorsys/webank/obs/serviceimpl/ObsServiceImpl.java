@@ -1,17 +1,23 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.security.*;
-import com.adorsys.webank.obs.service.*;
-import de.adorsys.webank.bank.api.domain.*;
-import de.adorsys.webank.bank.api.service.*;
-import de.adorsys.webank.bank.api.service.util.*;
-import org.slf4j.*;
+import com.adorsys.webank.obs.dto.RegistrationRequest;
+import com.adorsys.webank.obs.security.JwtCertValidator;
+import com.adorsys.webank.obs.service.RegistrationServiceApi;
+import de.adorsys.webank.bank.api.domain.AccountTypeBO;
+import de.adorsys.webank.bank.api.domain.AccountUsageBO;
+import de.adorsys.webank.bank.api.domain.AmountBO;
+import de.adorsys.webank.bank.api.domain.BankAccountBO;
+import de.adorsys.webank.bank.api.service.BankAccountService;
+import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
+import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.*;
+import org.springframework.stereotype.Service;
 
-import java.math.*;
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.Currency;
+import java.util.UUID;
 
 @Service
 public class ObsServiceImpl implements RegistrationServiceApi {
@@ -34,24 +40,17 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     }
 
     @Override
-    public String registerAccount(RegistrationRequest registrationRequest, String phoneNumberCertificateJwt) {
+    public String registerAccount(RegistrationRequest registrationRequest, String registrationJwt) {
         try {
-            String phoneNumber = registrationRequest.getPhoneNumber();
-
-
-            log.info("Checking JWT certificate for phone number: {}", phoneNumber);
-            // Validate the JWT token passed from the frontend
-            boolean isValid = jwtCertValidator.validateJWT(phoneNumberCertificateJwt);
+            boolean isValid = jwtCertValidator.validateJWT(registrationJwt);
 
             if (!isValid) {
-                log.error("Invalid certificate or JWT for phone number: {}", phoneNumber);
                 return "Invalid certificate or JWT. Account creation failed";
             }
 
-            log.info("Creating new bank account for phone number: {}", phoneNumber);
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
-            String msidn = registrationRequest.getPhoneNumber();
+            String msidn =  UUID.randomUUID().toString();
             Currency currency = Currency.getInstance("XAF");
             String name = iban;
             String product = "Standard";
@@ -76,7 +75,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     .build();
 
             // Call the service to create the account
-            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(registrationRequest.getPhoneNumber(), registrationRequest.getPublicKey(), bankAccountBO, UUID.randomUUID().toString(), "OBS");
+            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(registrationRequest.getPublicKey(), bankAccountBO, UUID.randomUUID().toString(), "OBS");
 
             // Split the string by newlines
             String[] lines = createdAccountResult.split("\n");
@@ -86,12 +85,15 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
             // Make the deposit transaction
             String deposit = makeTrans(accountId);
-            log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
-
+            if (log.isInfoEnabled()) {
+                log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
+            }
 
             return "Bank account successfully created. Details: " + createdAccountResult;
         } catch (Exception e) {
-            log.error("An error occurred while processing the request for phone number: {}: {}", registrationRequest.getPhoneNumber(), e.getMessage(), e);
+            if (log.isErrorEnabled()) {
+                log.error("An error occurred while processing the request: {}", e.getMessage(), e);
+            }
             return "An error occurred while processing the request: " + e.getMessage();
         }
     }
@@ -101,7 +103,9 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
             if (bankAccount == null) {
-                log.error("Bank account not found for accountId: {}", accountId);
+                if (log.isErrorEnabled()) {
+                    log.error("Bank account not found for accountId: {}", accountId);
+                }
                 return "Bank account not found for ID: " + accountId;
             }
 
@@ -120,14 +124,18 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             // Process each transaction
             for (BigDecimal depositValue : depositValues) {
                 AmountBO depositAmount = new AmountBO(currency, depositValue);
-                log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
+                if (log.isInfoEnabled()) {
+                    log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
+                }
                 bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
             }
 
             return "5 transactions completed successfully for account " + accountId;
 
         } catch (Exception e) {
-            log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
+            if (log.isErrorEnabled()) {
+                log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
+            }
             return "An error occurred while processing the transactions: "
                     + (e.getMessage() != null ? e.getMessage() : e.toString());
         }

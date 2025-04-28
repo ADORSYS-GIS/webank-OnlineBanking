@@ -28,7 +28,7 @@ public class RegistrationResource implements RegistrationResourceApi {
         }
         try {
             String jwtToken = extractJwtFromHeader(authorizationHeader);
-            JwtValidator.validateAndExtract(jwtToken, registrationRequest.getPhoneNumber(), registrationRequest.getPublicKey());
+            JwtValidator.validateAndExtract(jwtToken, registrationRequest.getPublicKey());
             log.info("Registration request validated successfully");
             String result = registrationService.registerAccount(registrationRequest, jwtToken);
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
