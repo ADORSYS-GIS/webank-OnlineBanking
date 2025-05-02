@@ -1,6 +1,5 @@
-package com.adorsys.webank.obs.serviceimpl;
+package com.adorsys.webank.obs.security;
 
-import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
