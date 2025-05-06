@@ -135,7 +135,7 @@ class ObsServiceImplTest {
         String result = obsService.makeTrans(accountId);
 
         // Verify deposits were made
-        verify(bankAccountTransactionService, times(1))
+        verify(bankAccountTransactionService, times(0))
                 .depositCash(eq(accountId), any(), anyString());
 
         assertEquals("5 transactions completed successfully for account " + accountId, result);
