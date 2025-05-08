@@ -108,7 +108,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
             // Define multiple deposit values
             BigDecimal[] depositValues = {
-                    new BigDecimal("1000.00")
             };
 
             Currency currency = Currency.getInstance("XAF");
