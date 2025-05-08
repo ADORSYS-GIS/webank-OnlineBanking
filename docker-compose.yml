@@ -1,27 +1,62 @@
 version: '3.8'
 services:
-  app:
+  obs:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "9200:8080"
+      - "8081:8081"
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/online_banking_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_PROFILES_ACTIVE: postgres
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_EXPIRATION_TIME_MS: ${JWT_EXPIRATION_TIME_MS}
+      SERVER_PRIVATE_KEY_JSON: ${SERVER_PRIVATE_KEY_JSON}
+      SERVER_PUBLIC_KEY_JSON: ${SERVER_PUBLIC_KEY_JSON}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+      OTP_SALT: ${OTP_SALT}
+      EMAIL: ${EMAIL}
+      PASSWORD: ${PASSWORD}
+    depends_on:
+      - db
+  
+  prs:
+    build:
+      context: ../webank-pending-registration-service/.
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/online_banking_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_PROFILES_ACTIVE: postgres
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_EXPIRATION_TIME_MS: ${JWT_EXPIRATION_TIME_MS}
+      SERVER_PRIVATE_KEY_JSON: ${SERVER_PRIVATE_KEY_JSON}
+      SERVER_PUBLIC_KEY_JSON: ${SERVER_PUBLIC_KEY_JSON}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+      OTP_SALT: ${OTP_SALT}
+      EMAIL: ${EMAIL}
+      PASSWORD: ${PASSWORD}
     depends_on:
       - db
 
   db:
-    image: postgres:15
+    image: postgres:17
     container_name: postgres_container
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
-     POSTGRES_DB: ${POSTGRES_DB}
-     POSTGRES_USER: ${POSTGRES_USER}
-     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+     POSTGRES_DB: online_banking_db
+     POSTGRES_USER: postgres
+     POSTGRES_PASSWORD: postgres
 
   prometheus:
     image: prom/prometheus
@@ -31,3 +66,17 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - --config.file=/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+volumes:
+  grafana-storage:
