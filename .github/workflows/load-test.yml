@@ -61,14 +61,3 @@ jobs:
           path: load-testing/artillery/load-test-report.html
           if-no-files-found: warn
 
-      - name: Notify on failure
-        if: failure()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: 'Load Test Failed',
-              body: 'Load tests failed on the dev environment. Please check the workflow run for details.'
-            })
