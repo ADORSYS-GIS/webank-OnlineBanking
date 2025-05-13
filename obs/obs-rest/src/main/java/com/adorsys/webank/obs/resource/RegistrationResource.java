@@ -25,6 +25,7 @@ public class RegistrationResource implements RegistrationResourceApi {
     @PostMapping
     public ResponseEntity<String> registerAccount(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         try {
+            log.info("Registration request received");
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             JWK publicKey = JwtValidator.validateAndExtract(jwtToken);
             log.info("Registration request validated successfully");

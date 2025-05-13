@@ -27,6 +27,7 @@ public class RecoveryRestServer implements RecoveryRestApi {
         String jwtToken;
         JWK publicKey;
         try {
+            log.info("Recovery request received with accountid: {}", recoveryDto.getAccountId());
             // Extract and validate the JWT token from the Authorization header
             jwtToken = extractJwtFromHeader(authorizationHeader);
             publicKey = JwtValidator.validateAndExtract(jwtToken);

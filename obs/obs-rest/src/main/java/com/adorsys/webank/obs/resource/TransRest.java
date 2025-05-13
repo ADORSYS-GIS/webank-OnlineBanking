@@ -23,6 +23,7 @@ public class TransRest implements TransRestApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
         }
         try {
+            log.info("Transaction request received with accountid: {}", request.getAccountID());
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             JwtValidator.validateAndExtract(jwtToken, request.getAccountID());
             log.info("Transaction request validated successfully");
