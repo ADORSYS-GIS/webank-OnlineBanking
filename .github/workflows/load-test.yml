@@ -1,0 +1,63 @@
+name: Load Testing
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/load-testing-webank-online-banking
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'load-testing/artillery/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: load-testing/artillery
+        run: npm install
+
+      - name: Run load tests
+        working-directory: load-testing/artillery
+        run: npx artillery run load-test.yml -o load-test-report.json
+        env:
+          TARGET_URL: ${{ secrets.TARGET_URL }}
+
+      - name: Generate HTML report
+        working-directory: load-testing/artillery
+        run: npx artillery report load-test-report.json -o load-test-report.html
+
+      - name: Upload JSON test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-json-results
+          path: load-testing/artillery/load-test-report.json
+          if-no-files-found: error
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-html-report
+          path: load-testing/artillery/load-test-report.html
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Load Test Failed',
+              body: 'Load tests failed on the dev environment. Please check the workflow run for details.'
+            })
