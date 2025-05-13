@@ -27,13 +27,19 @@ jobs:
 
       - name: Run load tests
         working-directory: load-testing/artillery
-        run: npx artillery run load-test.yml -o load-test-report.json
+        run: npx artillery run --verbose load-test.yml -o load-test-report.json
         env:
           TARGET_URL: ${{ secrets.TARGET_URL }}
 
+      - name: Check JSON report existence
+        run: ls -l load-testing/artillery/load-test-report.json
+
       - name: Generate HTML report
         working-directory: load-testing/artillery
-        run: npx artillery report load-test-report.json -o load-test-report.html
+        run: npx artillery report --verbose load-test-report.json -o load-test-report.html
+
+      - name: Check HTML report existence
+        run: ls -l load-testing/artillery/load-test-report.html
 
       - name: Upload JSON test results
         if: always()
@@ -41,7 +47,7 @@ jobs:
         with:
           name: load-test-json-results
           path: load-testing/artillery/load-test-report.json
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Upload HTML report
         if: always()
@@ -49,6 +55,7 @@ jobs:
         with:
           name: load-test-html-report
           path: load-testing/artillery/load-test-report.html
+          if-no-files-found: warn
 
       - name: Notify on failure
         if: failure()
