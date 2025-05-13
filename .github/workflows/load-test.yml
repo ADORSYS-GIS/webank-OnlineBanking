@@ -1,15 +1,12 @@
 name: Load Testing
-
 on:
   workflow_dispatch:
   push:
     branches:
       - feature/load-testing-webank-online-banking
-
 jobs:
   load-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,31 +24,38 @@ jobs:
 
       - name: Run load tests
         working-directory: load-testing/artillery
-        run: npx artillery run --verbose load-test.yml -o load-test-report.json
+        run: npx artillery run load-test.yml -o load-test-report.json
         env:
           TARGET_URL: ${{ secrets.TARGET_URL }}
 
-      - name: Check JSON report existence
-        run: ls -l load-testing/artillery/load-test-report.json
-
       - name: Generate HTML report
         working-directory: load-testing/artillery
-        run: npx artillery report --verbose load-test-report.json -o load-test-report.html
+        run: npx artillery report load-test-report.json -o load-test-report.html
 
-      - name: Check HTML report existence
-        run: ls -l load-testing/artillery/load-test-report.html
+      - name: Verify artifacts exist
+        working-directory: load-testing/artillery
+        run: |
+          ls -la
+          if [ ! -f "load-test-report.json" ]; then
+            echo "ERROR: load-test-report.json does not exist"
+            exit 1
+          fi
+          if [ ! -f "load-test-report.html" ]; then
+            echo "ERROR: load-test-report.html does not exist"
+            exit 1
+          fi
 
       - name: Upload JSON test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: load-test-json-results
           path: load-testing/artillery/load-test-report.json
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Upload HTML report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: load-test-html-report
           path: load-testing/artillery/load-test-report.html
