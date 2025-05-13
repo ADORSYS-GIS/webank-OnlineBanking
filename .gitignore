@@ -44,4 +44,4 @@ cms-db-schema/liquibase.properties
 ledgers-db/liquibase.properties
 .env
 
-node_modules
+load-testing/artillery/node_modules
