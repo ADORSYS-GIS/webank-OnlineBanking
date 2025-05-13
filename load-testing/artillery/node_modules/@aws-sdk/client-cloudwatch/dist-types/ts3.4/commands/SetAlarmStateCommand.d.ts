@@ -1,0 +1,45 @@
+import { Command as $Command } from "@smithy/smithy-client";
+import { MetadataBearer as __MetadataBearer } from "@smithy/types";
+import {
+  CloudWatchClientResolvedConfig,
+  ServiceInputTypes,
+  ServiceOutputTypes,
+} from "../CloudWatchClient";
+import { SetAlarmStateInput } from "../models/models_0";
+export { __MetadataBearer };
+export { $Command };
+export interface SetAlarmStateCommandInput extends SetAlarmStateInput {}
+export interface SetAlarmStateCommandOutput extends __MetadataBearer {}
+declare const SetAlarmStateCommand_base: {
+  new (
+    input: SetAlarmStateCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    SetAlarmStateCommandInput,
+    SetAlarmStateCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  new (
+    input: SetAlarmStateCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    SetAlarmStateCommandInput,
+    SetAlarmStateCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  getEndpointParameterInstructions(): import("@smithy/middleware-endpoint").EndpointParameterInstructions;
+};
+export declare class SetAlarmStateCommand extends SetAlarmStateCommand_base {
+  protected static __types: {
+    api: {
+      input: SetAlarmStateInput;
+      output: {};
+    };
+    sdk: {
+      input: SetAlarmStateCommandInput;
+      output: SetAlarmStateCommandOutput;
+    };
+  };
+}

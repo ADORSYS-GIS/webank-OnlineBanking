@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TopupRest implements TopupRestApi {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TopupRest.class);
+
     private final TopupServiceApi topupService;
 
     @Override
@@ -23,6 +25,7 @@ public class TopupRest implements TopupRestApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
         }
         try {
+            log.info("Topup request received with accountId: {}, amount: {}", request.getAccountId(), request.getAmount());
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             JwtValidator.validateAndExtract(jwtToken, request.getAccountId(), request.getAmount());
             log.info("Topup request validated successfully");

@@ -43,3 +43,5 @@ log
 cms-db-schema/liquibase.properties
 ledgers-db/liquibase.properties
 .env
+
+node_modules

@@ -1,0 +1,50 @@
+import { Command as $Command } from "@smithy/smithy-client";
+import { MetadataBearer as __MetadataBearer } from "@smithy/types";
+import {
+  CloudWatchClientResolvedConfig,
+  ServiceInputTypes,
+  ServiceOutputTypes,
+} from "../CloudWatchClient";
+import {
+  GetMetricStreamInput,
+  GetMetricStreamOutput,
+} from "../models/models_0";
+export { __MetadataBearer };
+export { $Command };
+export interface GetMetricStreamCommandInput extends GetMetricStreamInput {}
+export interface GetMetricStreamCommandOutput
+  extends GetMetricStreamOutput,
+    __MetadataBearer {}
+declare const GetMetricStreamCommand_base: {
+  new (
+    input: GetMetricStreamCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    GetMetricStreamCommandInput,
+    GetMetricStreamCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  new (
+    input: GetMetricStreamCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    GetMetricStreamCommandInput,
+    GetMetricStreamCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  getEndpointParameterInstructions(): import("@smithy/middleware-endpoint").EndpointParameterInstructions;
+};
+export declare class GetMetricStreamCommand extends GetMetricStreamCommand_base {
+  protected static __types: {
+    api: {
+      input: GetMetricStreamInput;
+      output: GetMetricStreamOutput;
+    };
+    sdk: {
+      input: GetMetricStreamCommandInput;
+      output: GetMetricStreamCommandOutput;
+    };
+  };
+}

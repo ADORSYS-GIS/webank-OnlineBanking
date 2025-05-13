@@ -1,0 +1,127 @@
+config:
+  target: http://localhost:8081
+  output: "load-test-report.json"
+  phases:
+    - duration: 10
+      arrivalRate: 1
+      rampTo: 5
+      name: "Test load"
+
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 10
+      name: "Sustained load"
+
+    - duration: 10
+      arrivalRate: 10
+      rampTo: 15
+      name: "Peak load"
+
+  processor: "./helper.js"
+  plugins:
+    expect:
+      - maxErrorRate: 5
+      - maxResponseTime: 2000
+      - maxLatency: 1000
+    metrics-by-endpoint:
+      thresholds:
+        response_time:
+          p95: 2000
+          p99: 3000
+        error_rate: 5
+  ensure:
+    thresholds:
+      http.response_time.p95: 2000
+      http.response_time.p99: 3000
+      http.errors.rate: 5
+
+scenarios:
+  - name: "Account Registration Flow"
+    weight: 3
+    flow:
+      - function: "generateTestKeyPair"
+      - function: "generateTestData"
+      - function: "generateJWT"
+      - post:
+          url: "/api/registration"
+          headers:
+            Authorization: "Bearer {{ jwtToken }}"
+          json: {}  # Match frontend's empty body
+          expect:
+            - statusCode: 201
+            - contentType: "application/json"
+          capture:
+            - json: "$.accountId"
+              as: "registeredAccountId"
+
+  - name: "Balance and Transaction Flow"
+    weight: 5
+    flow:
+      - function: "generateTestKeyPair"
+      - function: "generateTestData"
+      - function: "generateJWT"
+      - post:
+          url: "/api/accounts/balance"
+          headers:
+            Authorization: "Bearer {{ jwtToken }}"
+          json:
+            accountId: "{{ registeredAccountId }}"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"
+      - think: 1
+      - post:
+          url: "/api/accounts/transactions"
+          headers:
+            Authorization: "Bearer {{ jwtToken }}"
+          json:
+            accountId: "{{ testData.accountId }}"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"
+
+  - name: "Money Transfer Flow"
+    weight: 4
+    flow:
+      - function: "generateTestKeyPair"
+      - function: "generateTestData"
+      - function: "generateJWT"
+      - post:
+          url: "/api/accounts/payout"
+          headers:
+            Authorization: "Bearer {{ jwtToken }}"
+          json:
+            accountId: "{{ testData.accountId }}"
+            senderAccountId: "{{ testData.recipientAccountId }}"
+            amount: "{{ testData.amount }}"
+          expect:
+            - statusCode: 201
+            - contentType: "application/json"
+      - think: 2
+      - post:
+          url: "/api/accounts/withdraw"
+          headers:
+            Authorization: "Bearer {{ jwtToken }}"
+          json:
+            recipientAccountId: "{{ testData.recipientAccountId }}"
+            accountId: "{{ testData.accountId }}"
+            amount: "{{ testData.amount }}"
+          expect:
+            - statusCode: 201
+            - contentType: "application/json"
+
+  - name: "Account Recovery Flow"
+    weight: 2
+    flow:
+      - function: "generateTestKeyPair"
+      - function: "generateTestData"
+      - function: "generateJWT"
+      - post:
+          url: "/api/accounts/recovery"
+          headers:
+            Authorization: "Bearer {{ jwtToken }}"
+          json:
+            accountId: "{{ testData.accountId }}"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"

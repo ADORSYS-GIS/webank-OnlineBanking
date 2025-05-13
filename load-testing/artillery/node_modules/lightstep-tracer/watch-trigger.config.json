@@ -1,0 +1,12 @@
+{
+    "commands" : [
+        "make build --no-print-directory",
+        "make lint"
+    ],
+    "include" : [
+        "src/**/*.js"
+    ],
+    "exclude" : [
+        "**/node_modules/**"
+    ]
+}

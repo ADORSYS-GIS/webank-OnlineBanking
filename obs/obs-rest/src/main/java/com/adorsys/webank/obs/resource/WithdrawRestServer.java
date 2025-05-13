@@ -28,6 +28,8 @@ public class WithdrawRestServer implements WithdrawRestApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
         }
         try {
+            log.info("Withdrawal request received with senderAccountId: {}, recipientAccountId: {}, amount: {}",
+                    request.getSenderAccountId(), request.getRecipientAccountId(), request.getAmount());
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             JwtValidator.validateAndExtract(jwtToken, request.getSenderAccountId(), request.getAmount(), request.getRecipientAccountId());
             log.info("Withdrawal request validated successfully");

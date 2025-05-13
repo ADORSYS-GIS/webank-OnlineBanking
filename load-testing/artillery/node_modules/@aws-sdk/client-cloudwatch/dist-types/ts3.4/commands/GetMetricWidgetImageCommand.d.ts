@@ -1,0 +1,51 @@
+import { Command as $Command } from "@smithy/smithy-client";
+import { MetadataBearer as __MetadataBearer } from "@smithy/types";
+import {
+  CloudWatchClientResolvedConfig,
+  ServiceInputTypes,
+  ServiceOutputTypes,
+} from "../CloudWatchClient";
+import {
+  GetMetricWidgetImageInput,
+  GetMetricWidgetImageOutput,
+} from "../models/models_0";
+export { __MetadataBearer };
+export { $Command };
+export interface GetMetricWidgetImageCommandInput
+  extends GetMetricWidgetImageInput {}
+export interface GetMetricWidgetImageCommandOutput
+  extends GetMetricWidgetImageOutput,
+    __MetadataBearer {}
+declare const GetMetricWidgetImageCommand_base: {
+  new (
+    input: GetMetricWidgetImageCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    GetMetricWidgetImageCommandInput,
+    GetMetricWidgetImageCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  new (
+    input: GetMetricWidgetImageCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    GetMetricWidgetImageCommandInput,
+    GetMetricWidgetImageCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  getEndpointParameterInstructions(): import("@smithy/middleware-endpoint").EndpointParameterInstructions;
+};
+export declare class GetMetricWidgetImageCommand extends GetMetricWidgetImageCommand_base {
+  protected static __types: {
+    api: {
+      input: GetMetricWidgetImageInput;
+      output: GetMetricWidgetImageOutput;
+    };
+    sdk: {
+      input: GetMetricWidgetImageCommandInput;
+      output: GetMetricWidgetImageCommandOutput;
+    };
+  };
+}

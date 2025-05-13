@@ -1,0 +1,46 @@
+import { Command as $Command } from "@smithy/smithy-client";
+import { MetadataBearer as __MetadataBearer } from "@smithy/types";
+import {
+  CloudWatchClientResolvedConfig,
+  ServiceInputTypes,
+  ServiceOutputTypes,
+} from "../CloudWatchClient";
+import { DisableAlarmActionsInput } from "../models/models_0";
+export { __MetadataBearer };
+export { $Command };
+export interface DisableAlarmActionsCommandInput
+  extends DisableAlarmActionsInput {}
+export interface DisableAlarmActionsCommandOutput extends __MetadataBearer {}
+declare const DisableAlarmActionsCommand_base: {
+  new (
+    input: DisableAlarmActionsCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    DisableAlarmActionsCommandInput,
+    DisableAlarmActionsCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  new (
+    input: DisableAlarmActionsCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    DisableAlarmActionsCommandInput,
+    DisableAlarmActionsCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  getEndpointParameterInstructions(): import("@smithy/middleware-endpoint").EndpointParameterInstructions;
+};
+export declare class DisableAlarmActionsCommand extends DisableAlarmActionsCommand_base {
+  protected static __types: {
+    api: {
+      input: DisableAlarmActionsInput;
+      output: {};
+    };
+    sdk: {
+      input: DisableAlarmActionsCommandInput;
+      output: DisableAlarmActionsCommandOutput;
+    };
+  };
+}

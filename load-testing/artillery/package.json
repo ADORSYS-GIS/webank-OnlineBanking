@@ -1,0 +1,23 @@
+{
+  "name": "artillery",
+  "version": "1.0.0",
+  "main": "helper.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "artillery": "^2.0.23",
+    "artillery-plugin-expect": "^2.17.0",
+    "artillery-plugin-metrics-by-endpoint": "^1.17.0",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.2.0",
+    "ec-key": "^0.0.6",
+    "jose": "^6.0.11",
+    "json-canonicalize": "^1.0.6",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

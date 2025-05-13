@@ -1,0 +1,47 @@
+import { Command as $Command } from "@smithy/smithy-client";
+import { MetadataBearer as __MetadataBearer } from "@smithy/types";
+import {
+  CloudWatchClientResolvedConfig,
+  ServiceInputTypes,
+  ServiceOutputTypes,
+} from "../CloudWatchClient";
+import { PutDashboardInput, PutDashboardOutput } from "../models/models_0";
+export { __MetadataBearer };
+export { $Command };
+export interface PutDashboardCommandInput extends PutDashboardInput {}
+export interface PutDashboardCommandOutput
+  extends PutDashboardOutput,
+    __MetadataBearer {}
+declare const PutDashboardCommand_base: {
+  new (
+    input: PutDashboardCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    PutDashboardCommandInput,
+    PutDashboardCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  new (
+    input: PutDashboardCommandInput
+  ): import("@smithy/smithy-client").CommandImpl<
+    PutDashboardCommandInput,
+    PutDashboardCommandOutput,
+    CloudWatchClientResolvedConfig,
+    ServiceInputTypes,
+    ServiceOutputTypes
+  >;
+  getEndpointParameterInstructions(): import("@smithy/middleware-endpoint").EndpointParameterInstructions;
+};
+export declare class PutDashboardCommand extends PutDashboardCommand_base {
+  protected static __types: {
+    api: {
+      input: PutDashboardInput;
+      output: PutDashboardOutput;
+    };
+    sdk: {
+      input: PutDashboardCommandInput;
+      output: PutDashboardCommandOutput;
+    };
+  };
+}

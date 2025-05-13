@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../src/imp/platform/browser/crouton_thrift.js"],"names":[],"mappings":";;AAAA,OAAO,OAAP,GAAiB,QAAQ,2BAAR,EAAqC,cAAtD","file":"crouton_thrift.js","sourcesContent":["module.exports = require('./generated/thrift_all.js').crouton_thrift;\n"]}
