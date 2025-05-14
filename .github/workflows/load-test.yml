@@ -35,15 +35,17 @@
         - name: Install Dependencies
           run: npm install
 
-        - name: Install Artillery
-          run: npm install artillery --save-dev
-
         - name: Verify Artillery Installation
           run: npx artillery --version
 
-        - name: Update target to production
+        - name: Verify Environment Variables
           run: |
-            sed -i "s|http://localhost:8081|$APP_URL|g" load_test.yml
+            echo "APP_URL set: ${APP_URL:+set}"
+            echo "SERVER_PRIVATE_KEY_JSON set: ${SERVER_PRIVATE_KEY_JSON:+set}"
+            echo "SERVER_PUBLIC_KEY_JSON set: ${SERVER_PUBLIC_KEY_JSON:+set}"
+
+        - name: Update target to production
+          run: sed -i "s|http://localhost:8081|$APP_URL|g" load_test.yml
 
         - name: Run Artillery Test
           run: npx artillery run load_test.yml -o load-test-report.json
@@ -62,3 +64,15 @@
               load-testing/artillery/load-test-report.json
               load-testing/artillery/load-test-report.html
           if: always()
+
+        - name: Debug on Failure
+          if: failure()
+          run: |
+            echo "Dumping package.json"
+            cat package.json
+            echo "Dumping load_test.yml"
+            cat load_test.yml
+            echo "Dumping helper.js"
+            cat helper.js
+            echo "Dumping npm logs"
+            cat /home/runner/.npm/_logs/*.log || true

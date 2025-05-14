@@ -1,16 +1,20 @@
+
 {
-  "name": "artillery",
-  "version": "1.0.0",
-  "main": "helper.js",
-  "scripts": {
-    "test": "tap test/*.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "crypto-js": "^4.2.0",
-    "jose": "^6.0.11"
-  }
+"name": "artillery",
+"version": "1.0.0",
+"main": "helper.js",
+"scripts": {
+"test": "tap test/*.js"
+},
+"keywords": [],
+"author": "",
+"license": "ISC",
+"description": "",
+"dependencies": {
+"crypto-js": "^4.2.0",
+"jose": "^6.0.11"
+},
+"devDependencies": {
+"artillery": "^2.0.0-17"
+}
 }
