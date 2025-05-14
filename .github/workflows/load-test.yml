@@ -26,9 +26,20 @@
           uses: actions/setup-node@v4
           with:
             node-version: '18'
+            cache: 'npm'
+            cache-dependency-path: load-testing/artillery/package-lock.json
+
+        - name: Clear npm cache
+          run: npm cache clean --force
 
         - name: Install Dependencies
           run: npm install
+
+        - name: Install Artillery
+          run: npm install artillery --save-dev
+
+        - name: Verify Artillery Installation
+          run: npx artillery --version
 
         - name: Update target to production
           run: |
