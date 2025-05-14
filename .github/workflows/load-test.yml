@@ -1,47 +1,53 @@
-name: Run Load Test
+  name: Run Load Test
 
-on:
-  workflow_dispatch:
-  push:
+  on:
+    workflow_dispatch:
+    push:
       branches:
         - feature/load-testing-webank-online-banking
 
-jobs:
-  load-test:
-    runs-on: ubuntu-latest
-    env:
-      APP_URL: ${{ secrets.TARGET_URL }}
-      SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
-      SERVER_PUBLIC_KEY_JSON: ${{ secrets.SERVER_PUBLIC_KEY_JSON }}
+  jobs:
+    load-test:
+      runs-on: ubuntu-latest
+      env:
+        APP_URL: ${{ secrets.TARGET_URL }}
+        SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
+        SERVER_PUBLIC_KEY_JSON: ${{ secrets.SERVER_PUBLIC_KEY_JSON }}
 
-    defaults:
-      run:
-        working-directory: load-testing/artillery
+      defaults:
+        run:
+          working-directory: load-testing/artillery
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '18'
 
-      - name: Install Dependencies
-        run: npm install
+        - name: Install Dependencies
+          run: npm install
 
-      - name: Update target to production
-        run: |
-          sed -i "s|http://localhost:8081|${TARGET_URL}|g" load_test.yml
+        - name: Update target to production
+          run: |
+            sed -i "s|http://localhost:8081|$APP_URL|g" load_test.yml
 
-      - name: Run Artillery Test
-        run: npx artillery run load_test.yml -o load-test-report.json
+        - name: Run Artillery Test
+          run: npx artillery run load_test.yml -o load-test-report.json
+          env:
+            SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
+            SERVER_PUBLIC_KEY_JSON: ${{ secrets.SERVER_PUBLIC_KEY_JSON }}
 
-      - name: Generate HTML Report
-        run: npx artillery report load-test-report.json --output load-test-report.html
+        - name: Generate HTML Report
+          run: npx artillery report load-test-report.json --output load-test-report.html
 
-      - name: Upload Report Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: load-test-report
-          path: load-testing/artillery/load-test-report.html
+        - name: Upload Report Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: load-test-reports
+            path: |
+              load-testing/artillery/load-test-report.json
+              load-testing/artillery/load-test-report.html
+          if: always()
