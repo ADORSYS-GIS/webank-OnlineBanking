@@ -6,16 +6,15 @@ if (!crypto || typeof crypto.randomBytes !== 'function') {
   throw new Error('Crypto module is not available or invalid');
 }
 
-// Create a global reference to crypto to ensure it's accessible
-global.cryptoModule = crypto;
+// Set up webcrypto polyfill for jose
+// This is the key fix - jose expects the Web Crypto API, not Node.js crypto
+global.crypto = crypto.webcrypto;
 
 // Preload jose dynamically with error handling
 let jose;
 (async () => {
   try {
     jose = await import('jose');
-    // Make jose globally available
-    global.joseModule = jose;
   } catch (error) {
     console.error('Failed to load jose:', error);
     jose = null;
@@ -50,24 +49,14 @@ function generateTestKeyPair(context, events, done) {
 
 function generateTestData(context, events, done) {
   console.log('Generating test data...');
-  // Use the global reference instead
-  const cryptoRef = global.cryptoModule;
-  const joseRef = global.joseModule;
-
-  console.log('Crypto available:', !!cryptoRef); // Debug crypto availability
-
-  if (!joseRef) {
+  console.log('Crypto available:', !!crypto); // Debug crypto availability
+  if (!jose) {
     return done(new Error('jose module not loaded yet'));
   }
-
-  if (!cryptoRef) {
-    return done(new Error('crypto module is not defined'));
-  }
-
   try {
     const { privateKeyJWK, publicKeyJWK } = context.vars.keyPair;
-    const accountId = cryptoRef.randomBytes(8).toString('hex');
-    const recipientAccountId = cryptoRef.randomBytes(8).toString('hex');
+    const accountId = crypto.randomBytes(8).toString('hex');
+    const recipientAccountId = crypto.randomBytes(8).toString('hex');
     const amount = `${Math.floor(Math.random() * (1000 - 100 + 1) + 100)}.00`;
 
     const accountCertPayload = { hash: hashPayload(accountId) };
@@ -76,15 +65,15 @@ function generateTestData(context, events, done) {
     // Use IIFE for async operations
     (async () => {
       try {
-        const privateKey = await joseRef.importJWK(privateKeyJWK, 'ES256');
-        const accountCert = await new joseRef.SignJWT(accountCertPayload)
+        const privateKey = await jose.importJWK(privateKeyJWK, 'ES256');
+        const accountCert = await new jose.SignJWT(accountCertPayload)
             .setProtectedHeader(accountCertHeader)
             .sign(privateKey);
 
         const transactionJwtPayload = {
           hash: hashPayload([accountId, amount, recipientAccountId].join('')),
         };
-        const transactionJwt = await new joseRef.SignJWT(transactionJwtPayload)
+        const transactionJwt = await new jose.SignJWT(transactionJwtPayload)
             .setProtectedHeader(accountCertHeader)
             .sign(privateKey);
 
@@ -110,21 +99,10 @@ function generateTestData(context, events, done) {
 
 function generateJWT(context, events, done) {
   console.log('Generating JWT for scenario:', context.vars.scenarioName || 'unknown');
-
-  // Use the global reference instead
-  const cryptoRef = global.cryptoModule;
-  const joseRef = global.joseModule;
-
-  console.log('Crypto available:', !!cryptoRef); // Debug crypto availability
-
-  if (!joseRef) {
+  console.log('Crypto available:', !!crypto); // Debug crypto availability
+  if (!jose) {
     return done(new Error('jose module not loaded yet'));
   }
-
-  if (!cryptoRef) {
-    return done(new Error('crypto module is not defined'));
-  }
-
   try {
     const { privateKeyJWK, publicKeyJWK } = context.vars.keyPair;
     const { testData } = context.vars;
@@ -178,8 +156,8 @@ function generateJWT(context, events, done) {
     // Use IIFE for async operations
     (async () => {
       try {
-        const privateKey = await joseRef.importJWK(privateKeyJWK, 'ES256');
-        const jwt = await new joseRef.SignJWT(jwtPayload)
+        const privateKey = await jose.importJWK(privateKeyJWK, 'ES256');
+        const jwt = await new jose.SignJWT(jwtPayload)
             .setProtectedHeader(header)
             .sign(privateKey);
 
