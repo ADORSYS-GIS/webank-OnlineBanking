@@ -11,8 +11,8 @@
       runs-on: ubuntu-latest
       env:
         APP_URL: ${{ secrets.TARGET_URL }}
-        SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
-        SERVER_PUBLIC_KEY_JSON: ${{ secrets.SERVER_PUBLIC_KEY_JSON }}
+        SERVER_PRIVATE_KEY_JSON: ${{ vars.SERVER_PRIVATE_KEY_JSON }}
+        SERVER_PUBLIC_KEY_JSON: ${{ vars.SERVER_PUBLIC_KEY_JSON }}
 
       defaults:
         run:
