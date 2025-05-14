@@ -1,10 +1,20 @@
+// Explicitly require crypto and verify it's loaded
 const crypto = require('crypto');
 const CryptoJS = require('crypto-js');
 
-// Preload jose dynamically to avoid async in processor functions
+if (!crypto || typeof crypto.randomBytes !== 'function') {
+  throw new Error('Crypto module is not available or invalid');
+}
+
+// Preload jose dynamically with error handling
 let jose;
 (async () => {
-  jose = await import('jose');
+  try {
+    jose = await import('jose');
+  } catch (error) {
+    console.error('Failed to load jose:', error);
+    jose = null;
+  }
 })();
 
 function hashPayload(payload) {
@@ -35,8 +45,12 @@ function generateTestKeyPair(context, events, done) {
 
 function generateTestData(context, events, done) {
   console.log('Generating test data...');
+  console.log('Crypto available:', !!crypto); // Debug crypto availability
   if (!jose) {
     return done(new Error('jose module not loaded yet'));
+  }
+  if (!crypto) {
+    return done(new Error('crypto module is not defined'));
   }
   try {
     const { privateKeyJWK, publicKeyJWK } = context.vars.keyPair;
@@ -47,9 +61,9 @@ function generateTestData(context, events, done) {
     const accountCertPayload = { hash: hashPayload(accountId) };
     const accountCertHeader = { typ: 'JWT', alg: 'ES256', jwk: publicKeyJWK };
 
-    // Wrap async jose calls in a Promise and resolve synchronously
-    Promise.resolve()
-      .then(async () => {
+    // Use IIFE for async operations
+    (async () => {
+      try {
         const privateKey = await jose.importJWK(privateKeyJWK, 'ES256');
         const accountCert = await new jose.SignJWT(accountCertPayload)
           .setProtectedHeader(accountCertHeader)
@@ -71,11 +85,11 @@ function generateTestData(context, events, done) {
         };
         console.log('Test data generated:', context.vars.testData);
         done();
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error generating test data:', error);
         done(error);
-      });
+      }
+    })();
   } catch (error) {
     console.error('Error generating test data:', error);
     done(error);
@@ -84,8 +98,12 @@ function generateTestData(context, events, done) {
 
 function generateJWT(context, events, done) {
   console.log('Generating JWT for scenario:', context.vars.scenarioName || 'unknown');
+  console.log('Crypto available:', !!crypto); // Debug crypto availability
   if (!jose) {
     return done(new Error('jose module not loaded yet'));
+  }
+  if (!crypto) {
+    return done(new Error('crypto module is not defined'));
   }
   try {
     const { privateKeyJWK, publicKeyJWK } = context.vars.keyPair;
@@ -137,9 +155,9 @@ function generateJWT(context, events, done) {
       throw new Error('Missing required JWT header. Need one of: accountJwt, devJwt, phoneNumberJwt.');
     }
 
-    // Wrap async jose calls in a Promise
-    Promise.resolve()
-      .then(async () => {
+    // Use IIFE for async operations
+    (async () => {
+      try {
         const privateKey = await jose.importJWK(privateKeyJWK, 'ES256');
         const jwt = await new jose.SignJWT(jwtPayload)
           .setProtectedHeader(header)
@@ -151,11 +169,11 @@ function generateJWT(context, events, done) {
         context.vars.jwtToken = jwt;
         console.log('JWT generated:', jwt);
         done();
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error generating JWT:', error);
         done(error);
-      });
+      }
+    })();
   } catch (error) {
     console.error('Error generating JWT:', error);
     done(error);
