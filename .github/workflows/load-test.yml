@@ -2,6 +2,9 @@ name: Run Load Test
 
 on:
   workflow_dispatch:
+  push:
+      branches:
+        - feature/load-testing-webank-online-banking
 
 jobs:
   load-test:
