@@ -1,6 +1,5 @@
 config:
   target: http://localhost:8081
-  output: "load-test-report.json"
   phases:
     - duration: 10
       arrivalRate: 1

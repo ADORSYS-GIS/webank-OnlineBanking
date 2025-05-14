@@ -8,7 +8,7 @@
 
   jobs:
     load-test:
-      runs-on: ubuntu-22.04 # Use specific Ubuntu version for consistency
+      runs-on: ubuntu-22.04
       env:
         APP_URL: ${{ secrets.TARGET_URL }}
         SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
@@ -37,12 +37,6 @@
 
         - name: Verify Artillery Installation
           run: npx artillery --version
-
-        - name: Verify Node.js Environment
-          run: |
-            node -e "console.log('Node.js version:', process.version)"
-            node -e "console.log('Crypto available:', require('crypto') ? 'yes' : 'no')"
-            node -e "console.log('Crypto randomBytes:', require('crypto').randomBytes(8).toString('hex'))"
 
         - name: Check Required Secrets
           run: |
@@ -76,7 +70,4 @@
             cat load_test.yml
             echo "Dumping helper.js"
             cat helper.js
-            echo "Dumping npm logs"
-            cat /home/runner/.npm/_logs/*.log || true
-            echo "Listing node_modules"
-            ls -la node_modules
+           
