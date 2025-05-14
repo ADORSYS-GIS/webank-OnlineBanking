@@ -48,7 +48,7 @@
           run: sed -i "s|http://localhost:8081|$APP_URL|g" load_test.yml
 
         - name: Run Artillery Test
-          run: npx artillery run load_test.yml -o load-test-report.json
+          run: artillery run load_test.yml --record --key a9_1qcs6wrx9a3q0p82rv2eo36ut0jursxh
           env:
             SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
             SERVER_PUBLIC_KEY_JSON: ${{ secrets.SERVER_PUBLIC_KEY_JSON }}
