@@ -56,7 +56,7 @@ function generateTestData(context, events, done) {
   try {
     const { privateKeyJWK, publicKeyJWK } = context.vars.keyPair;
     const accountId = crypto.randomBytes(8).toString('hex');
-    const recipientAccountId = crypto.randomBytes(8).toString('hex');
+    const senderAccountId = crypto.randomBytes(8).toString('hex');
     const amount = `${Math.floor(Math.random() * (1000 - 100 + 1) + 100)}.00`;
 
     const accountCertPayload = { hash: hashPayload(accountId) };
@@ -71,7 +71,7 @@ function generateTestData(context, events, done) {
             .sign(privateKey);
 
         const transactionJwtPayload = {
-          hash: hashPayload([accountId, amount, recipientAccountId].join('')),
+          hash: hashPayload([accountId, amount, senderAccountId].join('')),
         };
         const transactionJwt = await new jose.SignJWT(transactionJwtPayload)
             .setProtectedHeader(accountCertHeader)
@@ -79,7 +79,7 @@ function generateTestData(context, events, done) {
 
         context.vars.testData = {
           accountId,
-          recipientAccountId,
+          senderAccountId,
           amount,
           accountCert,
           transactionJwt,
@@ -124,10 +124,10 @@ function generateJWT(context, events, done) {
       requestBody = { accountID: testData.accountId };
       headerFields = { accountJwt: testData.accountCert };
     } else if (scenarioName.includes('Money Transfer Flow')) {
-      dataToHash = [testData.accountId, testData.amount, testData.recipientAccountId].join('');
+      dataToHash = [testData.accountId, testData.amount, testData.senderAccountId].join('');
       requestBody = {
         recipientAccountId: testData.accountId,
-        senderAccountId: testData.recipientAccountId,
+        senderAccountId: testData.senderAccountId,
         amount: testData.amount,
       };
       headerFields = { accountJwt: testData.accountCert, kycJwt: testData.accountCert };
