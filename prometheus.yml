@@ -2,11 +2,11 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: 'obs-backend'
-    metrics_path: '/actuator/prometheus'
+  - job_name: "obs-backend"
+    metrics_path: "/api/actuator/prometheus"
     static_configs:
-      - targets: ['host.docker.internal:8081']
-  - job_name: 'prs-backend'
-    metrics_path: '/actuator/prometheus'
+      - targets: ["host.docker.internal:8081"]
+  - job_name: "prs-backend"
+    metrics_path: "/api/prs/actuator/prometheus"
     static_configs:
-      - targets: ['host.docker.internal:8080']
+      - targets: ["host.docker.internal:8080"]
