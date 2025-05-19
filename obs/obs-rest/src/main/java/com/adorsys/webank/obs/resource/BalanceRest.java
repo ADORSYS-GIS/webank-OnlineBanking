@@ -26,6 +26,7 @@ public class BalanceRest implements BalanceRestApi {
         }
 
         try {
+            log.info("balance request received with accountid: {}", balanceRequest.getAccountID());
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             JwtValidator.validateAndExtract(jwtToken, balanceRequest.getAccountID());
             log.info("balance request validated successfully");

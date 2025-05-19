@@ -1,0 +1,73 @@
+  name: Run Load Test
+
+  on:
+    workflow_dispatch:
+    push:
+      branches:
+        - feature/load-testing-webank-online-banking
+
+  jobs:
+    load-test:
+      runs-on: ubuntu-22.04
+      env:
+        APP_URL: ${{ secrets.TARGET_URL }}
+        SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
+        SERVER_PUBLIC_KEY_JSON: ${{ secrets.SERVER_PUBLIC_KEY_JSON }}
+
+      defaults:
+        run:
+          working-directory: load-testing/artillery
+
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v4
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '18'
+            cache: 'npm'
+            cache-dependency-path: load-testing/artillery/package-lock.json
+
+        - name: Clear npm cache
+          run: npm cache clean --force
+
+        - name: Install Dependencies
+          run: npm install
+
+        - name: Verify Artillery Installation
+          run: npx artillery --version
+
+        - name: Check Required Secrets
+          run: |
+            if [ -z "$APP_URL" ]; then
+              echo "Error: APP_URL (TARGET_URL secret) must be set."
+              exit 1
+            fi
+            if [ -z "$SERVER_PRIVATE_KEY_JSON" ] || [ -z "$SERVER_PUBLIC_KEY_JSON" ]; then
+              echo "Error: SERVER_PRIVATE_KEY_JSON and SERVER_PUBLIC_KEY_JSON must be set as GitHub secrets."
+              exit 1
+            fi
+            echo "APP_URL set: ${APP_URL:+set}"
+            echo "SERVER_PRIVATE_KEY_JSON set: ${SERVER_PRIVATE_KEY_JSON:+set}"
+            echo "SERVER_PUBLIC_KEY_JSON set: ${SERVER_PUBLIC_KEY_JSON:+set}"
+
+        - name: Update target to production
+          run: sed -i "s|http://localhost:8081|$APP_URL|g" load_test.yml
+
+        - name: Run Artillery Test
+          run: npx artillery run load_test.yml --record --key a9_1qcs6wrx9a3q0p82rv2eo36ut0jursxh
+          env:
+            SERVER_PRIVATE_KEY_JSON: ${{ secrets.SERVER_PRIVATE_KEY_JSON }}
+            SERVER_PUBLIC_KEY_JSON: ${{ secrets.SERVER_PUBLIC_KEY_JSON }}
+
+        - name: Debug on Failure
+          if: failure()
+          run: |
+            echo "Dumping package.json"
+            cat package.json
+            echo "Dumping load_test.yml"
+            cat load_test.yml
+            echo "Dumping helper.js"
+            cat helper.js
+           

@@ -9,10 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 public class PayoutRest implements PayoutRestApi {
 
+    private static final Logger log = LoggerFactory.getLogger(BalanceRest.class);
     private final PayoutServiceApi payoutService;
 
     public PayoutRest(PayoutServiceApi payoutService) {
@@ -26,6 +29,8 @@ public class PayoutRest implements PayoutRestApi {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
         }
         try {
+            log.info("Payout request received with senderAccountId: {}, recipientAccountId: {}, amount: {}",
+                    request.getSenderAccountId(), request.getRecipientAccountId(), request.getAmount());
             String jwtToken = extractJwtFromHeader(authorizationHeader);
             JwtValidator.validateAndExtract(jwtToken, request.getRecipientAccountId(), request.getAmount(), request.getSenderAccountId());
             String result = payoutService.payout(request, jwtToken) ;

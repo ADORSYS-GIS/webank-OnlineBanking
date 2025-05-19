@@ -29,6 +29,37 @@ dist/
 nbdist/
 .nb-gradle/
 
+### Node.js ###
+# Global node_modules
+node_modules/
+# Load testing specific node_modules
+load-testing/**/node_modules/
+load-testing/artillery/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.next/
+out/
+.nuxt/
+.cache/
+.parcel-cache/
+coverage/
+.nyc_output/
+dist/
+build/
+.next/
+out/
+.nuxt/
+.cache/
+.parcel-cache/
+coverage/
+.nyc_output/
+
 ### Other ###
 bin/
 .factorypath
