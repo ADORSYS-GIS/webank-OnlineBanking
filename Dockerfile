@@ -1,12 +1,27 @@
+# Build stage
+FROM ghcr.io/graalvm/native-build:22.3.0 AS builder
+
+WORKDIR /build
+
+# Copy the source code
+COPY . .
+
+# Build the native executable
+RUN ./mvnw -Pnative clean package
+
 # Run stage
-FROM eclipse-temurin:17-jdk-alpine
+FROM gcr.io/distroless/static-debian11:nonroot
 
-WORKDIR /webank-OnlineBanking
+WORKDIR /app
 
-# py the JAR file from the online-banking-app module
-COPY ./online-banking-app/target/online-banking-app-0.1-SNAPSHOT.jar /webank-OnlineBanking/online-banking-app-0.1-SNAPSHOT.jar
+# Copy only the native executable from the builder stage
+COPY --from=builder /build/online-banking-app/target/online-banking-app /app/online-banking-app
+
 # Expose the port your app runs on
 EXPOSE 8081
 
-# Run the application
-CMD ["java", "-jar", "/webank-OnlineBanking/online-banking-app-0.1-SNAPSHOT.jar"]
+# Use non-root user
+USER nonroot
+
+# Run the native executable
+CMD ["/app/online-banking-app"]
