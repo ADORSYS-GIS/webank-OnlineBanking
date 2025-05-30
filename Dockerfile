@@ -1,5 +1,5 @@
 # Build stage
-FROM ghcr.io/graalvm/native-build:22.3.0 AS builder
+FROM ghcr.io/graalvm/native-image-community:24-muslib AS builder
 
 WORKDIR /build
 
