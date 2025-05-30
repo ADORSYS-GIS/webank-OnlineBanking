@@ -89,7 +89,7 @@ public class TransactionHelper {
     public boolean isValidJwt(String accountCertificateJwt, Logger logger) {
         try {
             boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
-            logger.info("The AccountCert is: {}", accountCertificateJwt);
+            logger.info("Tcd he AccountCert is: {}", accountCertificateJwt);
             return isValid;
         } catch (Exception e) {
             logger.error("JWT validation error: {}", e.getMessage());
