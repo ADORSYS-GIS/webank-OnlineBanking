@@ -1,6 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.security.JwtCertValidator;
+
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.nimbusds.jose.jwk.ECKey;
+import com.adorsys.webank.config.SecurityUtils;
 
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -25,21 +27,25 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
     private final BankAccountCertificateCreationService bankAccountCertificateCreationService;
     private final BankAccountService bankAccountService;
-    private final JwtCertValidator jwtCertValidator;
     private final BankAccountTransactionService bankAccountTransactionService;
+
+    /**
+     * Registers a new bank account using the provided registration JWT.
+     *
+     * @param registrationJwt The JWT containing the registration information.
+     * @return A message indicating the result of the registration process.
+     */
 
     @Override
     @Transactional
-    public String registerAccount(String publicKey, String registrationJwt) {
-        if (log.isInfoEnabled()) {
-            log.info("Registering account with publicKey: {} and registrationJwt: {}", publicKey, registrationJwt);
+    public String registerAccount(String registrationJwt) {
+        ECKey devicePub = SecurityUtils.extractDeviceJwkFromContext();
+
+        if (devicePub == null) {
+            log.error("Device public key is null. Cannot register account.");
+            return "Device public key is missing. Cannot register account.";
         }
         try {
-            boolean isValid = jwtCertValidator.validateJWT(registrationJwt);
-
-            if (!isValid) {
-                return "Invalid certificate or JWT. Account creation failed";
-            }
 
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
@@ -68,7 +74,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     .build();
 
             // Call the service to create the account
-            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(publicKey, bankAccountBO, UUID.randomUUID().toString(), "OBS");
+            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(String.valueOf(devicePub), bankAccountBO, UUID.randomUUID().toString(), "OBS");
 
             // Split the string by newlines
             String[] lines = createdAccountResult.split("\n");

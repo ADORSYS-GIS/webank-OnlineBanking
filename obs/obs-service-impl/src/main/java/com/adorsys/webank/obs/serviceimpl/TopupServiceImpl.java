@@ -1,7 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.TopupRequestDto;
-import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.adorsys.webank.obs.service.TopupServiceApi;
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -25,7 +24,7 @@ public class TopupServiceImpl implements TopupServiceApi {
 
     @Override
     @Transactional
-    public String topup(TopupRequestDto topupRequestDto, String accountCertificateJwt) {
+    public String topup(TopupRequestDto topupRequestDto) {
 
         String accountId = topupRequestDto.getAccountId();
         String amount = topupRequestDto.getAmount();

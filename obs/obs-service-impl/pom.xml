@@ -44,6 +44,20 @@
             <version>3.1.8</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.adorsys.webank</groupId>
+            <artifactId>prs-middleware</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
+            <scope>provided</scope>
+        </dependency>
 
 
         <dependency>

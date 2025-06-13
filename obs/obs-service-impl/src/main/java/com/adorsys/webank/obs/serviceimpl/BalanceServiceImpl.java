@@ -1,37 +1,33 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.security.*;
 import com.adorsys.webank.obs.service.*;
 import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
 import org.springframework.stereotype.*;
+import lombok.RequiredArgsConstructor;
 
 import java.time.*;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class BalanceServiceImpl implements BalanceServiceApi {
 
     private final BankAccountService bankAccountService;
 
+    /**
+     * Handles balance requests by fetching the balance for a given account ID.
+     *
+     * @param balanceRequest The balance request containing the account ID.
+     * @return A string representing the balance or an error message.
+     */
 
-    private final JwtCertValidator jwtCertValidator;
-
-
-    public BalanceServiceImpl(BankAccountService bankAccountService, JwtCertValidator jwtCertValidator) {
-        this.bankAccountService = bankAccountService;
-        this.jwtCertValidator = jwtCertValidator;
-    }
 
     @Override
-    public String getBalance(BalanceRequest balanceRequest, String accountCertificateJwt) {
+    public String getBalance(BalanceRequest balanceRequest) {
         try {
-            boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
 
-            if (!isValid){
-                return "Invalid certificate or JWT. Account creation failed";
-            }
             String accountId = balanceRequest.getAccountID();
 
             BankAccountDetailsBO details = bankAccountService.getAccountDetailsById(

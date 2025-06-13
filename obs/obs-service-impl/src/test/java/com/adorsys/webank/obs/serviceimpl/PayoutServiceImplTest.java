@@ -70,7 +70,7 @@ public class PayoutServiceImplTest {
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
-            String result = payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+            String result = payoutService.payout(smallAmountRequest);
 
             // Assert
             assertEquals(TRANSACTION_SUCCESS, result);
@@ -102,7 +102,7 @@ public class PayoutServiceImplTest {
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
-            String result = payoutService.payout(largeAmountRequest, VALID_JWT_TOKEN);
+            String result = payoutService.payout(largeAmountRequest);
 
             // Assert
             assertEquals(TRANSACTION_SUCCESS, result);
@@ -127,7 +127,7 @@ public class PayoutServiceImplTest {
 
             // Act & Assert
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                payoutService.payout(largeAmountRequest, VALID_JWT_TOKEN);
+                payoutService.payout(largeAmountRequest);
             });
 
             assertEquals("KYC certificate is required for transactions exceeding 10,000 francs.", exception.getMessage());
@@ -144,7 +144,7 @@ public class PayoutServiceImplTest {
 
             // Act & Assert
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+                payoutService.payout(smallAmountRequest);
             });
 
             assertEquals("Account certificate is required for all transactions.", exception.getMessage());
@@ -161,7 +161,7 @@ public class PayoutServiceImplTest {
 
             // Act & Assert
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+                payoutService.payout(smallAmountRequest);
             });
 
             assertEquals("Account certificate is required for all transactions.", exception.getMessage());
@@ -173,7 +173,7 @@ public class PayoutServiceImplTest {
     void payout_withNullJwtToken_shouldThrowException() {
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> {
-            payoutService.payout(smallAmountRequest, null);
+            payoutService.payout(smallAmountRequest);
         });
         verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
     }
@@ -192,7 +192,7 @@ public class PayoutServiceImplTest {
 
             // Act & Assert
             assertThrows(NumberFormatException.class, () -> {
-                payoutService.payout(invalidAmountRequest, VALID_JWT_TOKEN);
+                payoutService.payout(invalidAmountRequest);
             });
             verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
         }
@@ -213,7 +213,7 @@ public class PayoutServiceImplTest {
 
             // Act & Assert
             RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-                payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+                payoutService.payout(smallAmountRequest);
             });
 
             assertEquals("Transaction processing error", exception.getMessage());
@@ -237,7 +237,7 @@ public class PayoutServiceImplTest {
             ArgumentCaptor<Logger> loggerCaptor = ArgumentCaptor.forClass(Logger.class);
 
             // Act
-            payoutService.payout(smallAmountRequest, VALID_JWT_TOKEN);
+            payoutService.payout(smallAmountRequest);
 
             // Assert
             verify(transactionHelper).validateAndProcessTransaction(

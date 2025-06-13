@@ -36,7 +36,7 @@ class WithdrawServiceImplTest {
 
         when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
 
-        String response = withdrawService.withdraw(request, accountCertJwt);
+        String response = withdrawService.withdraw(request);
 
         verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
         verifyNoInteractions(transactionHelper);
@@ -62,7 +62,7 @@ class WithdrawServiceImplTest {
                 ArgumentMatchers.any())
         ).thenReturn(expectedResponse);
 
-        String response = withdrawService.withdraw(request, accountCertJwt);
+        String response = withdrawService.withdraw(request);
 
         verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
         verify(transactionHelper, times(1)).validateAndProcessTransaction(

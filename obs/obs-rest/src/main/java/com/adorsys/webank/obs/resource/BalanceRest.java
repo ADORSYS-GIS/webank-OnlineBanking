@@ -1,46 +1,45 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.security.JwtValidator;
 import com.adorsys.webank.obs.service.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Slf4j
+@RequiredArgsConstructor
 public class BalanceRest implements BalanceRestApi {
 
-    private static final Logger log = LoggerFactory.getLogger(BalanceRest.class);
-    private  BalanceServiceApi balanceService;
+    private final BalanceServiceApi balanceService;
 
-    public BalanceRest( BalanceServiceApi balanceService) {
-        this.balanceService = balanceService;
-    }
-
+    /**
+     * Handles balance requests for certified accounts.
+     * Requires the user to have the ROLE_ACCOUNT_CERTIFIED and be authenticated.
+     *
+     * @param authorizationHeader The authorization header containing the user's credentials.
+     * @param balanceRequest      The request body containing account details for balance retrieval.
+     * @return ResponseEntity with the balance information or an error message.
+     */
     @Override
-    public ResponseEntity<String> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BalanceRequest balanceRequest) {
-        // Check for null balanceRequest
-        if (balanceRequest == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
-        }
+    @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
+    public ResponseEntity<String> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                             @RequestBody BalanceRequest balanceRequest) {
+        log.info("Incoming balance request: {}", balanceRequest);
 
         try {
-            String jwtToken = extractJwtFromHeader(authorizationHeader);
-            JwtValidator.validateAndExtract(jwtToken, balanceRequest.getAccountID());
-            log.info("balance request validated successfully");
-            String result = balanceService.getBalance(balanceRequest, jwtToken) ;
+            String result = balanceService.getBalance(balanceRequest);
+            log.info("Balance request processed successfully.");
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
-            // Log the exception (optional)
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the request.");
+            log.error("Error processing balance request", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while processing the request.");
         }
     }
-        private String extractJwtFromHeader(String authorizationHeader) {
-            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-                throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
-            }
-            return authorizationHeader.substring(7); // Remove "Bearer " prefix
-        }
+
+
 }
 
