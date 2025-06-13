@@ -1,6 +1,5 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -12,7 +11,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
-import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
@@ -28,7 +26,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,8 +50,6 @@ class TransactionHelperTest {
     @Mock
     private TransactionService transactionService;
 
-    @Mock
-    private JwtCertValidator jwtCertValidator;
 
     @InjectMocks
     private TransactionHelper transactionHelper;
@@ -97,7 +92,6 @@ class TransactionHelperTest {
     @Test
     void testValidateAndProcessTransaction_Success() {
         // Arrange
-        when(jwtCertValidator.validateJWT(anyString())).thenReturn(true);
         when(bankAccountService.getAccountDetailsById(anyString(), any(), anyBoolean()))
                 .thenReturn(createMockAccountDetails(new BigDecimal("1000.00")));
         when(bankAccountService.getAccountById(anyString()))
@@ -115,9 +109,6 @@ class TransactionHelperTest {
 
     @Test
     void testValidateAndProcessTransaction_InvalidJwt() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(anyString())).thenReturn(false);
-
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, "invalid-jwt", logger);
@@ -128,9 +119,6 @@ class TransactionHelperTest {
 
     @Test
     void testValidateAndProcessTransaction_InvalidAmountFormat() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(anyString())).thenReturn(true);
-
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, INVALID_AMOUNT, validJwt, logger);
@@ -141,8 +129,6 @@ class TransactionHelperTest {
 
     @Test
     void testValidateAndProcessTransaction_NegativeAmount() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(anyString())).thenReturn(true);
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
@@ -155,7 +141,6 @@ class TransactionHelperTest {
     @Test
     void testValidateAndProcessTransaction_InsufficientBalance() {
         // Arrange
-        when(jwtCertValidator.validateJWT(anyString())).thenReturn(true);
         when(bankAccountService.getAccountDetailsById(anyString(), any(), anyBoolean()))
                 .thenReturn(createMockAccountDetails(new BigDecimal("50.00")));
 
@@ -169,8 +154,6 @@ class TransactionHelperTest {
 
     @Test
     void testValidateAndProcessTransaction_AccountNotFound() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(anyString())).thenReturn(true);
         when(bankAccountService.getAccountDetailsById(anyString(), any(), anyBoolean()))
                 .thenReturn(createMockAccountDetails(new BigDecimal("1000.00")));
         when(bankAccountService.getAccountById(anyString())).thenReturn(null);
@@ -185,8 +168,6 @@ class TransactionHelperTest {
 
     @Test
     void testValidateAndProcessTransaction_TransactionBookingFailed() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(anyString())).thenReturn(true);
         when(bankAccountService.getAccountDetailsById(anyString(), any(), anyBoolean()))
                 .thenReturn(createMockAccountDetails(new BigDecimal("1000.00")));
         when(bankAccountService.getAccountById(anyString()))
@@ -241,4 +222,4 @@ class TransactionHelperTest {
         details.setBookingDate(LocalDate.now());
         return details;
     }
-} 
+}

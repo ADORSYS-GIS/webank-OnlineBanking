@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public interface PayoutRestApi {
 
 
-    @Operation(summary = "Topup a an Account", description = "Topup an account from another Account (Payout)")
+    @Operation(summary = "Top-Up  a an Account", description = "Top-Up an account from another Account (Payout)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Account Topup successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request to Topup account"),
+            @ApiResponse(responseCode = "200", description = "Account Top-Up successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request to Top-Up account"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
 
     })

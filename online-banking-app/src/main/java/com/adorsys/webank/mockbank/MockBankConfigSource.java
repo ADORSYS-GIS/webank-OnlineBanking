@@ -10,9 +10,9 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.adorsys.webank.bank.api.service.domain.ASPSPConfigData;
 import de.adorsys.webank.bank.api.service.domain.ASPSPConfigSource;
 import de.adorsys.webank.bank.api.service.domain.LedgerAccountModel;
+import org.springframework.stereotype.Component;
 
-
-//@Component
+@Component
 public class MockBankConfigSource implements ASPSPConfigSource {
     private ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 

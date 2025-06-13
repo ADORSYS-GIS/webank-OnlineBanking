@@ -1,6 +1,5 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.security.JwtCertValidator;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
@@ -22,9 +21,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ObsServiceImplTest {
-
-    @Mock
-    private JwtCertValidator jwtCertValidator;
 
     @Mock
     private BankAccountCertificateCreationService bankAccountCertificateCreationService;
@@ -50,17 +46,13 @@ class ObsServiceImplTest {
 
         String phoneNumberCertificateJwt = "invalidJwt";
 
-        // Mock JwtCertValidator's validateJWT method to return false
-        when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(false);
 
         // Call the method to test
-        String result = obsService.registerAccount(publicKey, phoneNumberCertificateJwt);
+        String result = obsService.registerAccount(publicKey);
 
         // Verify the result
         assertEquals("Invalid certificate or JWT. Account creation failed", result);
 
-        // Verify the interaction with the mock
-        verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
         verify(bankAccountCertificateCreationService, times(0)).registerNewBankAccount(any(), any(), anyString(), anyString());
     }
 
@@ -71,9 +63,6 @@ class ObsServiceImplTest {
 
         String phoneNumberCertificateJwt = "validJwt";
 
-        // Mock JwtCertValidator's validateJWT method to return true
-        when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(true);
-
         // Mock BankAccountCertificateCreationService's registerNewBankAccount method
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
         when(bankAccountCertificateCreationService.registerNewBankAccount(eq("publicKey123"),
@@ -81,13 +70,12 @@ class ObsServiceImplTest {
         )).thenReturn(mockResult);
 
         // Call the method to test
-        String result = obsService.registerAccount(publicKey, phoneNumberCertificateJwt);
+        String result = obsService.registerAccount(publicKey);
 
         // Verify the result
         assertEquals("Bank account successfully created. Details: " + mockResult, result);
 
         // Verify the interactions with the mocks
-        verify(jwtCertValidator, times(1)).validateJWT(phoneNumberCertificateJwt);
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(any(), any(), anyString(), anyString());
     }
 
@@ -98,9 +86,6 @@ class ObsServiceImplTest {
 
         String phoneNumberCertificateJwt = "validJwt";
 
-        // Mock JwtCertValidator's validateJWT method
-        when(jwtCertValidator.validateJWT(phoneNumberCertificateJwt)).thenReturn(true);
-
         // Mock BankAccountCertificateCreationService
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
         when(bankAccountCertificateCreationService.registerNewBankAccount(
@@ -108,7 +93,7 @@ class ObsServiceImplTest {
         )).thenReturn(mockResult);
 
         // Call the method
-        obsService.registerAccount(publicKey, phoneNumberCertificateJwt);
+        obsService.registerAccount(publicKey);
 
         // Capture the BankAccountBO argument
         ArgumentCaptor<BankAccountBO> bankAccountCaptor = ArgumentCaptor.forClass(BankAccountBO.class);
