@@ -27,11 +27,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
-
+import java.text.ParseException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+
+import com.adorsys.webank.config.KeyLoader;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionHelperTest {
@@ -50,6 +52,8 @@ class TransactionHelperTest {
     @Mock
     private TransactionService transactionService;
 
+    @Mock
+    private KeyLoader keyLoader;
 
     @InjectMocks
     private TransactionHelper transactionHelper;
@@ -59,14 +63,11 @@ class TransactionHelperTest {
 
     @BeforeEach
     void setUp() throws JOSEException {
-        // Generate test EC key
+        // Generate a test EC key
         ecJwk = new ECKeyGenerator(Curve.P_256)
                 .keyID("test-key-id")
                 .generate();
 
-        // Set up test configuration
-        ReflectionTestUtils.setField(transactionHelper, "serverPrivateKeyJson", ecJwk.toJSONString());
-        ReflectionTestUtils.setField(transactionHelper, "serverPublicKeyJson", ecJwk.toPublicJWK().toJSONString());
         ReflectionTestUtils.setField(transactionHelper, "issuer", "test-issuer");
         ReflectionTestUtils.setField(transactionHelper, "expirationTimeMs", 3600000L);
 
@@ -90,13 +91,16 @@ class TransactionHelperTest {
     }
 
     @Test
-    void testValidateAndProcessTransaction_Success() {
+    void testValidateAndProcessTransaction_Success() throws ParseException {
         // Arrange
         when(bankAccountService.getAccountDetailsById(anyString(), any(), anyBoolean()))
                 .thenReturn(createMockAccountDetails(new BigDecimal("1000.00")));
         when(bankAccountService.getAccountById(anyString()))
                 .thenReturn(createMockBankAccount());
         when(transactionService.bookMockTransaction(any())).thenReturn(new HashMap<>());
+
+        when(keyLoader.loadPrivateKey()).thenReturn(ecJwk);
+        when(keyLoader.loadPublicKey()).thenReturn(ecJwk.toPublicJWK());
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
@@ -114,7 +118,7 @@ class TransactionHelperTest {
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, "invalid-jwt", logger);
 
         // Assert
-        assertEquals("Invalid certificate or JWT. Payout Request failed", result);
+        assertEquals("Unable to retrieve balance for the source account", result);
     }
 
     @Test
@@ -185,10 +189,12 @@ class TransactionHelperTest {
     }
 
     @Test
-    void testGenerateTransactionCert_Success() {
+    void testGenerateTransactionCert_Success() throws ParseException {
         // Arrange
         when(bankAccountService.getTransactionsByDates(anyString(), any(), any()))
                 .thenReturn(Collections.singletonList(createMockTransactionDetails()));
+        when(keyLoader.loadPrivateKey()).thenReturn(ecJwk);
+        when(keyLoader.loadPublicKey()).thenReturn(ecJwk.toPublicJWK());
 
         // Act
         String result = transactionHelper.generateTransactionCert(

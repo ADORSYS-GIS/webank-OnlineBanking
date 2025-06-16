@@ -1,15 +1,20 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.config.SecurityUtils;
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,6 +31,7 @@ class WithdrawServiceImplTest {
 
     @Test
     void testWithdrawFailsDueToInvalidTransactionJWT() {
+        // Arrange
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("senderABC");
         request.setRecipientAccountId("recipientXYZ");
@@ -34,17 +40,26 @@ class WithdrawServiceImplTest {
         String accountCertJwt = "invalid-transaction-jwt";
         String expectedError = "Invalid transaction JWT";
 
-        when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
+        // Mock SecurityUtils.getCurrentUserJWT()
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.of(accountCertJwt));
 
-        String response = withdrawService.withdraw(request);
+            // Mock validator to return false for invalid JWT
+            when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
 
-        verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
-        verifyNoInteractions(transactionHelper);
-        assertEquals(expectedError, response);
+            // Act
+            String response = withdrawService.withdraw(request);
+
+            // Assert
+            verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
+            verifyNoInteractions(transactionHelper);
+            assertEquals(expectedError, response);
+        }
     }
 
     @Test
     void testWithdrawSuccess() {
+        // Arrange
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("senderDEF");
         request.setRecipientAccountId("recipientUVW");
@@ -53,25 +68,33 @@ class WithdrawServiceImplTest {
         String accountCertJwt = "valid-transaction-jwt";
         String expectedResponse = "transactionCertString Success";
 
-        when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(true);
-        when(transactionHelper.validateAndProcessTransaction(
-                eq("senderDEF"),
-                eq("recipientUVW"),
-                eq("300.00"),
-                eq(accountCertJwt),
-                ArgumentMatchers.any())
-        ).thenReturn(expectedResponse);
+        // Mock SecurityUtils.getCurrentUserJWT()
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.of(accountCertJwt));
 
-        String response = withdrawService.withdraw(request);
+            // Mock validator to return true for valid JWT
+            when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(true);
+            when(transactionHelper.validateAndProcessTransaction(
+                    eq("senderDEF"),
+                    eq("recipientUVW"),
+                    eq("300.00"),
+                    eq(accountCertJwt),
+                    any())
+            ).thenReturn(expectedResponse);
 
-        verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
-        verify(transactionHelper, times(1)).validateAndProcessTransaction(
-                eq("senderDEF"),
-                eq("recipientUVW"),
-                eq("300.00"),
-                eq(accountCertJwt),
-                ArgumentMatchers.any()
-        );
-        assertEquals(expectedResponse, response);
+            // Act
+            String response = withdrawService.withdraw(request);
+
+            // Assert
+            verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
+            verify(transactionHelper, times(1)).validateAndProcessTransaction(
+                    eq("senderDEF"),
+                    eq("recipientUVW"),
+                    eq("300.00"),
+                    eq(accountCertJwt),
+                    any()
+            );
+            assertEquals(expectedResponse, response);
+        }
     }
 }
