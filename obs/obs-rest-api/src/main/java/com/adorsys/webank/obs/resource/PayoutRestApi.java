@@ -1,30 +1,103 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.dto.response.ErrorResponse;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Trans", description = "Operations related to Trans processing")
-@RequestMapping("/api/accounts/")
+@Tag(
+    name = "Money Transfer",
+    description = "APIs for transferring money between accounts"
+)
+@RequestMapping("/api/transfers")
 public interface PayoutRestApi {
 
-
-    @Operation(summary = "Top-Up  a an Account", description = "Top-Up an account from another Account (Payout)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Account Top-Up successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request to Top-Up account"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-
+    @Operation(
+        summary = "Transfer money between accounts",
+        description = """
+            Transfers money from one account to another.
+            The sender must have sufficient funds and permission to transfer.
+            The recipient account must be active and valid.
+            """,
+        security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "Transfer completed successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = MoneyTransferResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request - Missing or invalid request parameters",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Invalid or missing JWT token",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have permission to transfer",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Account not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ErrorResponse.class)
+            )
+        )
     })
-    @PostMapping(value = "/payout", consumes = "application/json", produces = "application/json")
-    ResponseEntity<String> payout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request);
-
+    @PostMapping(
+        value = "/payout",
+        consumes = "application/json",
+        produces = "application/json"
+    )
+    ResponseEntity<MoneyTransferResponse> transferMoney(
+        @Parameter(
+            description = "JWT token in the format 'Bearer <token>'",
+            required = true,
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        )
+        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+        
+        @Parameter(
+            description = "Money transfer request containing transfer details",
+            required = true
+        )
+        @RequestBody MoneyTransferRequestDto request
+    );
 }
