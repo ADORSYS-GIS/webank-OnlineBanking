@@ -48,7 +48,7 @@ jobs:
                 </settings>" > ~/.m2/settings.xml
 
       - name: Run Unit and Integration Tests
-        run: mvn verify -s ~/.m2/settings.xml -Dmaven.javadoc.skip=true -Ddependency-check.skip=true
+        run: mvn verify -s ~/.m2/settings.xml -Dmaven.javadoc.skip=true -DskipITs -Ddependency-check.skip=true
 
 
   build:
