@@ -3,7 +3,7 @@ package com.adorsys.webank;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(classes = OnlineBankingApplication.class)
 class OnlineBankingApplicationTests {
 
     @Test
