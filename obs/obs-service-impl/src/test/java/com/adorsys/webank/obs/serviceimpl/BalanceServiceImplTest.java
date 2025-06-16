@@ -39,7 +39,6 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
-        String accountCertificateJwt = "valid-jwt-token"; // Provide a mock valid JWT token
 
         AmountBO amount = new AmountBO();
         amount.setCurrency(Currency.getInstance("XAF"));
@@ -64,7 +63,6 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
-        String accountCertificateJwt = "valid-jwt-token"; // Provide a mock valid JWT token
 
         BankAccountDetailsBO accountDetails = new BankAccountDetailsBO();
         accountDetails.setBalances(Collections.emptyList());
@@ -84,7 +82,6 @@ class BalanceServiceImplTest {
         // Arrange
         BalanceRequest request = new BalanceRequest();
         request.setAccountID("12345");
-        String accountCertificateJwt = "valid-jwt-token"; // Provide a mock valid JWT token
 
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(null);
