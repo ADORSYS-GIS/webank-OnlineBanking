@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -40,7 +40,6 @@ class WithdrawServiceImplTest {
         request.setAmount(new BigDecimal("200.00"));
 
         String accountCertJwt = "invalid-transaction-jwt";
-        String expectedError = "Invalid transaction JWT";
 
         // Mock SecurityUtils.getCurrentUserJWT()
         try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
@@ -55,7 +54,10 @@ class WithdrawServiceImplTest {
             // Assert
             verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
             verifyNoInteractions(transactionHelper);
-            assertEquals(expectedError, response);
+            assertEquals(MoneyTransferResponse.TransferStatus.INVALID_ACCOUNT, response.getStatus());
+            assertEquals("Invalid transaction JWT", response.getMessage());
+            assertNotNull(response.getTimestamp());
+            // Note: Amount and currency are not set in error response
         }
     }
 
@@ -68,7 +70,7 @@ class WithdrawServiceImplTest {
         request.setAmount(new BigDecimal("300.00"));
 
         String accountCertJwt = "valid-transaction-jwt";
-        String expectedResponse = "transactionCertString Success";
+        String expectedTransactionId = "transactionCertString Success";
 
         // Mock SecurityUtils.getCurrentUserJWT()
         try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
@@ -82,7 +84,7 @@ class WithdrawServiceImplTest {
                     eq("300.00"),
                     eq(accountCertJwt),
                     any())
-            ).thenReturn(expectedResponse);
+            ).thenReturn(expectedTransactionId);
 
             // Act
             MoneyTransferResponse response = withdrawService.withdraw(request);
@@ -96,7 +98,12 @@ class WithdrawServiceImplTest {
                     eq(accountCertJwt),
                     any()
             );
-            assertEquals(expectedResponse, response);
+            assertEquals(MoneyTransferResponse.TransferStatus.COMPLETED, response.getStatus());
+            assertEquals(expectedTransactionId, response.getTransactionId());
+            assertEquals(new BigDecimal("300.00"), response.getAmount());
+            assertEquals("XAF", response.getCurrency());
+            assertNotNull(response.getTimestamp());
+            assertEquals("Withdrawal completed successfully", response.getMessage());
         }
     }
 }

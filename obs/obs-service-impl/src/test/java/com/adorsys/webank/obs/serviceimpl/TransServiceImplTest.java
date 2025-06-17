@@ -22,8 +22,12 @@ import java.util.Currency;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,78 +40,171 @@ class TransServiceImplTest {
     private TransServiceImpl transService;
 
     private TransRequest transRequest;
+    private static final String ACCOUNT_ID = "12345";
+    private static final String TRANSACTION_ID = "txn-001";
+    private static final BigDecimal AMOUNT = BigDecimal.valueOf(100.50);
 
     @BeforeEach
     void setUp() {
         transRequest = new TransRequest();
-        transRequest.setAccountID("12345");
+        transRequest.setAccountID(ACCOUNT_ID);
     }
 
     @Test
     void testGetTrans_SuccessfulTransactionRetrieval() {
-        // Return a non-null BankAccountBO (details not important for this test)
+        // Setup
         BankAccountBO bankAccount = new BankAccountBO();
-        when(bankAccountService.getAccountById("12345")).thenReturn(bankAccount);
+        when(bankAccountService.getAccountById(ACCOUNT_ID)).thenReturn(bankAccount);
 
-        // Create a dummy TransactionDetailsBO with an AmountBO value
         TransactionDetailsBO transaction = new TransactionDetailsBO();
-        transaction.setTransactionId("txn-001");
-        // Create an AmountBO instance with EUR and an amount of 100.50
-        AmountBO amount = new AmountBO(Currency.getInstance("EUR"), BigDecimal.valueOf(100.50));
+        transaction.setTransactionId(TRANSACTION_ID);
+        AmountBO amount = new AmountBO(Currency.getInstance("EUR"), AMOUNT);
         transaction.setTransactionAmount(amount);
-        transaction.setBookingDate(LocalDate.from(LocalDateTime.now())); // Make sure to set the booking date
+        LocalDate bookingDate = LocalDate.now();
+        transaction.setBookingDate(bookingDate);
 
         List<TransactionDetailsBO> transactions = List.of(transaction);
-        when(bankAccountService.getTransactionsByDates(anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(bankAccountService.getTransactionsByDates(eq(ACCOUNT_ID), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(transactions);
 
         // Act
         TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
-        String expected = "[\n" +
-                "{\n" +
-                "  \"id\": \"txn-001\",\n" +
-                "  \"date\": \"" + transaction.getBookingDate().toString() + "\",\n" +
-                "  \"amount\": \"" + transaction.getTransactionAmount().getAmount() + "\",\n" +
-                "  \"title\": \"Deposit\"\n" +
-                "}\n" +
-                "]";
-        assertEquals(expected, result);
+        assertEquals(TransactionHistoryResponse.TransactionStatus.SUCCESS, result.getStatus());
+        assertEquals("Transaction history retrieved successfully", result.getMessage());
+        assertNotNull(result.getTimestamp());
+        
+        // Verify JSON structure
+        String data = result.getData();
+        assertTrue(data.startsWith("[") && data.endsWith("]"));
+        assertTrue(data.contains("\"id\": \"" + TRANSACTION_ID + "\""));
+        assertTrue(data.contains("\"amount\": \"" + AMOUNT + "\""));
+        assertTrue(data.contains("\"title\": \"Deposit\""));
+        assertTrue(data.contains("\"date\": \"" + bookingDate + "\""));
+
+        // Verify service calls
+        verify(bankAccountService).getAccountById(ACCOUNT_ID);
+        verify(bankAccountService).getTransactionsByDates(eq(ACCOUNT_ID), any(LocalDateTime.class), any(LocalDateTime.class));
     }
-    
+
     @Test
-    void testGetTrans_AccountNotFound() {
-        when(bankAccountService.getAccountById("12345")).thenReturn(null);
+    void testGetTrans_WithdrawalTransaction() {
+        // Setup
+        BankAccountBO bankAccount = new BankAccountBO();
+        when(bankAccountService.getAccountById(ACCOUNT_ID)).thenReturn(bankAccount);
+
+        TransactionDetailsBO transaction = new TransactionDetailsBO();
+        transaction.setTransactionId(TRANSACTION_ID);
+        AmountBO amount = new AmountBO(Currency.getInstance("EUR"), AMOUNT.negate());
+        transaction.setTransactionAmount(amount);
+        LocalDate bookingDate = LocalDate.now();
+        transaction.setBookingDate(bookingDate);
+
+        List<TransactionDetailsBO> transactions = List.of(transaction);
+        when(bankAccountService.getTransactionsByDates(eq(ACCOUNT_ID), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(transactions);
 
         // Act
         TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
-        assertEquals("Bank account not found for ID: 12345", result);
+        assertEquals(TransactionHistoryResponse.TransactionStatus.SUCCESS, result.getStatus());
+        
+        // Verify JSON structure
+        String data = result.getData();
+        assertTrue(data.contains("\"title\": \"Withdrawal\""));
+        assertTrue(data.contains("\"amount\": \"-" + AMOUNT + "\""));
+    }
+
+    @Test
+    void testGetTrans_MultipleTransactions() {
+        // Setup
+        BankAccountBO bankAccount = new BankAccountBO();
+        when(bankAccountService.getAccountById(ACCOUNT_ID)).thenReturn(bankAccount);
+
+        TransactionDetailsBO deposit = new TransactionDetailsBO();
+        deposit.setTransactionId("txn-001");
+        deposit.setTransactionAmount(new AmountBO(Currency.getInstance("EUR"), AMOUNT));
+        deposit.setBookingDate(LocalDate.now());
+
+        TransactionDetailsBO withdrawal = new TransactionDetailsBO();
+        withdrawal.setTransactionId("txn-002");
+        withdrawal.setTransactionAmount(new AmountBO(Currency.getInstance("EUR"), AMOUNT.negate()));
+        withdrawal.setBookingDate(LocalDate.now());
+
+        List<TransactionDetailsBO> transactions = List.of(deposit, withdrawal);
+        when(bankAccountService.getTransactionsByDates(eq(ACCOUNT_ID), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(transactions);
+
+        // Act
+        TransactionHistoryResponse result = transService.getTrans(transRequest);
+
+        // Assert
+        assertEquals(TransactionHistoryResponse.TransactionStatus.SUCCESS, result.getStatus());
+        
+        // Verify JSON structure
+        String data = result.getData();
+        assertTrue(data.contains("\"id\": \"txn-001\""));
+        assertTrue(data.contains("\"id\": \"txn-002\""));
+        assertTrue(data.contains("\"title\": \"Deposit\""));
+        assertTrue(data.contains("\"title\": \"Withdrawal\""));
+    }
+    
+    @Test
+    void testGetTrans_AccountNotFound() {
+        // Setup
+        when(bankAccountService.getAccountById(ACCOUNT_ID)).thenReturn(null);
+
+        // Act
+        TransactionHistoryResponse result = transService.getTrans(transRequest);
+
+        // Assert
+        assertEquals(TransactionHistoryResponse.TransactionStatus.FAILED, result.getStatus());
+        assertEquals("Bank account not found for ID: " + ACCOUNT_ID, result.getMessage());
+        assertEquals("[]", result.getData());
+        assertNotNull(result.getTimestamp());
+
+        // Verify service call
+        verify(bankAccountService).getAccountById(ACCOUNT_ID);
     }
 
     @Test
     void testGetTrans_NoTransactionsFound() {
-        when(bankAccountService.getAccountById("12345")).thenReturn(new BankAccountBO());
-        when(bankAccountService.getTransactionsByDates(anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
+        // Setup
+        when(bankAccountService.getAccountById(ACCOUNT_ID)).thenReturn(new BankAccountBO());
+        when(bankAccountService.getTransactionsByDates(eq(ACCOUNT_ID), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Collections.emptyList());
 
         // Act
         TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
-        assertEquals("No transactions found for the given account and date range.", result);
+        assertEquals(TransactionHistoryResponse.TransactionStatus.SUCCESS, result.getStatus());
+        assertEquals("Transaction history retrieved successfully", result.getMessage());
+        assertEquals("[]", result.getData());
+        assertNotNull(result.getTimestamp());
+
+        // Verify service calls
+        verify(bankAccountService).getAccountById(ACCOUNT_ID);
+        verify(bankAccountService).getTransactionsByDates(eq(ACCOUNT_ID), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
     void testGetTrans_ExceptionHandling() {
-        when(bankAccountService.getAccountById("12345")).thenThrow(new RuntimeException("Database error"));
+        // Setup
+        when(bankAccountService.getAccountById(ACCOUNT_ID)).thenThrow(new RuntimeException("Database error"));
 
         // Act
         TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
-        assertEquals("An error occurred while processing the request: Database error", result);
+        assertEquals(TransactionHistoryResponse.TransactionStatus.FAILED, result.getStatus());
+        assertEquals("An error occurred while processing the request: Database error", result.getMessage());
+        assertEquals("[]", result.getData());
+        assertNotNull(result.getTimestamp());
+
+        // Verify service call
+        verify(bankAccountService).getAccountById(ACCOUNT_ID);
     }
 }

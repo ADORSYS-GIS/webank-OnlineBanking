@@ -57,7 +57,8 @@ class BalanceServiceImplTest {
         BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("1000", result, "Balance should be '1000' when account has a valid balance");
+        assertEquals(new BigDecimal("1000"), result.getBalance(), "Balance should be 1000 when account has a valid balance");
+        assertEquals(BalanceResponse.BalanceStatus.AVAILABLE, result.getStatus());
     }
 
     @Test
@@ -76,7 +77,8 @@ class BalanceServiceImplTest {
         BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("Balance empty", result, "Balance should be empty when no balance is found.");
+        assertEquals(BigDecimal.ZERO, result.getBalance(), "Balance should be 0 when no balance is found");
+        assertEquals(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS, result.getStatus());
     }
 
     @Test
@@ -92,7 +94,7 @@ class BalanceServiceImplTest {
         BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("Balance empty", result, "Balance should be empty when account details are null.");
+        assertEquals(BigDecimal.ZERO, result.getBalance(), "Balance should be 0 when account details are null");
+        assertEquals(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS, result.getStatus());
     }
-
 }

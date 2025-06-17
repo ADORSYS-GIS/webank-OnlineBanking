@@ -80,7 +80,12 @@ class PayoutServiceImplTest {
             MoneyTransferResponse result = payoutService.payout(smallAmountRequest);
 
             // Assert
-            assertEquals(TRANSACTION_SUCCESS, result);
+            assertEquals(MoneyTransferResponse.TransferStatus.COMPLETED, result.getStatus());
+            assertEquals(TRANSACTION_SUCCESS, result.getTransactionId());
+            assertEquals(new BigDecimal("500.00"), result.getAmount());
+            assertEquals("XAF", result.getCurrency());
+            assertNotNull(result.getTimestamp());
+            assertEquals("Transfer completed successfully", result.getMessage());
             verify(transactionHelper).validateAndProcessTransaction(
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
@@ -116,7 +121,12 @@ class PayoutServiceImplTest {
             MoneyTransferResponse result = payoutService.payout(largeAmountRequest);
 
             // Assert
-            assertEquals(TRANSACTION_SUCCESS, result);
+            assertEquals(MoneyTransferResponse.TransferStatus.COMPLETED, result.getStatus());
+            assertEquals(TRANSACTION_SUCCESS, result.getTransactionId());
+            assertEquals(new BigDecimal("1500.00"), result.getAmount());
+            assertEquals("XAF", result.getCurrency());
+            assertNotNull(result.getTimestamp());
+            assertEquals("Transfer completed successfully", result.getMessage());
             verify(transactionHelper).validateAndProcessTransaction(
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
@@ -160,8 +170,6 @@ class PayoutServiceImplTest {
             
             securityUtilsMock.when(SecurityUtils::getCurrentUserJWT)
                     .thenReturn(Optional.of(VALID_JWT_TOKEN));
-            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
-                    .thenReturn(null);
 
             // Act & Assert
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -183,8 +191,6 @@ class PayoutServiceImplTest {
             
             securityUtilsMock.when(SecurityUtils::getCurrentUserJWT)
                     .thenReturn(Optional.of(VALID_JWT_TOKEN));
-            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
-                    .thenReturn("");
 
             // Act & Assert
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -210,4 +216,4 @@ class PayoutServiceImplTest {
             verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
         }
     }
-    }
+}
