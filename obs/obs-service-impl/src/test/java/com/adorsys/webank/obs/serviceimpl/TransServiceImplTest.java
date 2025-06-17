@@ -1,6 +1,8 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.TransRequest;
+import com.adorsys.webank.obs.dto.response.TransactionHistoryResponse;
+
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
@@ -60,7 +62,7 @@ class TransServiceImplTest {
                 .thenReturn(transactions);
 
         // Act
-        String result = transService.getTrans(transRequest);
+        TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
         String expected = "[\n" +
@@ -79,7 +81,7 @@ class TransServiceImplTest {
         when(bankAccountService.getAccountById("12345")).thenReturn(null);
 
         // Act
-        String result = transService.getTrans(transRequest);
+        TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
         assertEquals("Bank account not found for ID: 12345", result);
@@ -92,7 +94,7 @@ class TransServiceImplTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        String result = transService.getTrans(transRequest);
+        TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
         assertEquals("No transactions found for the given account and date range.", result);
@@ -103,7 +105,7 @@ class TransServiceImplTest {
         when(bankAccountService.getAccountById("12345")).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        String result = transService.getTrans(transRequest);
+        TransactionHistoryResponse result = transService.getTrans(transRequest);
 
         // Assert
         assertEquals("An error occurred while processing the request: Database error", result);

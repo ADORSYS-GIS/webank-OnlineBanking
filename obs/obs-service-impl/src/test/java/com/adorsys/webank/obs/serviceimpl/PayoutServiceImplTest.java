@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.security.JwtHeaderExtractor;
 import com.adorsys.webank.config.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
+
+import java.math.BigDecimal;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,13 +46,13 @@ class PayoutServiceImplTest {
         smallAmountRequest = new MoneyTransferRequestDto();
         smallAmountRequest.setSenderAccountId(SENDER_ACCOUNT_ID);
         smallAmountRequest.setRecipientAccountId(RECIPIENT_ACCOUNT_ID);
-        smallAmountRequest.setAmount("500.00");
+        smallAmountRequest.setAmount(new BigDecimal("500.00"));
 
         // Setup large amount request (greater than 1000)
         largeAmountRequest = new MoneyTransferRequestDto();
         largeAmountRequest.setSenderAccountId(SENDER_ACCOUNT_ID);
         largeAmountRequest.setRecipientAccountId(RECIPIENT_ACCOUNT_ID);
-        largeAmountRequest.setAmount("1500.00");
+        largeAmountRequest.setAmount(new BigDecimal("1500.00"));
     }
 
     @Test
@@ -74,7 +77,7 @@ class PayoutServiceImplTest {
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
-            String result = payoutService.payout(smallAmountRequest);
+            MoneyTransferResponse result = payoutService.payout(smallAmountRequest);
 
             // Assert
             assertEquals(TRANSACTION_SUCCESS, result);
@@ -110,7 +113,7 @@ class PayoutServiceImplTest {
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
-            String result = payoutService.payout(largeAmountRequest);
+            MoneyTransferResponse result = payoutService.payout(largeAmountRequest);
 
             // Assert
             assertEquals(TRANSACTION_SUCCESS, result);

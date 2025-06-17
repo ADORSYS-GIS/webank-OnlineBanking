@@ -36,13 +36,7 @@ public class OpenApiConfig {
                     .url("http://www.apache.org/licenses/LICENSE-2.0.html")))
             .servers(List.of(
                 new Server()
-                    .url("https://api.webank.com")
-                    .description("Production server"),
-                new Server()
-                    .url("https://api-staging.webank.com")
-                    .description("Staging server"),
-                new Server()
-                    .url("http://localhost:8080")
+                    .url("http://localhost:8081")
                     .description("Local development server")
             ))
             .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"))

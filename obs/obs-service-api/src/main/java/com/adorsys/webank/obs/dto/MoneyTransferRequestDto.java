@@ -4,11 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(
     name = "MoneyTransferRequest",
     description = "Request object for money transfer operations",
@@ -54,6 +58,6 @@ public class MoneyTransferRequestDto {
         minimum = "0.01"
     )
     @NotBlank(message = "Amount is required")
-    @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
+    @Pattern(regexp = "\\d+(\\.\\d{1,2})?", message = "Amount must be a valid number")
     private BigDecimal amount;
 }

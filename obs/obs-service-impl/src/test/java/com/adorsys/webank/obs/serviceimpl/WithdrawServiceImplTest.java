@@ -2,6 +2,7 @@ package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.config.SecurityUtils;
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +37,7 @@ class WithdrawServiceImplTest {
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("senderABC");
         request.setRecipientAccountId("recipientXYZ");
-        request.setAmount("200.00");
+        request.setAmount(new BigDecimal("200.00"));
 
         String accountCertJwt = "invalid-transaction-jwt";
         String expectedError = "Invalid transaction JWT";
@@ -48,7 +50,7 @@ class WithdrawServiceImplTest {
             when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
 
             // Act
-            String response = withdrawService.withdraw(request);
+            MoneyTransferResponse response = withdrawService.withdraw(request);
 
             // Assert
             verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
@@ -63,7 +65,7 @@ class WithdrawServiceImplTest {
         MoneyTransferRequestDto request = new MoneyTransferRequestDto();
         request.setSenderAccountId("senderDEF");
         request.setRecipientAccountId("recipientUVW");
-        request.setAmount("300.00");
+        request.setAmount(new BigDecimal("300.00"));
 
         String accountCertJwt = "valid-transaction-jwt";
         String expectedResponse = "transactionCertString Success";
@@ -83,7 +85,7 @@ class WithdrawServiceImplTest {
             ).thenReturn(expectedResponse);
 
             // Act
-            String response = withdrawService.withdraw(request);
+            MoneyTransferResponse response = withdrawService.withdraw(request);
 
             // Assert
             verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);

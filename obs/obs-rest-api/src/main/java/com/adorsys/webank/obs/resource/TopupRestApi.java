@@ -82,11 +82,11 @@ public interface TopupRestApi {
         )
     })
     @PostMapping(
-        value = "/topup",
+        value = "/agent/topup",
         consumes = "application/json",
         produces = "application/json"
     )
-    ResponseEntity<TopupResponse> topupAccount(
+    ResponseEntity<TopupResponse> topup(
         @Parameter(
             description = "JWT token in the format 'Bearer <token>'",
             required = true,

@@ -86,7 +86,7 @@ public interface WithdrawRestApi {
         consumes = "application/json",
         produces = "application/json"
     )
-    ResponseEntity<MoneyTransferResponse> withdrawFunds(
+    ResponseEntity<MoneyTransferResponse> withdraw(
         @Parameter(
             description = "JWT token in the format 'Bearer <token>'",
             required = true,

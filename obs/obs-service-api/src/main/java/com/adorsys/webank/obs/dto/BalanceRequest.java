@@ -29,6 +29,9 @@ public class BalanceRequest {
         minLength = 10,
         maxLength = 20
     )
+      /**
+     * The account ID for which the balance is requested.
+     */
     @NotBlank(message = "Account ID is required")
     @Pattern(regexp = "^[A-Z0-9]{10,20}$", message = "Account ID must be 10-20 alphanumeric characters")
     private String accountID;

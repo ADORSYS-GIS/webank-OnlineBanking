@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.TopupRequestDto;
+import com.adorsys.webank.obs.dto.response.TopupResponse;
 import com.adorsys.webank.obs.service.TopupServiceApi;
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -24,54 +25,49 @@ public class TopupServiceImpl implements TopupServiceApi {
 
     @Override
     @Transactional
-    public String topup(TopupRequestDto topupRequestDto) {
-
+    public TopupResponse topup(TopupRequestDto topupRequestDto) {
         String accountId = topupRequestDto.getAccountId();
-        String amount = topupRequestDto.getAmount();
+        BigDecimal amount = topupRequestDto.getAmount();
         log.info("Processing topup request for account: {}", accountId);
 
-        try {
-            if (log.isInfoEnabled()) {
-                log.info("Processing transaction for accountId: {}", accountId);
-            }
             try {
                 // Fetch the account details
                 BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
                 if (bankAccount == null) {
-                    if (log.isErrorEnabled()) {
                         log.error("Bank account not found for accountId: {}", accountId);
-                    }
-                    return "Bank account not found for ID: " + accountId;
+                return createErrorResponse(accountId, amount, "Bank account not found");
                 }
 
-                // Define multiple deposit values
-                BigDecimal[] depositValues = {
-                        new BigDecimal(amount),
-                };
-
+            // Process the transaction
                 Currency currency = Currency.getInstance("XAF");
-                String recordUser = "Default name";
+            AmountBO depositAmount = new AmountBO(currency, amount);
+            bankAccountTransactionService.depositCash(accountId, depositAmount, "System");
 
-                // Process each transaction
-                for (BigDecimal depositValue : depositValues) {
-                    AmountBO depositAmount = new AmountBO(currency, depositValue);
-                    if (log.isInfoEnabled()) {
-                        log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
-                    }
-                    bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
-                }
+            // Create success response
+            TopupResponse response = new TopupResponse();
+            response.setAccountId(accountId);
+            response.setAmount(amount);
+            response.setCurrency("XAF");
+            response.setStatus(TopupResponse.TopupStatus.COMPLETED);
+            response.setTransactionId(String.valueOf(System.currentTimeMillis()));
+            response.setMessage("Top-up completed successfully");
 
-                return "5 transactions completed successfully for account " + accountId;
+            log.info("Top-up completed successfully for account: {}", accountId);
+            return response;
 
             } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                    log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
-                }
-                return "An error occurred while processing the transactions: "
-                        + (e.getMessage() != null ? e.getMessage() : e.toString());
-            }
-        } finally {
-
+            log.error("Error processing top-up for accountId: {}: {}", accountId, e.getMessage(), e);
+            return createErrorResponse(accountId, amount, "Error processing top-up: " + e.getMessage());
         }
+    }
+
+    private TopupResponse createErrorResponse(String accountId, BigDecimal amount, String errorMessage) {
+        TopupResponse response = new TopupResponse();
+        response.setAccountId(accountId);
+        response.setAmount(amount);
+        response.setCurrency("XAF");
+        response.setStatus(TopupResponse.TopupStatus.FAILED);
+        response.setMessage(errorMessage);
+        return response;
     }
 }

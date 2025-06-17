@@ -20,6 +20,6 @@ public class RecoveryDto {
         maxLength = 20
     )
     @NotBlank(message = "Account ID is required")
-    @Pattern(regexp = "^[A-Z0-9]{10,20}$", message = "Account ID must be 10-20 alphanumeric characters")
+    @Pattern(regexp = "\\d+(\\.\\d{1,2})?", message = "Amount must be a valid number")
     private String accountId;
 }

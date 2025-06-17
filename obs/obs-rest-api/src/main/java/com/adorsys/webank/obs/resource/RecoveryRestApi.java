@@ -2,7 +2,6 @@ package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.RecoveryDto;
 import com.adorsys.webank.obs.dto.response.ErrorResponse;
-import com.adorsys.webank.obs.dto.response.RecoveryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,7 +36,7 @@ public interface RecoveryRestApi {
             description = "Recovery process initiated successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = RecoveryResponse.class)
+                schema = @Schema(implementation = String.class)
             )
         ),
         @ApiResponse(
@@ -86,7 +85,7 @@ public interface RecoveryRestApi {
         consumes = "application/json",
         produces = "application/json"
     )
-    ResponseEntity<RecoveryResponse> recoverAccount(
+    ResponseEntity<String> recoverAccount(
         @Parameter(
             description = "JWT token in the format 'Bearer <token>'",
             required = true,

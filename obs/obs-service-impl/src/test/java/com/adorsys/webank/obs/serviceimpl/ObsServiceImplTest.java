@@ -17,6 +17,8 @@ import java.math.BigDecimal;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.adorsys.webank.config.SecurityUtils;
+import com.adorsys.webank.obs.dto.response.RegistrationResponse;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -83,10 +85,10 @@ class ObsServiceImplTest {
         )).thenReturn(null);
 
         // Call the method to test
-        String result = obsService.registerAccount(publicKey);
+        RegistrationResponse result = obsService.registerAccount(publicKey);
 
         // Verify the result
-        assertTrue(result.contains("An error occurred while processing the request"));
+        assertTrue(result.getMessage().contains("An error occurred while processing the request"));
 
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString());
     }
@@ -103,7 +105,7 @@ class ObsServiceImplTest {
         )).thenReturn(mockResult);
 
         // Call the method to test
-        String result = obsService.registerAccount(publicKey);
+        RegistrationResponse result = obsService.registerAccount(publicKey);
 
         // Verify the result
         assertEquals("Bank account successfully created. Details: " + mockResult, result);
@@ -202,7 +204,7 @@ class ObsServiceImplTest {
         securityUtilsMock = mockStatic(SecurityUtils.class);
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext).thenReturn(null);
 
-        String result = obsService.registerAccount("jwt-token");
+        RegistrationResponse result = obsService.registerAccount("jwt-token");
         assertEquals("Device public key is missing. Cannot register account.", result);
     }
 

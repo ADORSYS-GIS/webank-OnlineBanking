@@ -86,7 +86,7 @@ public interface PayoutRestApi {
         consumes = "application/json",
         produces = "application/json"
     )
-    ResponseEntity<MoneyTransferResponse> transferMoney(
+    ResponseEntity<MoneyTransferResponse> payout(
         @Parameter(
             description = "JWT token in the format 'Bearer <token>'",
             required = true,

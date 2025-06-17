@@ -81,11 +81,12 @@ public interface TransRestApi {
             )
         )
     })
-    @GetMapping(
+    @PostMapping(
         value = "/transactions",
-        produces = "application/json"
+        produces = "application/json",
+        consumes = "application/json"
     )
-    ResponseEntity<TransactionHistoryResponse> getTransactionHistory(
+    ResponseEntity<TransactionHistoryResponse> getTrans(
         @Parameter(
             description = "JWT token in the format 'Bearer <token>'",
             required = true,
