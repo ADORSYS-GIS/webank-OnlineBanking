@@ -33,8 +33,9 @@ public class WithdrawServiceImpl implements WithdrawServiceApi {
 
         log.info("jwt token from current sprint context is {}", jwtToken);
 
+        // TODO: Replace IllegalStateException with custom exception handled by global exception handler (to be addressed in another ticket)
         if (!signTransactionValidator.validateSignTransactionJWT(jwtToken)) {
-            return "Invalid transaction JWT";
+            throw new IllegalStateException("Invalid JWT token for transaction signing");
         }
         // Delegate common validation and processing to TransactionHelper
         return transactionHelper.validateAndProcessTransaction(

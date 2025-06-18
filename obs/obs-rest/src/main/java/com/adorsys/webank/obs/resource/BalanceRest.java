@@ -32,7 +32,7 @@ public class BalanceRest implements BalanceRestApi {
         try {
             String result = balanceService.getBalance(balanceRequest);
             log.info("Balance request processed successfully.");
-            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("Error processing balance request", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
