@@ -17,10 +17,8 @@ import java.math.BigDecimal;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.adorsys.webank.config.SecurityUtils;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -202,8 +200,13 @@ class ObsServiceImplTest {
         securityUtilsMock = mockStatic(SecurityUtils.class);
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext).thenReturn(null);
 
-        String result = obsService.registerAccount("jwt-token");
-        assertEquals("Device public key is missing. Cannot register account.", result);
+        IllegalStateException exception = assertThrows(IllegalStateException.class , () ->
+            obsService.registerAccount("jwt-token")
+        );
+
+        assertEquals("Device public key not found in security context. Please ensure the user is authenticated.", exception.getMessage());
+
+
     }
 
 }

@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -38,22 +38,22 @@ class WithdrawServiceImplTest {
         request.setAmount("200.00");
 
         String accountCertJwt = "invalid-transaction-jwt";
-        String expectedError = "Invalid transaction JWT";
 
         // Mock SecurityUtils.getCurrentUserJWT()
         try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
             securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.of(accountCertJwt));
 
-            // Mock validator to return false for invalid JWT
-            when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
+            // Act + Assert
+            IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                    withdrawService.withdraw(request)
+            );
 
-            // Act
-            String response = withdrawService.withdraw(request);
+            assertEquals("Invalid JWT token for transaction signing", exception.getMessage());;
 
             // Assert
             verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
             verifyNoInteractions(transactionHelper);
-            assertEquals(expectedError, response);
+
         }
     }
 
