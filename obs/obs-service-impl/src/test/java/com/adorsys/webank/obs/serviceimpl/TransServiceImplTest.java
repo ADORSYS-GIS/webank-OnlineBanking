@@ -1,7 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.TransRequest;
-import com.adorsys.webank.obs.security.JwtCertValidator;
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
@@ -31,28 +30,19 @@ class TransServiceImplTest {
     @Mock
     private BankAccountService bankAccountService;
 
-    @Mock
-    private JwtCertValidator jwtCertValidator;
-
     @InjectMocks
     private TransServiceImpl transService;
 
     private TransRequest transRequest;
-    private String accountCertificateJwt;
 
     @BeforeEach
     void setUp() {
         transRequest = new TransRequest();
         transRequest.setAccountID("12345");
-        // For this test we assume the date range is defined internally as one month ago to now.
-        accountCertificateJwt = "valid-jwt";
     }
 
     @Test
     void testGetTrans_SuccessfulTransactionRetrieval() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(true);
-
         // Return a non-null BankAccountBO (details not important for this test)
         BankAccountBO bankAccount = new BankAccountBO();
         when(bankAccountService.getAccountById("12345")).thenReturn(bankAccount);
@@ -70,7 +60,7 @@ class TransServiceImplTest {
                 .thenReturn(transactions);
 
         // Act
-        String result = transService.getTrans(transRequest, accountCertificateJwt);
+        String result = transService.getTrans(transRequest);
 
         // Assert
         String expected = "[\n" +
@@ -83,28 +73,13 @@ class TransServiceImplTest {
                 "]";
         assertEquals(expected, result);
     }
-
-
-    @Test
-    void testGetTrans_InvalidJWT() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(false);
-
-        // Act
-        String result = transService.getTrans(transRequest, accountCertificateJwt);
-
-        // Assert
-        assertEquals("Invalid certificate or JWT. Transaction retrieval failed.", result);
-    }
-
+    
     @Test
     void testGetTrans_AccountNotFound() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(true);
         when(bankAccountService.getAccountById("12345")).thenReturn(null);
 
         // Act
-        String result = transService.getTrans(transRequest, accountCertificateJwt);
+        String result = transService.getTrans(transRequest);
 
         // Assert
         assertEquals("Bank account not found for ID: 12345", result);
@@ -112,14 +87,12 @@ class TransServiceImplTest {
 
     @Test
     void testGetTrans_NoTransactionsFound() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(true);
         when(bankAccountService.getAccountById("12345")).thenReturn(new BankAccountBO());
         when(bankAccountService.getTransactionsByDates(anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Collections.emptyList());
 
         // Act
-        String result = transService.getTrans(transRequest, accountCertificateJwt);
+        String result = transService.getTrans(transRequest);
 
         // Assert
         assertEquals("No transactions found for the given account and date range.", result);
@@ -127,12 +100,10 @@ class TransServiceImplTest {
 
     @Test
     void testGetTrans_ExceptionHandling() {
-        // Arrange
-        when(jwtCertValidator.validateJWT(accountCertificateJwt)).thenReturn(true);
         when(bankAccountService.getAccountById("12345")).thenThrow(new RuntimeException("Database error"));
 
         // Act
-        String result = transService.getTrans(transRequest, accountCertificateJwt);
+        String result = transService.getTrans(transRequest);
 
         // Assert
         assertEquals("An error occurred while processing the request: Database error", result);

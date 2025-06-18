@@ -5,5 +5,5 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface WithdrawServiceApi {
-    String withdraw(MoneyTransferRequestDto moneyTransferRequestDto, String accountCertificateJwt);
+    String withdraw(MoneyTransferRequestDto moneyTransferRequestDto);
 }

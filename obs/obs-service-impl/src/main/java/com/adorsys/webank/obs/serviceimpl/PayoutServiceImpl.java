@@ -1,55 +1,65 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.security.*;
-import com.adorsys.webank.obs.service.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.security.JwtHeaderExtractor;
+import com.adorsys.webank.obs.service.PayoutServiceApi;
+import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import com.adorsys.webank.config.SecurityUtils;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class PayoutServiceImpl implements PayoutServiceApi {
-    private static final Logger LOG = LoggerFactory.getLogger(PayoutServiceImpl.class);
 
     private final TransactionHelper transactionHelper;
 
-    @Autowired
-    public PayoutServiceImpl(TransactionHelper transactionHelper) {
-        this.transactionHelper = transactionHelper;
-    }
-
     @Override
-    public String payout(MoneyTransferRequestDto moneyTransferRequestDto, String jwtToken) {
-        // Validate the JWT token
-        LOG.info("JWT TOKEN IS: {}", jwtToken);
+    public String payout(MoneyTransferRequestDto moneyTransferRequestDto) {
+        String jwtToken = extractJwtToken();
+        log.info("jwt token from current sprint context is {}", jwtToken);
 
-        // Extract accountCert and kycCert from the JWT header
-        String accountCert = JwtHeaderExtractor.extractField(jwtToken, "accountJwt");
-        LOG.info("Payout request: accountCert = {}", accountCert);
+        String accountCert = extractAndLogCertificate(jwtToken, "accountJwt", "Payout request: accountCert = {}");
+        String kycCert = extractAndLogCertificate(jwtToken, "kycCertJwt", "Payout request: kycCert = {}");
 
-        String kycCert = JwtHeaderExtractor.extractField(jwtToken, "kycCertJwt");
-        LOG.info("Payout request: kycCert = {}", kycCert);
+        validateAccountCertificate(accountCert);
+        validateKycCertificateForLargeTransaction(moneyTransferRequestDto, kycCert);
 
-        // Validate the presence of accountCert
-        if (accountCert == null || accountCert.isEmpty()) {
-            throw new IllegalArgumentException("Account certificate is required for all transactions.");
-        }
-
-        // Parse the transaction amount
-        double amount = Double.parseDouble(moneyTransferRequestDto.getAmount());
-
-        // Validate based on the transaction amount
-        if (amount > 1000 && (kycCert == null || kycCert.isEmpty())) {
-            throw new IllegalArgumentException("KYC certificate is required for transactions exceeding 10,000 francs.");
-        }
-
-        // Proceed with the transaction
         return transactionHelper.validateAndProcessTransaction(
                 moneyTransferRequestDto.getSenderAccountId(),
                 moneyTransferRequestDto.getRecipientAccountId(),
                 moneyTransferRequestDto.getAmount(),
                 jwtToken,
-                LOG
+                log
         );
+    }
+
+    private String extractJwtToken() {
+        Optional<String> jwtOpt = SecurityUtils.getCurrentUserJWT();
+        if (jwtOpt.isEmpty()) {
+            throw new IllegalStateException("No JWT token found in security context");
+        }
+        return jwtOpt.get();
+    }
+
+    private String extractAndLogCertificate(String jwtToken, String headerField, String logMessage) {
+        String cert = JwtHeaderExtractor.extractField(jwtToken, headerField);
+        log.info(logMessage, cert);
+        return cert;
+    }
+
+    private void validateAccountCertificate(String accountCert) {
+        if (accountCert == null || accountCert.isEmpty()) {
+            throw new IllegalArgumentException("Account certificate is required for all transactions.");
+        }
+    }
+
+    private void validateKycCertificateForLargeTransaction(MoneyTransferRequestDto moneyTransferRequestDto, String kycCert) {
+        double amount = Double.parseDouble(moneyTransferRequestDto.getAmount());
+        if (amount > 1000 && (kycCert == null || kycCert.isEmpty())) {
+            throw new IllegalArgumentException("KYC certificate is required for transactions exceeding 10,000 francs.");
+        }
     }
 }
