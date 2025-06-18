@@ -27,53 +27,59 @@ public class TopupServiceImpl implements TopupServiceApi {
     @Override
     @Transactional
     public String topup(TopupRequestDto topupRequestDto) {
-
         String accountId = topupRequestDto.getAccountId();
         String amount = topupRequestDto.getAmount();
         log.info("Processing topup request for account: {}", accountId);
 
         try {
-            if (log.isInfoEnabled()) {
-                log.info("Processing transaction for accountId: {}", accountId);
-            }
-            try {
-                // Fetch the account details
-                BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
-                if (bankAccount == null) {
-                    if (log.isErrorEnabled()) {
-                        log.error("Bank account not found for accountId: {}", accountId);
-                    }
-                    throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
-                }
-
-                // Define multiple deposit values
-                BigDecimal[] depositValues = {
-                        new BigDecimal(amount),
-                };
-
-                Currency currency = Currency.getInstance("XAF");
-                String recordUser = "Default name";
-
-                // Process each transaction
-                for (BigDecimal depositValue : depositValues) {
-                    AmountBO depositAmount = new AmountBO(currency, depositValue);
-                    if (log.isInfoEnabled()) {
-                        log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
-                    }
-                    bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
-                }
-
-                return "5 transactions completed successfully for account " + accountId;
-
-            } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                    log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
-                }
-                throw new ServiceUnavailableException("An error occurred while processing the transactions: "
-                        + (e.getMessage() != null ? e.getMessage() : e.toString()));
-            }
-        } finally {
-
+            logProcessingInfo(accountId);
+            validateAccountExists(accountId);
+            processTopupTransaction(accountId, amount);
+            return "5 transactions completed successfully for account " + accountId;
+        } catch (Exception e) {
+            handleTopupError(accountId, e);
+            throw e;
         }
+    }
+
+    private void logProcessingInfo(String accountId) {
+        if (log.isInfoEnabled()) {
+            log.info("Processing transaction for accountId: {}", accountId);
+        }
+    }
+
+    private void validateAccountExists(String accountId) {
+        BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
+        if (bankAccount == null) {
+            if (log.isErrorEnabled()) {
+                log.error("Bank account not found for accountId: {}", accountId);
+            }
+            throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
+        }
+    }
+
+    private void processTopupTransaction(String accountId, String amount) {
+        BigDecimal[] depositValues = { new BigDecimal(amount) };
+        Currency currency = Currency.getInstance("XAF");
+        String recordUser = "Default name";
+
+        for (BigDecimal depositValue : depositValues) {
+            AmountBO depositAmount = new AmountBO(currency, depositValue);
+            if (log.isInfoEnabled()) {
+                log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
+            }
+            bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
+        }
+    }
+
+    private void handleTopupError(String accountId, Exception e) {
+        if (log.isErrorEnabled()) {
+            log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
+        }
+        if (e instanceof AccountNotFoundException) {
+            return;
+        }
+        throw new ServiceUnavailableException("An error occurred while processing the transactions: "
+                + (e.getMessage() != null ? e.getMessage() : e.toString()));
     }
 }

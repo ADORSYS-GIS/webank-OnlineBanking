@@ -1,5 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.AccountNotFoundException;
 import com.adorsys.webank.obs.dto.BalanceRequest;
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BalanceBO;
@@ -19,6 +20,7 @@ import java.util.Currency;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class BalanceServiceImplTest {
@@ -70,11 +72,12 @@ class BalanceServiceImplTest {
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(accountDetails);
 
-        // Act
-        String result = balanceService.getBalance(request);
-
-        // Assert
-        assertEquals("Balance empty", result, "Balance should be empty when no balance is found.");
+        // Act & Assert
+        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
+            balanceService.getBalance(request);
+        });
+        
+        assertEquals("No balance information available for account: 12345", exception.getMessage());
     }
 
     @Test
@@ -86,11 +89,12 @@ class BalanceServiceImplTest {
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(null);
 
-        // Act
-        String result = balanceService.getBalance(request);
-
-        // Assert
-        assertEquals("Balance empty", result, "Balance should be empty when account details are null.");
+        // Act & Assert
+        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
+            balanceService.getBalance(request);
+        });
+        
+        assertEquals("No balance information available for account: 12345", exception.getMessage());
     }
 
 }

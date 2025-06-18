@@ -59,7 +59,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
     private void validateKycCertificateForLargeTransaction(MoneyTransferRequestDto moneyTransferRequestDto, String kycCert) {
         double amount = Double.parseDouble(moneyTransferRequestDto.getAmount());
         if (amount > 1000 && (kycCert == null || kycCert.isEmpty())) {
-            throw new IllegalArgumentException("KYC certificate is required for transactions exceeding 10,000 francs.");
+            throw new IllegalArgumentException("KYC certificate is required for transactions exceeding 1,000 francs.");
         }
     }
 }

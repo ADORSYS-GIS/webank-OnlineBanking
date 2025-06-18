@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.config.SecurityUtils;
+import com.adorsys.webank.exception.InvalidJwtException;
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -38,7 +40,6 @@ class WithdrawServiceImplTest {
         request.setAmount("200.00");
 
         String accountCertJwt = "invalid-transaction-jwt";
-        String expectedError = "Invalid transaction JWT";
 
         // Mock SecurityUtils.getCurrentUserJWT()
         try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
@@ -47,13 +48,14 @@ class WithdrawServiceImplTest {
             // Mock validator to return false for invalid JWT
             when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
 
-            // Act
-            String response = withdrawService.withdraw(request);
+            // Act & Assert
+            InvalidJwtException exception = assertThrows(InvalidJwtException.class, () -> {
+                withdrawService.withdraw(request);
+            });
 
-            // Assert
+            assertEquals("Invalid transaction JWT", exception.getMessage());
             verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
             verifyNoInteractions(transactionHelper);
-            assertEquals(expectedError, response);
         }
     }
 
@@ -95,6 +97,29 @@ class WithdrawServiceImplTest {
                     any()
             );
             assertEquals(expectedResponse, response);
+        }
+    }
+
+    @Test
+    void testWithdrawFailsDueToMissingJWT() {
+        // Arrange
+        MoneyTransferRequestDto request = new MoneyTransferRequestDto();
+        request.setSenderAccountId("senderABC");
+        request.setRecipientAccountId("recipientXYZ");
+        request.setAmount("200.00");
+
+        // Mock SecurityUtils.getCurrentUserJWT() to return empty
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.empty());
+
+            // Act & Assert
+            IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
+                withdrawService.withdraw(request);
+            });
+
+            assertEquals("No JWT token found in security context", exception.getMessage());
+            verifyNoInteractions(signTransactionValidator);
+            verifyNoInteractions(transactionHelper);
         }
     }
 }

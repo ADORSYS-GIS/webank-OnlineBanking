@@ -1,5 +1,8 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ResourceNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.obs.dto.TransRequest;
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -20,6 +23,7 @@ import java.util.Currency;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -78,11 +82,12 @@ class TransServiceImplTest {
     void testGetTrans_AccountNotFound() {
         when(bankAccountService.getAccountById("12345")).thenReturn(null);
 
-        // Act
-        String result = transService.getTrans(transRequest);
+        // Act & Assert
+        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
+            transService.getTrans(transRequest);
+        });
 
-        // Assert
-        assertEquals("Bank account not found for ID: 12345", result);
+        assertEquals("Bank account not found for ID: 12345", exception.getMessage());
     }
 
     @Test
@@ -91,21 +96,23 @@ class TransServiceImplTest {
         when(bankAccountService.getTransactionsByDates(anyString(), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Collections.emptyList());
 
-        // Act
-        String result = transService.getTrans(transRequest);
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            transService.getTrans(transRequest);
+        });
 
-        // Assert
-        assertEquals("No transactions found for the given account and date range.", result);
+        assertEquals("No transactions found for the given account and date range.", exception.getMessage());
     }
 
     @Test
     void testGetTrans_ExceptionHandling() {
         when(bankAccountService.getAccountById("12345")).thenThrow(new RuntimeException("Database error"));
 
-        // Act
-        String result = transService.getTrans(transRequest);
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, () -> {
+            transService.getTrans(transRequest);
+        });
 
-        // Assert
-        assertEquals("An error occurred while processing the request: Database error", result);
+        assertEquals("An error occurred while processing the request: Database error", exception.getMessage());
     }
 }

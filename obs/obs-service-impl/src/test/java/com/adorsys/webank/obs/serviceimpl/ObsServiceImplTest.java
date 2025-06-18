@@ -1,5 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -21,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,7 +36,6 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.JOSEException;
 
 class ObsServiceImplTest {
-
 
     @Mock
     private BankAccountCertificateCreationService bankAccountCertificateCreationService;
@@ -58,7 +60,6 @@ class ObsServiceImplTest {
                 .keyID("test-key-id")
                 .generate();
 
-
         // Mock SecurityUtils to return our test ECKey
         securityUtilsMock = mockStatic(SecurityUtils.class);
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext)
@@ -77,17 +78,17 @@ class ObsServiceImplTest {
         // Prepare test data
         String publicKey = "publicKey123";
 
-        // Mock BankAccountCertificateCreationService to return null for invalid cases
+        // Mock BankAccountCertificateCreationService to throw exception for invalid cases
         when(bankAccountCertificateCreationService.registerNewBankAccount(
                 anyString(), any(BankAccountBO.class), anyString(), anyString()
-        )).thenReturn(null);
+        )).thenThrow(new RuntimeException("Service error"));
 
-        // Call the method to test
-        String result = obsService.registerAccount(publicKey);
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, () -> {
+            obsService.registerAccount(publicKey);
+        });
 
-        // Verify the result
-        assertTrue(result.contains("An error occurred while processing the request"));
-
+        assertTrue(exception.getMessage().contains("An error occurred while processing the request"));
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString());
     }
 
@@ -101,6 +102,9 @@ class ObsServiceImplTest {
         when(bankAccountCertificateCreationService.registerNewBankAccount(
                 anyString(), any(BankAccountBO.class), anyString(), anyString()
         )).thenReturn(mockResult);
+
+        // Mock the makeTrans method call by mocking the bankAccountService
+        when(bankAccountService.getAccountById(anyString())).thenReturn(new BankAccountBO());
 
         // Call the method to test
         String result = obsService.registerAccount(publicKey);
@@ -121,6 +125,9 @@ class ObsServiceImplTest {
         when(bankAccountCertificateCreationService.registerNewBankAccount(
                 anyString(), any(BankAccountBO.class), anyString(), anyString()
         )).thenReturn(mockResult);
+
+        // Mock the makeTrans method call by mocking the bankAccountService
+        when(bankAccountService.getAccountById(anyString())).thenReturn(new BankAccountBO());
 
         // Call the method
         obsService.registerAccount(publicKey);
@@ -164,7 +171,6 @@ class ObsServiceImplTest {
         assertEquals("OBS", branchCaptor.getValue());
     }
 
-
     @Test
     void makeTransactionsSuccessfully() {
         String accountId = "12345";
@@ -189,10 +195,12 @@ class ObsServiceImplTest {
         // Mock BankAccountService to return null
         when(bankAccountService.getAccountById(accountId)).thenReturn(null);
 
-        // Call the method
-        String result = obsService.makeTrans(accountId);
+        // Act & Assert
+        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
+            obsService.makeTrans(accountId);
+        });
 
-        assertEquals("Bank account not found for ID: " + accountId, result);
+        assertEquals("Bank account not found for ID: " + accountId, exception.getMessage());
     }
 
     @Test
@@ -202,8 +210,11 @@ class ObsServiceImplTest {
         securityUtilsMock = mockStatic(SecurityUtils.class);
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext).thenReturn(null);
 
-        String result = obsService.registerAccount("jwt-token");
-        assertEquals("Device public key is missing. Cannot register account.", result);
-    }
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, () -> {
+            obsService.registerAccount("jwt-token");
+        });
 
+        assertEquals("Device public key is missing. Cannot register account.", exception.getMessage());
+    }
 }
