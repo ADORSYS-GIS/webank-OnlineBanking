@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timestamp>
+                <timeZone>UTC</timeZone>
+            </timestamp>
+            <pattern>
+                <pattern>
+                    {
+                    "severity": "%level",
+                    "service": "${springAppName:-}",
+                    "trace": "%X{traceId:-}",
+                    "span": "%X{spanId:-}",
+                    "correlation_id": "%X{correlationId:-}",
+                    "pid": "${PID:-}",
+                    "thread": "%thread",
+                    "class": "%logger{40}",
+                    "message": "%message"
+                    }
+                </pattern>
+            </pattern>
+            <stackTrace>
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                    <maxLength>2048</maxLength>
+                    <shortenedClassNameLength>20</shortenedClassNameLength>
+                    <rootCauseFirst>true</rootCauseFirst>
+                </throwableConverter>
+            </stackTrace>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timestamp>
+                <timeZone>UTC</timeZone>
+            </timestamp>
+            <pattern>
+                <pattern>
+                    {
+                    "severity": "%level",
+                    "service": "${springAppName:-}",
+                    "trace": "%X{traceId:-}",
+                    "span": "%X{spanId:-}",
+                    "correlation_id": "%X{correlationId:-}",
+                    "pid": "${PID:-}",
+                    "thread": "%thread",
+                    "class": "%logger{40}",
+                    "message": "%message"
+                    }
+                </pattern>
+            </pattern>
+             <stackTrace>
+                 <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                     <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                     <maxLength>2048</maxLength>
+                     <shortenedClassNameLength>20</shortenedClassNameLength>
+                     <rootCauseFirst>true</rootCauseFirst>
+                 </throwableConverter>
+             </stackTrace>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>[b09b248d-9a26-45dd-87fe-1eac156
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <springProfile name="dev">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+</configuration>

@@ -35,7 +35,7 @@ public class PayoutRest implements PayoutRestApi {
             @RequestBody MoneyTransferRequestDto request) {
 
         try {
-            log.info("Received payout request: {}", request);
+            log.info("Received payout request for sender account ID: {}", request.getSenderAccountId());
             MoneyTransferResponse response = payoutService.payout(request);
             log.info("Payout processed successfully.");
             return ResponseEntity.ok(response);

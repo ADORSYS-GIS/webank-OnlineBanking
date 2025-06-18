@@ -120,7 +120,6 @@ public class TransactionHelper {
         }
 
         String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));
-        log.info("Transaction certificate: {}", transactionCert);
         return transactionCert + " Success";
     }
 

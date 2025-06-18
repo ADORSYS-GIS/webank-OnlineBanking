@@ -28,7 +28,7 @@ public class TransServiceImpl implements TransServiceApi {
     @Override
     public TransactionHistoryResponse getTrans(TransRequest transRequest) {
         try {
-            log.info("Received transaction request: {}", transRequest);
+            log.info("Received transaction history request for account ID: {}", transRequest.getAccountID());
             
             // Extract the account ID from the request
             String accountId = transRequest.getAccountID();
