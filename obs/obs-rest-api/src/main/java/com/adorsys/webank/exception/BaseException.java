@@ -1,5 +1,8 @@
 package com.adorsys.webank.exception;
 
+import lombok.Getter;
+
+@Getter
 public abstract class BaseException extends RuntimeException {
     private final String errorCode;
     private final String message;
@@ -8,10 +11,6 @@ public abstract class BaseException extends RuntimeException {
         super(message);
         this.errorCode = errorCode;
         this.message = message;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
     }
 
     @Override

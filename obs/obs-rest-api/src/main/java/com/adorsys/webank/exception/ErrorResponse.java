@@ -1,7 +1,12 @@
 package com.adorsys.webank.exception;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@Getter
+@RequiredArgsConstructor
 public class ErrorResponse {
     private final String errorCode;
     private final String message;
@@ -13,21 +18,5 @@ public class ErrorResponse {
         this.message = message;
         this.timestamp = LocalDateTime.now();
         this.path = path;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public String getPath() {
-        return path;
     }
 } 
