@@ -1,5 +1,8 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
+import com.adorsys.webank.exception.ResourceNotFoundException;
 import com.adorsys.webank.obs.dto.*;
 import com.adorsys.webank.obs.service.*;
 import de.adorsys.webank.bank.api.domain.*;
@@ -23,7 +26,7 @@ public class TransServiceImpl implements TransServiceApi {
      * Handles transaction requests by fetching transactions for a given account ID.
      *
      * @param transRequest The transaction request containing the account ID.
-     * @return A JSON string representing the transaction details or an error message.
+     * @return A JSON string representing the transaction details or throws appropriate exceptions.
      */
 
     @Override
@@ -36,7 +39,7 @@ public class TransServiceImpl implements TransServiceApi {
             // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
             if (bankAccount == null) {
-                return "Bank account not found for ID: " + accountId;
+                throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
             }
 
             // Define the date range for transactions (default to last month)
@@ -49,7 +52,7 @@ public class TransServiceImpl implements TransServiceApi {
 
             // If no transactions found
             if (postingLines.isEmpty()) {
-                return "No transactions found for the given account and date range.";
+                throw new ResourceNotFoundException("No transactions found for the given account and date range.");
             }
 
             // Map the posting lines to a properly formatted JSON string
@@ -73,7 +76,10 @@ public class TransServiceImpl implements TransServiceApi {
 
 
         } catch (Exception e) {
-            return "An error occurred while processing the request: " + e.getMessage();
+            if (e instanceof AccountNotFoundException || e instanceof ResourceNotFoundException) {
+                throw e;
+            }
+            throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
         }
     }
 

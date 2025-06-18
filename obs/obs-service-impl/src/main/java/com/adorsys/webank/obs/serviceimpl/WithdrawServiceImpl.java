@@ -1,5 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.InvalidJwtException;
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
 import com.adorsys.webank.obs.service.WithdrawServiceApi;
@@ -34,7 +35,7 @@ public class WithdrawServiceImpl implements WithdrawServiceApi {
         log.info("jwt token from current sprint context is {}", jwtToken);
 
         if (!signTransactionValidator.validateSignTransactionJWT(jwtToken)) {
-            return "Invalid transaction JWT";
+            throw new InvalidJwtException("Invalid transaction JWT");
         }
         // Delegate common validation and processing to TransactionHelper
         return transactionHelper.validateAndProcessTransaction(

@@ -1,5 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.obs.dto.TopupRequestDto;
 import com.adorsys.webank.obs.service.TopupServiceApi;
 import de.adorsys.webank.bank.api.domain.AmountBO;
@@ -41,7 +43,7 @@ public class TopupServiceImpl implements TopupServiceApi {
                     if (log.isErrorEnabled()) {
                         log.error("Bank account not found for accountId: {}", accountId);
                     }
-                    return "Bank account not found for ID: " + accountId;
+                    throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
                 }
 
                 // Define multiple deposit values
@@ -67,8 +69,8 @@ public class TopupServiceImpl implements TopupServiceApi {
                 if (log.isErrorEnabled()) {
                     log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
                 }
-                return "An error occurred while processing the transactions: "
-                        + (e.getMessage() != null ? e.getMessage() : e.toString());
+                throw new ServiceUnavailableException("An error occurred while processing the transactions: "
+                        + (e.getMessage() != null ? e.getMessage() : e.toString()));
             }
         } finally {
 

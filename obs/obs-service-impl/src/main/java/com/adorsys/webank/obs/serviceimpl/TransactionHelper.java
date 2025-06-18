@@ -1,5 +1,9 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.InsufficientBalanceException;
+import com.adorsys.webank.exception.InvalidAmountException;
+import com.adorsys.webank.exception.TransactionException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -46,7 +50,7 @@ public class TransactionHelper {
 
     /**
      * Validates input and processes a transaction.
-     * Returns error messages matching the test expectations.
+     * Throws appropriate exceptions for error conditions.
      */
     public String validateAndProcessTransaction(String senderAccountId, String recipientAccountId,
                                                 String amountStr, String accountCertJwt,
@@ -54,18 +58,18 @@ public class TransactionHelper {
 
         BigDecimal amount = parseAmount(amountStr, logger);
         if (amount == null) {
-            return "Invalid amount format: " + amountStr;
+            throw new InvalidAmountException("Invalid amount format: " + amountStr);
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return "Amount must be a positive number";
+            throw new InvalidAmountException("Amount must be a positive number");
         }
 
         BigDecimal balance = getCurrentBalance(senderAccountId, logger);
         if (balance == null) {
-            return "Unable to retrieve balance for the source account";
+            throw new TransactionException("Unable to retrieve balance for the source account");
         }
         if (balance.compareTo(amount) < 0) {
-            return "Insufficient balance. Current balance: " + balance + " XAF";
+            throw new InsufficientBalanceException("Insufficient balance. Current balance: " + balance + " XAF");
         }
 
         return processTransaction(senderAccountId, recipientAccountId, amount, logger);
@@ -101,7 +105,7 @@ public class TransactionHelper {
         BankAccountBO receivingAccount = bankAccountService.getAccountById(recipientAccountId);
 
         if (sendingAccount == null || receivingAccount == null) {
-            return "One or both accounts not found";
+            throw new AccountNotFoundException("One or both accounts not found");
         }
 
         MockBookingDetailsBO mockTransaction = createMockTransaction(
@@ -116,7 +120,7 @@ public class TransactionHelper {
             logger.info("Transaction booked");
         } else {
             logger.error("Booking errors: {}", errorMap);
-            return "Transaction failed due to booking errors";
+            throw new TransactionException("Transaction failed due to booking errors");
         }
 
         String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));

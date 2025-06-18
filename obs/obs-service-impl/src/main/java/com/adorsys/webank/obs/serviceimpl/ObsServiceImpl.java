@@ -1,6 +1,8 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
@@ -43,7 +45,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
         if (devicePub == null) {
             log.error("Device public key is null. Cannot register account.");
-            return "Device public key is missing. Cannot register account.";
+            throw new ServiceUnavailableException("Device public key is missing. Cannot register account.");
         }
         try {
 
@@ -93,7 +95,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the request: {}", e.getMessage(), e);
             }
-            return "An error occurred while processing the request: " + e.getMessage();
+            throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
         }
     }
 
@@ -109,7 +111,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                 if (log.isErrorEnabled()) {
                     log.error("Bank account not found for accountId: {}", accountId);
                 }
-                return "Bank account not found for ID: " + accountId;
+                throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
             }
 
             // Define multiple deposit values
@@ -134,8 +136,11 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
             }
-            return "An error occurred while processing the transactions: "
-                    + (e.getMessage() != null ? e.getMessage() : e.toString());
+            if (e instanceof AccountNotFoundException) {
+                throw e;
+            }
+            throw new ServiceUnavailableException("An error occurred while processing the transactions: "
+                    + (e.getMessage() != null ? e.getMessage() : e.toString()));
         }
     }
 }

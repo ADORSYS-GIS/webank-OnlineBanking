@@ -35,6 +35,11 @@
         </dependency>
         <dependency>
             <groupId>com.adorsys.webank</groupId>
+            <artifactId>obs-rest-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.adorsys.webank</groupId>
             <artifactId>prs-service-api</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
