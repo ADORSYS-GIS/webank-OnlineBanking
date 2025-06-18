@@ -1,7 +1,7 @@
 package com.adorsys.webank.obs.resource;
 
-
 import com.adorsys.webank.obs.dto.BalanceRequest;
+import com.adorsys.webank.obs.dto.BalanceResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -18,10 +18,11 @@ public interface BalanceRestApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Balance successfully retrieved"),
             @ApiResponse(responseCode = "400", description = "Invalid request to get Balance"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "503", description = "Service unavailable")
 
     })
     @PostMapping(value = "/balance", consumes = "application/json", produces = "application/json")
-    ResponseEntity<String> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BalanceRequest request);
+    ResponseEntity<BalanceResponse> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BalanceRequest request);
 
 }

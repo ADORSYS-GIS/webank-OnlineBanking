@@ -25,18 +25,25 @@ public class BalanceRest implements BalanceRestApi {
      */
     @Override
     @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
-    public ResponseEntity<String> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+    public ResponseEntity<BalanceResponse> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                              @RequestBody BalanceRequest balanceRequest) {
         log.info("Incoming balance request: {}", balanceRequest);
 
         try {
-            String result = balanceService.getBalance(balanceRequest);
-            log.info("Balance request processed successfully.");
-            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+            BalanceResponse result = balanceService.getBalance(balanceRequest);
+            log.info("Balance request processed successfully with status: {}", result.getStatus());
+            
+            HttpStatus status = "SUCCESS".equals(result.getStatus()) ? 
+                HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
+                
+            return ResponseEntity.status(status).body(result);
         } catch (Exception e) {
             log.error("Error processing balance request", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while processing the request.");
+            BalanceResponse errorResponse = BalanceResponse.error(
+                "An error occurred while processing the request: " + e.getMessage(), 
+                balanceRequest.getAccountID()
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
