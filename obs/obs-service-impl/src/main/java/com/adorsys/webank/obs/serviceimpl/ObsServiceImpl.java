@@ -44,9 +44,9 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     public RegistrationResponse registerAccount(String registrationJwt) {
         ECKey devicePub = SecurityUtils.extractDeviceJwkFromContext();
 
+        // TODO: Replace IllegalStateException with custom exception handled by global exception handler (to be addressed in another ticket)
         if (devicePub == null) {
-            log.error("Device public key is null. Cannot register account.");
-            throw new IllegalStateException("Device public key is missing. Cannot register account.");
+           throw new IllegalStateException("Device public key not found in security context. Please ensure the user is authenticated.");
         }
         try {
             // Iban will come from configuration

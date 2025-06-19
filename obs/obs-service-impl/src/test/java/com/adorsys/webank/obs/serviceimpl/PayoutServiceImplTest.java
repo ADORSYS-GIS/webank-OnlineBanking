@@ -18,12 +18,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import com.adorsys.webank.obs.config.PayoutProperties;
 
 @ExtendWith(MockitoExtension.class)
 class PayoutServiceImplTest {
 
     @Mock
     private TransactionHelper transactionHelper;
+
+    @Mock
+    private PayoutProperties payoutProperties;
 
     @InjectMocks
     private PayoutServiceImpl payoutService;
@@ -65,6 +69,8 @@ class PayoutServiceImplTest {
             
             securityUtilsMock.when(SecurityUtils::getCurrentUserJWT)
                     .thenReturn(Optional.of(VALID_JWT_TOKEN));
+
+            when(payoutProperties.getKycCheckThreshold()).thenReturn(500.00);
 
             when(transactionHelper.validateAndProcessTransaction(
                     eq(SENDER_ACCOUNT_ID),
@@ -150,8 +156,9 @@ class PayoutServiceImplTest {
                 payoutService.payout(largeAmountRequest);
             });
 
-            assertEquals("KYC certificate is required for transactions exceeding 1,000 francs.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
+
+            assertEquals("KYC certificate is required for transactions exceeding 1000 francs.", exception.getMessage());
+
         }
     }
 

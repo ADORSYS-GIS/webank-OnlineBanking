@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
@@ -212,15 +215,19 @@ class ObsServiceImplTest {
         assertEquals("Bank account not found for ID: " + accountId, exception.getMessage());
     }
 
-    @Test
+  @Test
     void registerAccountWhenDeviceKeyIsMissing() {
         securityUtilsMock.close();
 
         securityUtilsMock = mockStatic(SecurityUtils.class);
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext).thenReturn(null);
 
-        // Act & Assert
-        assertThrows(IllegalStateException.class, () -> obsService.registerAccount("jwt-token"));
+        IllegalStateException exception = assertThrows(IllegalStateException.class , () ->
+            obsService.registerAccount("jwt-token")
+        );
+
+        assertEquals("Device public key not found in security context. Please ensure the user is authenticated.", exception.getMessage());
+
     }
 
     @Test
@@ -232,5 +239,8 @@ class ObsServiceImplTest {
 
         // Act & Assert
         assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount(publicKey));
+        );
+
+
     }
 }
