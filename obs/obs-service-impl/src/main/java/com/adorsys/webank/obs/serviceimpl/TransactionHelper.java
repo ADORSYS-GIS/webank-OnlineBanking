@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -60,10 +59,9 @@ public class TransactionHelper {
      * Throws appropriate exceptions for error conditions.
      */
     public String validateAndProcessTransaction(String senderAccountId, String recipientAccountId,
-                                                String amountStr, String accountCertJwt,
-                                                Logger logger) {
+                                                String amountStr, String accountCertJwt) {
 
-        BigDecimal amount = parseAmount(amountStr, logger);
+        BigDecimal amount = parseAmount(amountStr);
         if (amount == null) {
             throw new InvalidAmountException("Invalid amount format: " + amountStr);
         }
@@ -71,7 +69,7 @@ public class TransactionHelper {
             throw new InvalidAmountException("Amount must be a positive number");
         }
 
-        BigDecimal balance = getCurrentBalance(senderAccountId, logger);
+        BigDecimal balance = getCurrentBalance(senderAccountId);
         if (balance == null) {
             throw new TransactionException("Unable to retrieve balance for the source account");
         }
@@ -79,19 +77,19 @@ public class TransactionHelper {
             throw new InsufficientBalanceException("Insufficient balance. Current balance: " + balance + " XAF");
         }
 
-        return processTransaction(senderAccountId, recipientAccountId, amount, logger);
+        return processTransaction(senderAccountId, recipientAccountId, amount);
     }
 
-    public BigDecimal parseAmount(String amount, Logger logger) {
+    public BigDecimal parseAmount(String amount) {
         try {
             return new BigDecimal(amount);
         } catch (NumberFormatException e) {
-            logger.error("Invalid amount format: {}", amount);
-            throw new InvalidAmountException("Invalid amount format: " + amount);
+            log.error("Invalid amount format: {}", amount);
+            return null;
         }
     }
 
-    public BigDecimal getCurrentBalance(String accountId, Logger logger) {
+    public BigDecimal getCurrentBalance(String accountId) {
         try {
             BankAccountDetailsBO accountDetails = bankAccountService.getAccountDetailsById(accountId, LocalDateTime.now(), true);
             if (accountDetails == null || accountDetails.getBalances().isEmpty()) {
@@ -102,12 +100,12 @@ public class TransactionHelper {
                     .map(balance -> balance.getAmount().getAmount())
                     .orElseThrow(() -> new TransactionException("Unable to retrieve balance for the source account"));
         } catch (Exception e) {
-            logger.error("Failed to retrieve account balance: {}", e.getMessage());
-            throw new TransactionException("Unable to retrieve balance for the source account: " + e.getMessage());
+            log.error("Failed to retrieve account balance: {}", e.getMessage());
+            return null;
         }
     }
 
-    public String processTransaction(String senderAccountId, String recipientAccountId, BigDecimal amount, Logger logger) {
+    public String processTransaction(String senderAccountId, String recipientAccountId, BigDecimal amount) {
         BankAccountBO sendingAccount = bankAccountService.getAccountById(senderAccountId);
         BankAccountBO receivingAccount = bankAccountService.getAccountById(recipientAccountId);
 
@@ -124,14 +122,13 @@ public class TransactionHelper {
         Map<String, String> errorMap = transactionService.bookMockTransaction(transactions);
 
         if (errorMap.isEmpty()) {
-            logger.info("Transaction booked");
+            log.info("Transaction booked");
         } else {
-            logger.error("Booking errors: {}", errorMap);
-            throw new TransactionException("Transaction failed due to booking errors");
+            log.error("Booking errors: {}", errorMap);
+            return "Transaction failed due to booking errors";
         }
 
         String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));
-        log.info("Transaction certificate: {}", transactionCert);
         return transactionCert + " Success";
     }
 

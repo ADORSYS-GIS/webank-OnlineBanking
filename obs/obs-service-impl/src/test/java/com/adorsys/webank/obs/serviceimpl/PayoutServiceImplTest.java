@@ -11,12 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -72,8 +70,7 @@ class PayoutServiceImplTest {
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
@@ -90,8 +87,8 @@ class PayoutServiceImplTest {
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
+                    
             );
         }
     }
@@ -113,8 +110,7 @@ class PayoutServiceImplTest {
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("1500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
@@ -131,8 +127,7 @@ class PayoutServiceImplTest {
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("1500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
             );
         }
     }
@@ -156,7 +151,7 @@ class PayoutServiceImplTest {
             });
 
             assertEquals("KYC certificate is required for transactions exceeding 1,000 francs.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
 
@@ -177,7 +172,7 @@ class PayoutServiceImplTest {
             });
 
             assertEquals("Account certificate is required for all transactions.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
 
@@ -198,7 +193,7 @@ class PayoutServiceImplTest {
             });
 
             assertEquals("Account certificate is required for all transactions.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
 
@@ -213,7 +208,7 @@ class PayoutServiceImplTest {
             assertThrows(IllegalStateException.class, () -> {
                 payoutService.payout(smallAmountRequest);
             });
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
 
@@ -232,8 +227,7 @@ class PayoutServiceImplTest {
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
             )).thenThrow(new RuntimeException("Unexpected error"));
 
             // Act & Assert

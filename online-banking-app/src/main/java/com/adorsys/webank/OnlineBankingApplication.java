@@ -17,9 +17,11 @@ import de.adorsys.webank.bank.api.service.BankAccountInitService;
 import de.adorsys.webank.bank.api.service.EnableBankAccountService;
 import de.adorsys.webank.bank.server.utils.client.ExchangeRateClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-
-
+/**
+ * Main application class.
+ */
 @RequiredArgsConstructor
 @SpringBootApplication(exclude = {
 		SecurityAutoConfiguration.class,
@@ -27,22 +29,24 @@ import lombok.RequiredArgsConstructor;
 })
 @ComponentScan(
 		basePackages = {"com.adorsys.webank.obs", "com.adorsys.webank.mockbank"}
-			)
+)
 @EnableMiddleware
 @EnableBankAccountService
 @EnablePostingService
 @EnableFeignClients(basePackageClasses = ExchangeRateClient.class)
 @EnableObsServiceimpl
-	public class OnlineBankingApplication implements ApplicationListener<ApplicationReadyEvent> {
+@Slf4j
+public class OnlineBankingApplication implements ApplicationListener<ApplicationReadyEvent> {
 
-		private final BankAccountInitService bankInitService;
+	private final BankAccountInitService bankInitService;
 
-		public static void main(String[] args) {
-			SpringApplication.run(OnlineBankingApplication.class, args);
-		}
-
-		@Override
-		public void onApplicationEvent(@NotNull ApplicationReadyEvent event) {
-			bankInitService.initConfigData();
-		}
+	public static void main(String[] args) {
+		SpringApplication.run(OnlineBankingApplication.class, args);
 	}
+
+	@Override
+	public void onApplicationEvent(@NotNull ApplicationReadyEvent event) {
+		bankInitService.initConfigData();
+		log.info("Online Banking Application started successfully.");
+	}
+}

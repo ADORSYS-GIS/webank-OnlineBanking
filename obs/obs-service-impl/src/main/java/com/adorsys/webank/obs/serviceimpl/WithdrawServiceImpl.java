@@ -49,8 +49,7 @@ public class WithdrawServiceImpl implements WithdrawServiceApi {
                 request.getSenderAccountId(),
                 request.getRecipientAccountId(),
                 request.getAmount().toPlainString(),
-                jwtToken,
-                log
+                jwtToken
             );
 
             // Create success response

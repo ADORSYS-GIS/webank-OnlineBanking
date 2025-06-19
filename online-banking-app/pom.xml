@@ -91,6 +91,10 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 		</dependency>
         <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
+        <dependency>
             <groupId>de.adorsys.webank</groupId>
             <artifactId>webank-bank-account-service-impl</artifactId>
             <version>0.1-SNAPSHOT</version>

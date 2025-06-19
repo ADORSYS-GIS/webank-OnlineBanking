@@ -21,10 +21,10 @@ public class PayoutServiceImpl implements PayoutServiceApi {
     @Override
     public MoneyTransferResponse payout(MoneyTransferRequestDto moneyTransferRequestDto) {
         String jwtToken = extractJwtToken();
-        log.info("jwt token from current sprint context is {}", jwtToken);
 
-        String accountCert = extractAndLogCertificate(jwtToken, "accountJwt", "Payout request: accountCert = {}");
-        String kycCert = extractAndLogCertificate(jwtToken, "kycCertJwt", "Payout request: kycCert = {}");
+        log.info("Extracting account and KYC certificates from JWT.");
+        String accountCert = extractCertificate(jwtToken, "accountJwt");
+        String kycCert = extractCertificate(jwtToken, "kycCertJwt");
 
         validateAccountCertificate(accountCert);
         validateKycCertificateForLargeTransaction(moneyTransferRequestDto, kycCert);
@@ -33,8 +33,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
                 moneyTransferRequestDto.getSenderAccountId(),
                 moneyTransferRequestDto.getRecipientAccountId(),
                 moneyTransferRequestDto.getAmount().toPlainString(),
-                jwtToken,
-                log
+                jwtToken
         );
 
         MoneyTransferResponse response = new MoneyTransferResponse();
@@ -56,10 +55,8 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         return jwtOpt.get();
     }
 
-    private String extractAndLogCertificate(String jwtToken, String headerField, String logMessage) {
-        String cert = JwtHeaderExtractor.extractField(jwtToken, headerField);
-        log.info(logMessage, cert);
-        return cert;
+    private String extractCertificate(String jwtToken, String headerField) {
+        return JwtHeaderExtractor.extractField(jwtToken, headerField);
     }
 
     private void validateAccountCertificate(String accountCert) {
