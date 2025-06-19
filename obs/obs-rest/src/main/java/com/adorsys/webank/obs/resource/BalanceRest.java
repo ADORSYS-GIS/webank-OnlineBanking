@@ -31,7 +31,7 @@ public class BalanceRest implements BalanceRestApi {
     @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
     public ResponseEntity<BalanceResponse> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                              @RequestBody BalanceRequest balanceRequest) {
-        log.info("Incoming balance request: {}", balanceRequest);
+        log.info("Incoming balance request for account ID: {}", balanceRequest.getAccountID());
 
         try {
             BalanceResponse response = balanceService.getBalance(balanceRequest);
@@ -50,4 +50,3 @@ public class BalanceRest implements BalanceRestApi {
 
 
 }
-
