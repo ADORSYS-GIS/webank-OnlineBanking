@@ -221,7 +221,6 @@
                 <groupId>de.adorsys.webank</groupId>
                 <artifactId>webank-server-utils</artifactId>
                 <version>${webank-bank-account.version}</version>
-                <scope>test</scope>
             </dependency>
 
 <!-- webank  bank account dependencies -->
