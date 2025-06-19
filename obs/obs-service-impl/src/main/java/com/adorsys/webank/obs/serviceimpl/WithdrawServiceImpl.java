@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.Optional;
 import com.adorsys.webank.config.SecurityUtils;
 import java.time.LocalDateTime;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 
 /**
  * Service implementation for handling withdrawal operations.
@@ -31,30 +32,26 @@ public class WithdrawServiceImpl implements WithdrawServiceApi {
     public MoneyTransferResponse withdraw(MoneyTransferRequestDto request) {
         try {
             // Extract the JWT token from the current context
-        Optional<String> jwtOpt = SecurityUtils.getCurrentUserJWT();
-        if (jwtOpt.isEmpty()) {
-            throw new IllegalStateException("No JWT token found in security context");
-        }
-        String jwtToken = jwtOpt.get();
+            Optional<String> jwtOpt = SecurityUtils.getCurrentUserJWT();
+            if (jwtOpt.isEmpty()) {
+                throw new IllegalStateException("No JWT token found in security context");
+            }
+            String jwtToken = jwtOpt.get();
             log.info("Processing withdrawal request for account: {}", request.getSenderAccountId());
 
             // Validate the transaction JWT
-        if (!signTransactionValidator.validateSignTransactionJWT(jwtToken)) {
-                MoneyTransferResponse errorResponse = new MoneyTransferResponse();
-                errorResponse.setStatus(MoneyTransferResponse.TransferStatus.INVALID_ACCOUNT);
-                errorResponse.setMessage("Invalid transaction JWT");
-                errorResponse.setTimestamp(LocalDateTime.now());
-                return errorResponse;
+            if (!signTransactionValidator.validateSignTransactionJWT(jwtToken)) {
+                throw new InvalidJwtException("Invalid transaction JWT");
             }
 
             // Process the transaction
             String result = transactionHelper.validateAndProcessTransaction(
                 request.getSenderAccountId(),
                 request.getRecipientAccountId(),
-                    request.getAmount().toPlainString(),
+                request.getAmount().toPlainString(),
                 jwtToken,
                 log
-        );
+            );
 
             // Create success response
             MoneyTransferResponse response = new MoneyTransferResponse();
@@ -70,11 +67,7 @@ public class WithdrawServiceImpl implements WithdrawServiceApi {
 
         } catch (Exception e) {
             log.error("Error processing withdrawal request", e);
-            MoneyTransferResponse errorResponse = new MoneyTransferResponse();
-            errorResponse.setStatus(MoneyTransferResponse.TransferStatus.SYSTEM_ERROR);
-            errorResponse.setMessage("An error occurred while processing the withdrawal: " + e.getMessage());
-            errorResponse.setTimestamp(LocalDateTime.now());
-            return errorResponse;
+            throw new ServiceUnavailableException("An error occurred while processing the withdrawal: " + e.getMessage());
         }
     }
 }

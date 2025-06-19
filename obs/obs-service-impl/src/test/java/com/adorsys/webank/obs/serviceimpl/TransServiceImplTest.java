@@ -1,21 +1,13 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.exception.AccountNotFoundException;
-import com.adorsys.webank.exception.ResourceNotFoundException;
-import com.adorsys.webank.exception.ServiceUnavailableException;
-import com.adorsys.webank.obs.dto.TransRequest;
-import com.adorsys.webank.obs.dto.response.TransactionHistoryResponse;
-
-import de.adorsys.webank.bank.api.domain.AmountBO;
-import de.adorsys.webank.bank.api.domain.BankAccountBO;
-import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
-import de.adorsys.webank.bank.api.service.BankAccountService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,18 +16,24 @@ import java.util.Collections;
 import java.util.Currency;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.adorsys.webank.exception.ServiceUnavailableException;
+import com.adorsys.webank.obs.dto.TransRequest;
+import com.adorsys.webank.obs.dto.response.TransactionHistoryResponse;
+
+import de.adorsys.webank.bank.api.domain.AmountBO;
+import de.adorsys.webank.bank.api.domain.BankAccountBO;
+import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
+import de.adorsys.webank.bank.api.service.BankAccountService;
 
 @ExtendWith(MockitoExtension.class)
 class TransServiceImplTest {
-
     @Mock
     private BankAccountService bankAccountService;
 
@@ -159,16 +157,11 @@ class TransServiceImplTest {
         // Setup
         when(bankAccountService.getAccountById(ACCOUNT_ID)).thenReturn(null);
 
-        // Act
-        TransactionHistoryResponse result = transService.getTrans(transRequest);
-
-        // Assert
-        assertEquals(TransactionHistoryResponse.TransactionStatus.FAILED, result.getStatus());
-        assertEquals("Bank account not found for ID: " + ACCOUNT_ID, result.getMessage());
-        assertEquals("[]", result.getData());
-        assertNotNull(result.getTimestamp());
-
-        // Verify service call
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, 
+            () -> transService.getTrans(transRequest));
+        assertEquals("An error occurred while processing the request: Bank account not found for ID: 12345", 
+            exception.getMessage());
         verify(bankAccountService).getAccountById(ACCOUNT_ID);
     }
 
@@ -198,16 +191,21 @@ class TransServiceImplTest {
         // Setup
         when(bankAccountService.getAccountById(ACCOUNT_ID)).thenThrow(new RuntimeException("Database error"));
 
-        // Act
-        TransactionHistoryResponse result = transService.getTrans(transRequest);
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, 
+            () -> transService.getTrans(transRequest));
+        assertEquals("An error occurred while processing the request: Database error", 
+            exception.getMessage());
+        verify(bankAccountService).getAccountById(ACCOUNT_ID);
+    }
 
-        // Assert
-        assertEquals(TransactionHistoryResponse.TransactionStatus.FAILED, result.getStatus());
-        assertEquals("An error occurred while processing the request: Database error", result.getMessage());
-        assertEquals("[]", result.getData());
-        assertNotNull(result.getTimestamp());
+    @Test
+    void testGetTrans_ThrowsServiceUnavailableExceptionOnUnexpectedError() {
+        // Setup
+        when(bankAccountService.getAccountById(ACCOUNT_ID)).thenThrow(new RuntimeException("Unexpected error"));
 
-        // Verify service call
+        // Act & Assert
+        assertThrows(ServiceUnavailableException.class, () -> transService.getTrans(transRequest));
         verify(bankAccountService).getAccountById(ACCOUNT_ID);
     }
 }

@@ -1,43 +1,45 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.util.Currency;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
+
+import com.adorsys.webank.config.SecurityUtils;
 import com.adorsys.webank.exception.AccountNotFoundException;
 import com.adorsys.webank.exception.ServiceUnavailableException;
+import com.adorsys.webank.obs.dto.response.RegistrationResponse;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.BankAccountTransactionService;
 import de.adorsys.webank.bank.api.service.util.BankAccountCertificateCreationService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.MockedStatic;
-import java.math.BigDecimal;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.adorsys.webank.config.SecurityUtils;
-import com.adorsys.webank.obs.dto.response.RegistrationResponse;
-import java.util.Currency;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import org.junit.jupiter.api.AfterEach;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.jose.JOSEException;
 
 class ObsServiceImplTest {
 
@@ -87,13 +89,8 @@ class ObsServiceImplTest {
                 anyString(), any(BankAccountBO.class), anyString(), anyString()
         )).thenThrow(new RuntimeException("Service error"));
 
-        // Call the method to test
-        RegistrationResponse result = obsService.registerAccount(publicKey);
-
-        // Verify the result
-        assertEquals(RegistrationResponse.RegistrationStatus.FAILED, result.getStatus());
-        assertTrue(result.getMessage().contains("An error occurred while processing the request"));
-
+        // Act & Assert
+        assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount(publicKey));
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString());
     }
 
@@ -212,7 +209,7 @@ class ObsServiceImplTest {
 
         // Verify no transactions were attempted
         verify(bankAccountTransactionService, never()).depositCash(anyString(), any(), anyString());
-        assertEquals("Bank account not found for ID: " + accountId, result);
+        assertEquals("Bank account not found for ID: " + accountId, exception.getMessage());
     }
 
     @Test
@@ -222,8 +219,18 @@ class ObsServiceImplTest {
         securityUtilsMock = mockStatic(SecurityUtils.class);
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext).thenReturn(null);
 
-        RegistrationResponse result = obsService.registerAccount("jwt-token");
-        assertEquals(RegistrationResponse.RegistrationStatus.FAILED, result.getStatus());
-        assertEquals("Device public key is missing. Cannot register account.", result.getMessage());
+        // Act & Assert
+        assertThrows(IllegalStateException.class, () -> obsService.registerAccount("jwt-token"));
+    }
+
+    @Test
+    void registerAccountThrowsServiceUnavailableExceptionOnUnexpectedError() {
+        // Arrange
+        String publicKey = "publicKey123";
+        when(bankAccountCertificateCreationService.registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString()))
+            .thenThrow(new RuntimeException("Unexpected error"));
+
+        // Act & Assert
+        assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount(publicKey));
     }
 }

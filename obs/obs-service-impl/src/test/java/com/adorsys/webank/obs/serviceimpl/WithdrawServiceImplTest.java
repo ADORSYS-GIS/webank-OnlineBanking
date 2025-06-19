@@ -2,6 +2,7 @@ package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.config.SecurityUtils;
 import com.adorsys.webank.exception.InvalidJwtException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
@@ -49,16 +50,29 @@ class WithdrawServiceImplTest {
             // Mock validator to return false for invalid JWT
             when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
 
-            // Act
-            MoneyTransferResponse response = withdrawService.withdraw(request);
-
-            assertEquals("Invalid transaction JWT", exception.getMessage());
+            // Act & Assert
+            assertThrows(InvalidJwtException.class, () -> withdrawService.withdraw(request));
             verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
             verifyNoInteractions(transactionHelper);
-            assertEquals(MoneyTransferResponse.TransferStatus.INVALID_ACCOUNT, response.getStatus());
-            assertEquals("Invalid transaction JWT", response.getMessage());
-            assertNotNull(response.getTimestamp());
-            // Note: Amount and currency are not set in error response
+        }
+    }
+
+    @Test
+    void testWithdrawFailsDueToMissingJWT() {
+        // Arrange
+        MoneyTransferRequestDto request = new MoneyTransferRequestDto();
+        request.setSenderAccountId("senderABC");
+        request.setRecipientAccountId("recipientXYZ");
+        request.setAmount(new BigDecimal("200.00"));
+
+        // Mock SecurityUtils.getCurrentUserJWT() to return empty
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.empty());
+
+            // Act & Assert
+            assertThrows(ServiceUnavailableException.class, () -> withdrawService.withdraw(request));
+            verifyNoInteractions(signTransactionValidator);
+            verifyNoInteractions(transactionHelper);
         }
     }
 
@@ -105,6 +119,31 @@ class WithdrawServiceImplTest {
             assertEquals("XAF", response.getCurrency());
             assertNotNull(response.getTimestamp());
             assertEquals("Withdrawal completed successfully", response.getMessage());
+        }
+    }
+
+    @Test
+    void testWithdrawThrowsServiceUnavailableExceptionOnUnexpectedError() {
+        // Arrange
+        MoneyTransferRequestDto request = new MoneyTransferRequestDto();
+        request.setSenderAccountId("senderERR");
+        request.setRecipientAccountId("recipientERR");
+        request.setAmount(new BigDecimal("400.00"));
+        String accountCertJwt = "valid-jwt";
+
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.of(accountCertJwt));
+            when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(true);
+            when(transactionHelper.validateAndProcessTransaction(
+                eq("senderERR"),
+                eq("recipientERR"),
+                eq("400.00"),
+                eq(accountCertJwt),
+                any()
+            )).thenThrow(new RuntimeException("Unexpected error"));
+
+            // Act & Assert
+            assertThrows(ServiceUnavailableException.class, () -> withdrawService.withdraw(request));
         }
     }
 }

@@ -1,8 +1,5 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.exception.AccountNotFoundException;
-import com.adorsys.webank.exception.ServiceUnavailableException;
-import com.adorsys.webank.exception.ResourceNotFoundException;
 import com.adorsys.webank.obs.dto.*;
 import com.adorsys.webank.obs.dto.response.TransactionHistoryResponse;
 import com.adorsys.webank.obs.service.*;
@@ -13,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import java.time.*;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 
 @Service
 @Slf4j
@@ -25,7 +24,7 @@ public class TransServiceImpl implements TransServiceApi {
      * Handles transaction requests by fetching transactions for a given account ID.
      *
      * @param transRequest The transaction request containing the account ID.
-     * @return A JSON string representing the transaction details or throws appropriate exceptions.
+     * @return A JSON string representing the transaction details or an error message.
      */
 
     @Override
@@ -39,12 +38,7 @@ public class TransServiceImpl implements TransServiceApi {
             // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
             if (bankAccount == null) {
-                TransactionHistoryResponse response = new TransactionHistoryResponse();
-                response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
-                response.setMessage("Bank account not found for ID: " + accountId);
-                response.setTimestamp(LocalDateTime.now());
-                response.setData("[]");
-                return response;
+                throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
             }
 
             // Define the date range for transactions (default to last month)
@@ -66,22 +60,19 @@ public class TransServiceImpl implements TransServiceApi {
                 return response;
             }
 
-    private List<String> formatTransactionDetails(List<TransactionDetailsBO> postingLines) {
-        return postingLines.stream()
-                .map(this::formatTransactionDetail)
-                .toList();
-    }
-
-    private String formatTransactionDetail(TransactionDetailsBO postingLine) {
-        String amount = String.valueOf(postingLine.getTransactionAmount().getAmount());
-        String title = amount.startsWith("-") ? "Withdrawal" : "Deposit";
-        return "{\n" +
-                "  \"id\": \"" + postingLine.getTransactionId() + "\",\n" +
-                "  \"date\": \"" + postingLine.getBookingDate().toString() + "\",\n" +
-                "  \"amount\": \"" + amount + "\",\n" +
-                "  \"title\": \"" + title + "\"\n" +
-                "}";
-    }
+            // Map the posting lines to a properly formatted JSON string
+            List<String> transactionDetails = postingLines.stream()
+                    .map(postingLine -> {
+                        String amount = String.valueOf(postingLine.getTransactionAmount().getAmount());
+                        String title = amount.startsWith("-") ? "Withdrawal" : "Deposit";
+                        return "{\n" +
+                                "  \"id\": \"" + postingLine.getTransactionId() + "\",\n" +
+                                "  \"date\": \"" + postingLine.getBookingDate().toString() + "\",\n" +
+                                "  \"amount\": \"" + amount + "\",\n" +
+                                "  \"title\": \"" + title + "\"\n" +
+                                "}";
+                    })
+                    .toList();
 
             String transactionsJson = "[\n" + String.join(",\n", transactionDetails) + "\n]";
             response.setData(transactionsJson);
@@ -91,12 +82,8 @@ public class TransServiceImpl implements TransServiceApi {
 
         } catch (Exception e) {
             log.error("Error processing transaction request: {}", e.getMessage(), e);
-            TransactionHistoryResponse response = new TransactionHistoryResponse();
-            response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
-            response.setMessage("An error occurred while processing the request: " + e.getMessage());
-            response.setTimestamp(LocalDateTime.now());
-            response.setData("[]");
-            return response;
+            throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
         }
     }
+
 }

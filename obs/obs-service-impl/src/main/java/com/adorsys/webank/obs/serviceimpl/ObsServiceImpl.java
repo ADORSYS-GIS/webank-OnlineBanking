@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.nimbusds.jose.jwk.ECKey;
 import com.adorsys.webank.config.SecurityUtils;
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -44,14 +46,9 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
         if (devicePub == null) {
             log.error("Device public key is null. Cannot register account.");
-            return new RegistrationResponse(
-                null,
-                RegistrationResponse.RegistrationStatus.FAILED,
-                "Device public key is missing. Cannot register account."
-            );
+            throw new IllegalStateException("Device public key is missing. Cannot register account.");
         }
         try {
-
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
             String msidn =  UUID.randomUUID().toString();
@@ -98,7 +95,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the request: {}", e.getMessage(), e);
             }
-            return new RegistrationResponse(null, RegistrationResponse.RegistrationStatus.FAILED, "An error occurred while processing the request: " + e.getMessage());
+            throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
         }
     }
 

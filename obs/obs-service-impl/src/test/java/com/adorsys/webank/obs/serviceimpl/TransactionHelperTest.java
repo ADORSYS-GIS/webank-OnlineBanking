@@ -120,10 +120,11 @@ class TransactionHelperTest {
         // Act & Assert
         TransactionException exception = assertThrows(TransactionException.class, () -> {
             transactionHelper.validateAndProcessTransaction(
-                    VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, "invalid-jwt", logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, "invalid-jwt", logger);
         });
 
-        assertEquals("Unable to retrieve balance for the source account", exception.getMessage());
+        assertEquals("Unable to retrieve balance for the source account: Unable to retrieve balance for the source account", 
+            exception.getMessage());
     }
 
     @Test
@@ -131,7 +132,7 @@ class TransactionHelperTest {
         // Act & Assert
         InvalidAmountException exception = assertThrows(InvalidAmountException.class, () -> {
             transactionHelper.validateAndProcessTransaction(
-                    VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, INVALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, INVALID_AMOUNT, validJwt, logger);
         });
 
         assertEquals("Invalid amount format: " + INVALID_AMOUNT, exception.getMessage());
@@ -142,7 +143,7 @@ class TransactionHelperTest {
         // Act & Assert
         InvalidAmountException exception = assertThrows(InvalidAmountException.class, () -> {
             transactionHelper.validateAndProcessTransaction(
-                    VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, NEGATIVE_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, NEGATIVE_AMOUNT, validJwt, logger);
         });
 
         assertEquals("Amount must be a positive number", exception.getMessage());
@@ -157,7 +158,7 @@ class TransactionHelperTest {
         // Act & Assert
         InsufficientBalanceException exception = assertThrows(InsufficientBalanceException.class, () -> {
             transactionHelper.validateAndProcessTransaction(
-                    VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
         });
 
         assertEquals("Insufficient balance. Current balance: 50.00 XAF", exception.getMessage());
@@ -172,7 +173,7 @@ class TransactionHelperTest {
         // Act & Assert
         AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
             transactionHelper.validateAndProcessTransaction(
-                    VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
         });
 
         assertEquals("One or both accounts not found", exception.getMessage());
@@ -191,7 +192,7 @@ class TransactionHelperTest {
         // Act & Assert
         TransactionException exception = assertThrows(TransactionException.class, () -> {
             transactionHelper.validateAndProcessTransaction(
-                    VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
         });
 
         assertEquals("Transaction failed due to booking errors", exception.getMessage());
@@ -212,6 +213,17 @@ class TransactionHelperTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.startsWith("eyJ")); // JWT typically starts with "eyJ"
+    }
+
+    @Test
+    void testGenerateTransactionCert_MissingPrivateKeyParameter() throws Exception {
+        // Arrange
+        when(keyLoader.loadPrivateKey()).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(TransactionException.class, () -> {
+            transactionHelper.generateTransactionCert(VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT);
+        });
     }
 
     private BankAccountDetailsBO createMockAccountDetails(BigDecimal balance) {

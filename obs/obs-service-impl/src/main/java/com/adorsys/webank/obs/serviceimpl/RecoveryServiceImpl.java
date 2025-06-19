@@ -22,10 +22,11 @@ public class RecoveryServiceImpl implements RecoveryServiceApi {
      */
 
     @Override
-    public String recoverAccount( String accountId) {
-
+    public String recoverAccount(String accountId) {
         ECKey devicePub = SecurityUtils.extractDeviceJwkFromContext();
-
+        if (devicePub == null) {
+            throw new IllegalStateException("Device public key is missing. Cannot recover account.");
+        }
         return bankAccountCertificateCreationService.generateBankAccountCertificate(String.valueOf(devicePub), accountId);
     }
 }

@@ -1,8 +1,24 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Currency;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.adorsys.webank.config.KeyLoader;
 import com.adorsys.webank.exception.AccountNotFoundException;
 import com.adorsys.webank.exception.InsufficientBalanceException;
 import com.adorsys.webank.exception.InvalidAmountException;
+import com.adorsys.webank.exception.InvalidJwtException;
 import com.adorsys.webank.exception.TransactionException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -10,26 +26,17 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
-import com.adorsys.webank.config.KeyLoader;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -80,7 +87,7 @@ public class TransactionHelper {
             return new BigDecimal(amount);
         } catch (NumberFormatException e) {
             logger.error("Invalid amount format: {}", amount);
-            return null;
+            throw new InvalidAmountException("Invalid amount format: " + amount);
         }
     }
 
@@ -88,15 +95,15 @@ public class TransactionHelper {
         try {
             BankAccountDetailsBO accountDetails = bankAccountService.getAccountDetailsById(accountId, LocalDateTime.now(), true);
             if (accountDetails == null || accountDetails.getBalances().isEmpty()) {
-                return null;
+                throw new TransactionException("Unable to retrieve balance for the source account");
             }
             return accountDetails.getBalances().stream()
                     .findFirst()
                     .map(balance -> balance.getAmount().getAmount())
-                    .orElse(null);
+                    .orElseThrow(() -> new TransactionException("Unable to retrieve balance for the source account"));
         } catch (Exception e) {
             logger.error("Failed to retrieve account balance: {}", e.getMessage());
-            return null;
+            throw new TransactionException("Unable to retrieve balance for the source account: " + e.getMessage());
         }
     }
 
@@ -149,7 +156,7 @@ public class TransactionHelper {
             ECKey privateKey = keyLoader.loadPrivateKey();
             if (privateKey.getD() == null) {
                 log.error("Private key parameter 'D' is missing in the server private key.");
-                throw new IllegalStateException("Missing private key parameter");
+                throw new InvalidJwtException("Missing private key parameter");
             }
             log.debug("Server private key parsed successfully.");
 
@@ -204,8 +211,8 @@ public class TransactionHelper {
             log.info("Certificate generation completed successfully.");
             return serializedJWT;
         } catch (Exception e) {
-            log.error("Certificate generation failed: {}", e.getMessage(), e);
-            throw new IllegalStateException("Certificate generation failed", e);
+            log.error("Certificate generation failed: {}", e.getMessage());
+            throw new TransactionException("Certificate generation failed: " + e.getMessage());
         }
     }
 
