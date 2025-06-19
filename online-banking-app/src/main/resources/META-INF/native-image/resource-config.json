@@ -6,7 +6,9 @@
       { "pattern": ".*application-postgres.properties$" },
       { "pattern": ".*native-images.properties$" },
       { "pattern": ".*aspsps-config.yml$" },
-      { "pattern": ".*sample_coa_banking.yml$" }
+      { "pattern": ".*sample_coa_banking.yml$" },
+      { "pattern": "db/migration/.*\\.sql"}
+
     ]
   }
 } 
