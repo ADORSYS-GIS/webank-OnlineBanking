@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -210,8 +212,12 @@ class ObsServiceImplTest {
         securityUtilsMock = mockStatic(SecurityUtils.class);
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext).thenReturn(null);
 
-        RegistrationResponse result = obsService.registerAccount("jwt-token");
-        assertEquals(RegistrationResponse.RegistrationStatus.FAILED, result.getStatus());
-        assertEquals("Device public key is missing. Cannot register account.", result.getMessage());
+        IllegalStateException exception = assertThrows(IllegalStateException.class , () ->
+            obsService.registerAccount("jwt-token")
+        );
+
+        assertEquals("Device public key not found in security context. Please ensure the user is authenticated.", exception.getMessage());
+
+
     }
 }

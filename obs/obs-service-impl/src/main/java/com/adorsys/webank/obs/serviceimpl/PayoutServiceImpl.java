@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import com.adorsys.webank.config.SecurityUtils;
 import java.util.Optional;
+import com.adorsys.webank.obs.config.PayoutProperties;
 import java.time.LocalDateTime;
 
 @Service
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 public class PayoutServiceImpl implements PayoutServiceApi {
 
     private final TransactionHelper transactionHelper;
+    private final PayoutProperties payoutProperties;
 
     @Override
     public MoneyTransferResponse payout(MoneyTransferRequestDto moneyTransferRequestDto) {
@@ -43,7 +45,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         response.setCurrency("XAF");
         response.setTimestamp(LocalDateTime.now());
         response.setMessage("Transfer completed successfully");
-        
+
         return response;
     }
 
@@ -67,8 +69,8 @@ public class PayoutServiceImpl implements PayoutServiceApi {
 
     private void validateKycCertificateForLargeTransaction(MoneyTransferRequestDto moneyTransferRequestDto, String kycCert) {
         double amount = moneyTransferRequestDto.getAmount().doubleValue();
-        if (amount > 1000 && (kycCert == null || kycCert.isEmpty())) {
-            throw new IllegalArgumentException("KYC certificate is required for transactions exceeding 10,000 francs.");
+        if (amount > payoutProperties.getKycCheckThreshold() && (kycCert == null || kycCert.isEmpty())) {
+            throw new IllegalArgumentException("KYC certificate is required for transactions exceeding 1000 francs.");
         }
     }
 }
