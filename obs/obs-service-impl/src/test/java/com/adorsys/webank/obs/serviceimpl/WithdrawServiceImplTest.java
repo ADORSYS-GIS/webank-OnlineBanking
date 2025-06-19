@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -82,9 +81,8 @@ class WithdrawServiceImplTest {
                     eq("senderDEF"),
                     eq("recipientUVW"),
                     eq("300.00"),
-                    eq(accountCertJwt),
-                    any())
-            ).thenReturn(expectedTransactionId);
+                    eq(accountCertJwt)
+            )).thenReturn(expectedTransactionId);
 
             // Act
             MoneyTransferResponse response = withdrawService.withdraw(request);
@@ -95,8 +93,7 @@ class WithdrawServiceImplTest {
                     eq("senderDEF"),
                     eq("recipientUVW"),
                     eq("300.00"),
-                    eq(accountCertJwt),
-                    any()
+                    eq(accountCertJwt)
             );
             assertEquals(MoneyTransferResponse.TransferStatus.COMPLETED, response.getStatus());
             assertEquals(expectedTransactionId, response.getTransactionId());
