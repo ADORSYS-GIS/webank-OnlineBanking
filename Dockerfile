@@ -4,6 +4,10 @@ FROM vegardit/graalvm-maven:latest-java17 AS builder
 
 WORKDIR /build_dir
 
+# Set build-time variables for GitHub credentials
+ARG GH_USERNAME
+ARG GH_PASSWORD
+
 # Copy project-level pom.xml files for dependency resolution
 COPY pom.xml .
 COPY online-banking-app/pom.xml online-banking-app/
@@ -12,6 +16,11 @@ COPY obs/obs-rest/pom.xml obs/obs-rest/
 COPY obs/obs-rest-api/pom.xml obs/obs-rest-api/
 COPY obs/obs-service-api/pom.xml obs/obs-service-api/
 COPY obs/obs-service-impl/pom.xml obs/obs-service-impl/
+
+# Provision Maven settings with GitHub credentials
+COPY settings.template.xml /root/.m2/settings.xml
+RUN sed -i "s|GH_USERNAME|${GH_USERNAME}|g" /root/.m2/settings.xml && \
+    sed -i "s|GH_PASSWORD|${GH_PASSWORD}|g" /root/.m2/settings.xml
 
 # Download dependencies to leverage cache
 RUN mvn dependency:go-offline -B
@@ -39,9 +48,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN case "$TARGETPLATFORM" in \
-      "linux/amd64") ARCH_DIR="x86_64-linux-gnu"; LOADER="ld-linux-x86-64.so.2"; LOADER_PATH="/lib64" ;; \
-      "linux/arm64") ARCH_DIR="aarch64-linux-gnu"; LOADER="ld-linux-aarch64.so.1"; LOADER_PATH="/lib" ;; \
-      *) echo "Unsupported platform: $TARGETPLATFORM" && exit 1 ;; \
+    "linux/amd64") ARCH_DIR="x86_64-linux-gnu"; LOADER="ld-linux-x86-64.so.2"; LOADER_PATH="/lib64" ;; \
+    "linux/arm64") ARCH_DIR="aarch64-linux-gnu"; LOADER="ld-linux-aarch64.so.1"; LOADER_PATH="/lib" ;; \
+    *) echo "Unsupported platform: $TARGETPLATFORM" && exit 1 ;; \
     esac && \
     echo "ARCH_DIR=$ARCH_DIR" > /tmp/arch_info && \
     echo "LOADER=$LOADER" >> /tmp/arch_info && \

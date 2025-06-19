@@ -6,7 +6,7 @@ on:
       - develop
       - release/**
     tags:
-      - 'v*'
+      - "v*"
 
 env:
   REGISTRY: ghcr.io
@@ -51,7 +51,6 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-          
 
           flavor: |
             latest=false
@@ -76,3 +75,6 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           cache-from: type=gha,scope=shared
           cache-to: type=gha,mode=max,scope=shared
+          build-args: |
+            GH_USERNAME=${{ github.actor }}
+            GH_PASSWORD=${{ secrets.GHCR_PAT }}

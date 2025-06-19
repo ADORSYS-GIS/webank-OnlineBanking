@@ -1,5 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.adorsys.webank</groupId>
@@ -13,9 +16,10 @@
     </modules>
 
     <name>Webank</name>
-    <description>OpenSource Implementation Of Online banking Functionalities</description>
+    <description
+    >OpenSource Implementation Of Online banking Functionalities</description>
 
-    <url></url>
+    <url />
 
     <licenses>
         <license>
@@ -81,7 +85,8 @@
         <ruleset.basedir>${project.basedir}</ruleset.basedir>
         <dependency.locations.enabled>false</dependency.locations.enabled>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.reporting.outputEncoding
+        >UTF-8</project.reporting.outputEncoding>
         <webank-bank-account.version>0.1-SNAPSHOT</webank-bank-account.version>
         <ledgers.version>6.1-SNAPSHOT</ledgers.version>
 
@@ -90,7 +95,8 @@
         <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <maven-resources-plugin.version>3.3.0</maven-resources-plugin.version>
-        <spring-boot-maven-plugin.version>3.2.0</spring-boot-maven-plugin.version>
+        <spring-boot-maven-plugin.version
+        >3.2.0</spring-boot-maven-plugin.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
@@ -102,8 +108,10 @@
 <!--        <owasp.dependency.check.version>11.1.0</owasp.dependency.check.version>-->
 
         <!-- Spring-related versions -->
-        <spring-boot-dependencies.version>3.3.5</spring-boot-dependencies.version>
-        <spring-cloud-starter-openfeign.version>4.3.0</spring-cloud-starter-openfeign.version>
+        <spring-boot-dependencies.version
+        >3.3.5</spring-boot-dependencies.version>
+        <spring-cloud-starter-openfeign.version
+        >4.3.0</spring-cloud-starter-openfeign.version>
         <spring-security.version>6.4.2</spring-security.version>
         <spring-plugin.version>3.0.0</spring-plugin.version>
         <spring-test.version>6.1.3</spring-test.version>
@@ -118,7 +126,8 @@
         <dbunit.version>2.6.0</dbunit.version>
         <keycloak.version>24.0.5</keycloak.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
-        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <lombok-mapstruct-binding.version
+        >0.2.0</lombok-mapstruct-binding.version>
         <javatar-commons.version>0.7</javatar-commons.version>
         <h2database.version>2.3.232</h2database.version>
         <postgresql.version>42.3.10</postgresql.version>
@@ -132,7 +141,8 @@
         <testcontainers.version>1.19.4</testcontainers.version>
         <testcontainers-keycloak.version>1.3.3</testcontainers-keycloak.version>
         <jgiven-spring-junit5.version>1.2.5</jgiven-spring-junit5.version>
-        <jboss-jaxrs-api_2.0_spec.version>1.0.1.Final</jboss-jaxrs-api_2.0_spec.version>
+        <jboss-jaxrs-api_2.0_spec.version
+        >1.0.1.Final</jboss-jaxrs-api_2.0_spec.version>
         <jboss-logging.version>3.3.1.Final</jboss-logging.version>
         <classgraph.version>4.8.139</classgraph.version>
 
@@ -142,7 +152,8 @@
         <guava.version>32.0.0-jre</guava.version>
         <hamcrest-library.version>1.3</hamcrest-library.version>
         <spring-test-dbunit.version>1.3.0</spring-test-dbunit.version>
-        <testcontainers.postgresql.version>1.19.0</testcontainers.postgresql.version>
+        <testcontainers.postgresql.version
+        >1.19.0</testcontainers.postgresql.version>
 
         <commons-validator.version>1.7</commons-validator.version>
         <!-- automatically run annotation processors within the incremental compilation -->
@@ -158,7 +169,8 @@
         <!--Sonar -->
         <sonar.core.coveragePlugin>jacoco</sonar.core.coveragePlugin>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths
+        >${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.language>java</sonar.language>
         <sonar.coverage.exclusions>
             **/*.xml,
@@ -182,23 +194,42 @@
         </repository>
         <repository>
             <id>github-webank</id>
-            <url>https://maven.pkg.github.com/adorsys-gis/webank-bankaccount</url>
+            <url
+            >https://maven.pkg.github.com/adorsys-gis/webank-bankaccount</url>
+
+            <releases>
+                       <enabled>true</enabled>
+                       <updatePolicy>never</updatePolicy>
+                   </releases>
             <snapshots>
                 <enabled>true</enabled>
+                 <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
     </repositories>
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>de.adorsys.webank</groupId>
+                <artifactId>webank-bank-account-service-api</artifactId>
+                <version>${webank-bank-account.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.adorsys.webank</groupId>
+                <artifactId>webank-server-utils</artifactId>
+                <version>${webank-bank-account.version}</version>
+                <scope>test</scope>
+            </dependency>
+
 <!-- webank  bank account dependencies -->
             <dependency>
                 <groupId>de.adorsys.webank</groupId>
                 <artifactId>ledgers-bank-account-service-api</artifactId>
                 <version>${webank-bank-account.version}</version>
             </dependency>
-
-
 
             <dependency>
                 <groupId>de.adorsys.webank</groupId>
@@ -457,14 +488,14 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.79</version> 
+            <version>1.79</version>
         </dependency>
 
         <!-- XMLUnit -->
         <dependency>
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
-            <version>2.10.0</version> 
+            <version>2.10.0</version>
         </dependency>
 
         </dependencies>
@@ -523,7 +554,8 @@
                     <analysisCache>true</analysisCache>
                     <linkXRef>false</linkXRef>
                     <rulesets>
-                        <ruleset>${ruleset.basedir}/qa/pmd/pmd-ruleset.xml</ruleset>
+                        <ruleset
+                        >${ruleset.basedir}/qa/pmd/pmd-ruleset.xml</ruleset>
                     </rulesets>
                     <includeTests>true</includeTests>
                     <failOnViolation>true</failOnViolation>
@@ -532,17 +564,23 @@
                         <exclude>**/*MapperImpl.java</exclude>
                     </excludes>
                     <excludeRoots>
-                        <excludeRoot>../ledgers-deposit-account-service-impl/target/generated-sources/annotations/
+                        <excludeRoot
+                        >../ledgers-deposit-account-service-impl/target/generated-sources/annotations/
                         </excludeRoot>
-                        <excludeRoot>../ledgers-middleware-rest-server/target/generated-sources/annotations/
+                        <excludeRoot
+                        >../ledgers-middleware-rest-server/target/generated-sources/annotations/
                         </excludeRoot>
-                        <excludeRoot>../ledgers-middleware-service-impl/target/generated-sources/annotations/
+                        <excludeRoot
+                        >../ledgers-middleware-service-impl/target/generated-sources/annotations/
                         </excludeRoot>
-                        <excludeRoot>../ledgers-postings-service-impl/target/generated-sources/annotations/
+                        <excludeRoot
+                        >../ledgers-postings-service-impl/target/generated-sources/annotations/
                         </excludeRoot>
-                        <excludeRoot>../ledgers-sca-service-impl/target/generated-sources/annotations/
+                        <excludeRoot
+                        >../ledgers-sca-service-impl/target/generated-sources/annotations/
                         </excludeRoot>
-                        <excludeRoot>../ledgers-user-management-service-impl/target/generated-sources/annotations/
+                        <excludeRoot
+                        >../ledgers-user-management-service-impl/target/generated-sources/annotations/
                         </excludeRoot>
                     </excludeRoots>
                 </configuration>
@@ -550,5 +588,4 @@
 
         </plugins>
     </build>
-
 </project>
