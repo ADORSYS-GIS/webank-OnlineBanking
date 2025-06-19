@@ -105,9 +105,14 @@
 			<artifactId>ledgers-postings-service-impl</artifactId>
 			<scope>compile</scope>
 		</dependency>
+        <dependency>
+            <groupId>com.adorsys.webank</groupId>
+            <artifactId>prs-middleware</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
 
-
-	</dependencies>
+    </dependencies>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
