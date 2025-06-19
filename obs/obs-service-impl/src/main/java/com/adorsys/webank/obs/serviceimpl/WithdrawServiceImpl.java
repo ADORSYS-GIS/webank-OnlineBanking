@@ -38,6 +38,8 @@ public class WithdrawServiceImpl implements WithdrawServiceApi {
             log.info("Processing withdrawal request for account: {}", request.getSenderAccountId());
 
             // Validate the transaction JWT
+        log.info("jwt token from current sprint context is {}", jwtToken);
+
         if (!signTransactionValidator.validateSignTransactionJWT(jwtToken)) {
                 MoneyTransferResponse errorResponse = new MoneyTransferResponse();
                 errorResponse.setStatus(MoneyTransferResponse.TransferStatus.INVALID_ACCOUNT);
