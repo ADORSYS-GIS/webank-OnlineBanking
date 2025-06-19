@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class BalanceServiceImpl implements BalanceServiceApi {
      */
     @Override
     @CircuitBreaker(name = "balanceService", fallbackMethod = "getBalanceFallback")
+    @TimeLimiter(name = "balanceService", fallbackMethod = "getBalanceFallback")
     public BalanceResponse getBalance(BalanceRequest balanceRequest) {
         try {
             String accountId = balanceRequest.getAccountID();
