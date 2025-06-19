@@ -15,8 +15,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main application class.
@@ -34,9 +33,8 @@ import org.slf4j.LoggerFactory;
 @EnablePostingService
 @EnableFeignClients(basePackageClasses = ExchangeRateClient.class)
 @EnableObsServiceimpl
+@Slf4j
 public class OnlineBankingApplication implements ApplicationListener<ApplicationReadyEvent> {
-
-	private static final Logger logger = LoggerFactory.getLogger(OnlineBankingApplication.class);
 
 	private final BankAccountInitService bankInitService;
 
@@ -47,6 +45,6 @@ public class OnlineBankingApplication implements ApplicationListener<Application
 	@Override
 	public void onApplicationEvent(@NotNull ApplicationReadyEvent event) {
 		bankInitService.initConfigData();
-		logger.info("Online Banking Application started successfully.");
+		log.info("Online Banking Application started successfully.");
 	}
 }

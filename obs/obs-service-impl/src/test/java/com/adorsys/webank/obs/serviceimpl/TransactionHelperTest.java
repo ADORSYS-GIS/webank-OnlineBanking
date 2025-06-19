@@ -20,8 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -34,11 +32,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import com.adorsys.webank.config.KeyLoader;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 class TransactionHelperTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(TransactionHelperTest.class);
     private static final String VALID_ACCOUNT_ID = "123456";
     private static final String RECIPIENT_ACCOUNT_ID = "789012";
     private static final String VALID_AMOUNT = "100.50";
@@ -104,7 +103,7 @@ class TransactionHelperTest {
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
 
         // Assert
         assertTrue(result.endsWith("Success"));
@@ -115,7 +114,7 @@ class TransactionHelperTest {
     void testValidateAndProcessTransaction_InvalidJwt() {
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, "invalid-jwt", logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, "invalid-jwt");
 
         // Assert
         assertEquals("Unable to retrieve balance for the source account", result);
@@ -125,7 +124,7 @@ class TransactionHelperTest {
     void testValidateAndProcessTransaction_InvalidAmountFormat() {
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, INVALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, INVALID_AMOUNT, validJwt);
 
         // Assert
         assertEquals("Invalid amount format: " + INVALID_AMOUNT, result);
@@ -136,7 +135,7 @@ class TransactionHelperTest {
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, NEGATIVE_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, NEGATIVE_AMOUNT, validJwt);
 
         // Assert
         assertEquals("Amount must be a positive number", result);
@@ -150,7 +149,7 @@ class TransactionHelperTest {
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
 
         // Assert
         assertEquals("Insufficient balance. Current balance: 50.00 XAF", result);
@@ -164,7 +163,7 @@ class TransactionHelperTest {
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
 
         // Assert
         assertEquals("One or both accounts not found", result);
@@ -182,7 +181,7 @@ class TransactionHelperTest {
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt, logger);
+                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
 
         // Assert
         assertEquals("Transaction failed due to booking errors", result);

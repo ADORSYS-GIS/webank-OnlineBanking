@@ -33,8 +33,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
                 moneyTransferRequestDto.getSenderAccountId(),
                 moneyTransferRequestDto.getRecipientAccountId(),
                 moneyTransferRequestDto.getAmount().toPlainString(),
-                jwtToken,
-                log
+                jwtToken
         );
 
         MoneyTransferResponse response = new MoneyTransferResponse();
