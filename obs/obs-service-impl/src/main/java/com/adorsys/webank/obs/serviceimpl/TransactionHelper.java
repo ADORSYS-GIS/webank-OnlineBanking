@@ -1,6 +1,5 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -20,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import com.adorsys.webank.config.KeyLoader;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,13 +28,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class TransactionHelper {
-    @Value("${server.private.key.json}")
-    private String serverPrivateKeyJson;
-
-    @Value("${server.public.key.json}")
-    private String serverPublicKeyJson;
 
     @Value("${jwt.issuer}")
     private String issuer;
@@ -45,15 +42,7 @@ public class TransactionHelper {
 
     private final BankAccountService bankAccountService;
     private final TransactionService transactionService;
-    private final JwtCertValidator jwtCertValidator;
-
-    public TransactionHelper(BankAccountService bankAccountService,
-                             TransactionService transactionService,
-                             JwtCertValidator jwtCertValidator) {
-        this.bankAccountService = bankAccountService;
-        this.transactionService = transactionService;
-        this.jwtCertValidator = jwtCertValidator;
-    }
+    private final KeyLoader keyLoader;
 
     /**
      * Validates input and processes a transaction.
@@ -62,10 +51,6 @@ public class TransactionHelper {
     public String validateAndProcessTransaction(String senderAccountId, String recipientAccountId,
                                                 String amountStr, String accountCertJwt,
                                                 Logger logger) {
-        if (!isValidJwt(accountCertJwt, logger)) {
-            logger.error("cert : {} ", accountCertJwt);
-            return "Invalid certificate or JWT. Payout Request failed";
-        }
 
         BigDecimal amount = parseAmount(amountStr, logger);
         if (amount == null) {
@@ -84,17 +69,6 @@ public class TransactionHelper {
         }
 
         return processTransaction(senderAccountId, recipientAccountId, amount, logger);
-    }
-
-    public boolean isValidJwt(String accountCertificateJwt, Logger logger) {
-        try {
-            boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
-            logger.info("The AccountCert is: {}", accountCertificateJwt);
-            return isValid;
-        } catch (Exception e) {
-            logger.error("JWT validation error: {}", e.getMessage());
-            return false;
-        }
     }
 
     public BigDecimal parseAmount(String amount, Logger logger) {
@@ -168,7 +142,7 @@ public class TransactionHelper {
         try {
             // Parse the server's private key
             log.debug("Parsing server private key from JSON.");
-            ECKey privateKey = (ECKey) JWK.parse(serverPrivateKeyJson);
+            ECKey privateKey = keyLoader.loadPrivateKey();
             if (privateKey.getD() == null) {
                 log.error("Private key parameter 'D' is missing in the server private key.");
                 throw new IllegalStateException("Missing private key parameter");
@@ -181,14 +155,14 @@ public class TransactionHelper {
 
             // Parse the server's public key and build the JWT header
             log.debug("Parsing server public key from JSON.");
-            ECKey publicKey = (ECKey) JWK.parse(serverPublicKeyJson);
+            ECKey publicKey = keyLoader.loadPublicKey();
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                     .type(JOSEObjectType.JWT)
                     .jwk(publicKey.toPublicJWK())
                     .build();
             log.debug("JWT header constructed successfully.");
 
-            // Determine the period for transactions lookup and fetch transactions
+            // Determine the period for transaction lookup and fetch transactions
             LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
             log.info("Fetching transactions for senderId={} from {} to {}", senderId, dateFrom, LocalDateTime.now());
             List<TransactionDetailsBO> transactions = bankAccountService.getTransactionsByDates(senderId, dateFrom, LocalDateTime.now());

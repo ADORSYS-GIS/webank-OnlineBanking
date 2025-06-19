@@ -1,47 +1,59 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
-import com.adorsys.webank.obs.security.JwtValidator;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.service.WithdrawServiceApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import java.time.LocalDateTime;
 
+/**
+ * REST controller for handling withdrawal operations.
+ * Provides endpoints for withdrawing funds from user accounts.
+ */
 @RestController
+@Slf4j
+@RequiredArgsConstructor
 public class WithdrawRestServer implements WithdrawRestApi {
 
-    private static final Logger log = LoggerFactory.getLogger(WithdrawRestServer.class);
     private final WithdrawServiceApi withdrawServiceApi;
 
-    public WithdrawRestServer(WithdrawServiceApi withdrawServiceApi) {
-        this.withdrawServiceApi = withdrawServiceApi;
-    }
-
+    /**
+     * Processes a withdrawal request from a certified account.
+     * Requires the user to have ROLE_ACCOUNT_CERTIFIED and be authenticated.
+     *
+     * @param authorizationHeader The authorization header containing the JWT token
+     * @param request The withdrawal request containing account and amount details
+     * @return ResponseEntity containing the result of the withdrawal operation:
+     *         - On success: Returns MoneyTransferResponse with COMPLETED status
+     *         - On failure: Returns MoneyTransferResponse with appropriate error status
+     */
     @Override
-    public ResponseEntity<String> withdraw(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody MoneyTransferRequestDto request) {
-        if (request == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Request body cannot be null.");
-        }
+    @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
+    public ResponseEntity<MoneyTransferResponse> withdraw(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+            @RequestBody MoneyTransferRequestDto request) {
+
         try {
-            String jwtToken = extractJwtFromHeader(authorizationHeader);
-            JwtValidator.validateAndExtract(jwtToken, request.getSenderAccountId(), request.getAmount(), request.getRecipientAccountId());
-            log.info("Withdrawal request validated successfully");
-            String result = withdrawServiceApi.withdraw(request, jwtToken) ;
-            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+            log.info("Processing withdrawal request for account: {}", request.getSenderAccountId());
+            MoneyTransferResponse result = withdrawServiceApi.withdraw(request);
+            log.info("Withdrawal processed successfully for account: {}", request.getSenderAccountId());
+            return ResponseEntity.ok(result);
+
         } catch (Exception e) {
-            // Log the exception (optional)
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while processing the request.");
+            log.error("Error processing withdrawal request", e);
+            MoneyTransferResponse errorResponse = new MoneyTransferResponse();
+            errorResponse.setStatus(MoneyTransferResponse.TransferStatus.SYSTEM_ERROR);
+            errorResponse.setMessage("An error occurred while processing the withdrawal: " + e.getMessage());
+            errorResponse.setTimestamp(LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
-    }
-    private String extractJwtFromHeader(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Authorization header must start with 'Bearer '");
-        }
-        return authorizationHeader.substring(7); // Remove "Bearer " prefix
     }
 }
