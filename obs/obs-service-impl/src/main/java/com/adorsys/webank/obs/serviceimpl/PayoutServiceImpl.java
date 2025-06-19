@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.security.JwtHeaderExtractor;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import com.adorsys.webank.config.SecurityUtils;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +19,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
     private final TransactionHelper transactionHelper;
 
     @Override
-    public String payout(MoneyTransferRequestDto moneyTransferRequestDto) {
+    public MoneyTransferResponse payout(MoneyTransferRequestDto moneyTransferRequestDto) {
         String jwtToken = extractJwtToken();
         log.info("jwt token from current sprint context is {}", jwtToken);
 
@@ -27,13 +29,23 @@ public class PayoutServiceImpl implements PayoutServiceApi {
         validateAccountCertificate(accountCert);
         validateKycCertificateForLargeTransaction(moneyTransferRequestDto, kycCert);
 
-        return transactionHelper.validateAndProcessTransaction(
+        String result = transactionHelper.validateAndProcessTransaction(
                 moneyTransferRequestDto.getSenderAccountId(),
                 moneyTransferRequestDto.getRecipientAccountId(),
-                moneyTransferRequestDto.getAmount(),
+                moneyTransferRequestDto.getAmount().toPlainString(),
                 jwtToken,
                 log
         );
+
+        MoneyTransferResponse response = new MoneyTransferResponse();
+        response.setStatus(MoneyTransferResponse.TransferStatus.COMPLETED);
+        response.setTransactionId(result);
+        response.setAmount(moneyTransferRequestDto.getAmount());
+        response.setCurrency("XAF");
+        response.setTimestamp(LocalDateTime.now());
+        response.setMessage("Transfer completed successfully");
+        
+        return response;
     }
 
     private String extractJwtToken() {
@@ -57,7 +69,7 @@ public class PayoutServiceImpl implements PayoutServiceApi {
     }
 
     private void validateKycCertificateForLargeTransaction(MoneyTransferRequestDto moneyTransferRequestDto, String kycCert) {
-        double amount = Double.parseDouble(moneyTransferRequestDto.getAmount());
+        double amount = moneyTransferRequestDto.getAmount().doubleValue();
         if (amount > 1000 && (kycCert == null || kycCert.isEmpty())) {
             throw new IllegalArgumentException("KYC certificate is required for transactions exceeding 1,000 francs.");
         }

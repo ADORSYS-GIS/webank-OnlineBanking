@@ -3,6 +3,7 @@ package com.adorsys.webank.obs.serviceimpl;
 import com.adorsys.webank.exception.AccountNotFoundException;
 import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.obs.dto.TopupRequestDto;
+import com.adorsys.webank.obs.dto.response.TopupResponse;
 import com.adorsys.webank.obs.service.TopupServiceApi;
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -26,60 +27,49 @@ public class TopupServiceImpl implements TopupServiceApi {
 
     @Override
     @Transactional
-    public String topup(TopupRequestDto topupRequestDto) {
+    public TopupResponse topup(TopupRequestDto topupRequestDto) {
         String accountId = topupRequestDto.getAccountId();
-        String amount = topupRequestDto.getAmount();
+        BigDecimal amount = topupRequestDto.getAmount();
         log.info("Processing topup request for account: {}", accountId);
 
-        try {
-            logProcessingInfo(accountId);
-            validateAccountExists(accountId);
-            processTopupTransaction(accountId, amount);
-            return "5 transactions completed successfully for account " + accountId;
-        } catch (Exception e) {
-            handleTopupError(accountId, e);
-            throw e;
+            try {
+                // Fetch the account details
+                BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
+                if (bankAccount == null) {
+                        log.error("Bank account not found for accountId: {}", accountId);
+                return createErrorResponse(accountId, amount, "Bank account not found");
+                }
+
+            // Process the transaction
+                Currency currency = Currency.getInstance("XAF");
+            AmountBO depositAmount = new AmountBO(currency, amount);
+            bankAccountTransactionService.depositCash(accountId, depositAmount, "System");
+
+            // Create success response
+            TopupResponse response = new TopupResponse();
+            response.setAccountId(accountId);
+            response.setAmount(amount);
+            response.setCurrency("XAF");
+            response.setStatus(TopupResponse.TopupStatus.COMPLETED);
+            response.setTransactionId(String.valueOf(System.currentTimeMillis()));
+            response.setMessage("Top-up completed successfully");
+
+            log.info("Top-up completed successfully for account: {}", accountId);
+            return response;
+
+            } catch (Exception e) {
+            log.error("Error processing top-up for accountId: {}: {}", accountId, e.getMessage(), e);
+            return createErrorResponse(accountId, amount, "Error processing top-up: " + e.getMessage());
         }
     }
 
-    private void logProcessingInfo(String accountId) {
-        if (log.isInfoEnabled()) {
-            log.info("Processing transaction for accountId: {}", accountId);
-        }
-    }
-
-    private void validateAccountExists(String accountId) {
-        BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
-        if (bankAccount == null) {
-            if (log.isErrorEnabled()) {
-                log.error("Bank account not found for accountId: {}", accountId);
-            }
-            throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
-        }
-    }
-
-    private void processTopupTransaction(String accountId, String amount) {
-        BigDecimal[] depositValues = { new BigDecimal(amount) };
-        Currency currency = Currency.getInstance("XAF");
-        String recordUser = "Default name";
-
-        for (BigDecimal depositValue : depositValues) {
-            AmountBO depositAmount = new AmountBO(currency, depositValue);
-            if (log.isInfoEnabled()) {
-                log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
-            }
-            bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
-        }
-    }
-
-    private void handleTopupError(String accountId, Exception e) {
-        if (log.isErrorEnabled()) {
-            log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
-        }
-        if (e instanceof AccountNotFoundException) {
-            return;
-        }
-        throw new ServiceUnavailableException("An error occurred while processing the transactions: "
-                + (e.getMessage() != null ? e.getMessage() : e.toString()));
+    private TopupResponse createErrorResponse(String accountId, BigDecimal amount, String errorMessage) {
+        TopupResponse response = new TopupResponse();
+        response.setAccountId(accountId);
+        response.setAmount(amount);
+        response.setCurrency("XAF");
+        response.setStatus(TopupResponse.TopupStatus.FAILED);
+        response.setMessage(errorMessage);
+        return response;
     }
 }

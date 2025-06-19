@@ -4,10 +4,10 @@ import com.adorsys.webank.exception.AccountNotFoundException;
 import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.exception.ResourceNotFoundException;
 import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.dto.response.TransactionHistoryResponse;
 import com.adorsys.webank.obs.service.*;
 import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
-import org.slf4j.*;
 import org.springframework.stereotype.*;
 import lombok.RequiredArgsConstructor;
 import java.time.*;
@@ -29,43 +29,42 @@ public class TransServiceImpl implements TransServiceApi {
      */
 
     @Override
-    public String getTrans(TransRequest transRequest) {
+    public TransactionHistoryResponse getTrans(TransRequest transRequest) {
         try {
             log.info("Received transaction request: {}", transRequest);
+            
+            // Extract the account ID from the request
             String accountId = transRequest.getAccountID();
-            
-            validateAccountExists(accountId);
-            List<TransactionDetailsBO> postingLines = fetchTransactions(accountId);
-            validateTransactionsExist(postingLines);
-            
-            List<String> transactionDetails = formatTransactionDetails(postingLines);
-            log.info("Transaction details: {} " , transactionDetails);
-            
-            return formatJsonResponse(transactionDetails);
-        } catch (Exception e) {
-            handleTransactionError(e);
-            throw e;
-        }
-    }
 
-    private void validateAccountExists(String accountId) {
-        BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
-        if (bankAccount == null) {
-            throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
-        }
-    }
+            // Fetch the account details
+            BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
+            if (bankAccount == null) {
+                TransactionHistoryResponse response = new TransactionHistoryResponse();
+                response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
+                response.setMessage("Bank account not found for ID: " + accountId);
+                response.setTimestamp(LocalDateTime.now());
+                response.setData("[]");
+                return response;
+            }
 
-    private List<TransactionDetailsBO> fetchTransactions(String accountId) {
-        LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
-        LocalDateTime dateTo = LocalDateTime.now();
-        return bankAccountService.getTransactionsByDates(accountId, dateFrom, dateTo);
-    }
+            // Define the date range for transactions (default to last month)
+            LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
+            LocalDateTime dateTo = LocalDateTime.now();
 
-    private void validateTransactionsExist(List<TransactionDetailsBO> postingLines) {
-        if (postingLines.isEmpty()) {
-            throw new ResourceNotFoundException("No transactions found for the given account and date range.");
-        }
-    }
+            // Fetch the transactions using the ledger service
+            List<TransactionDetailsBO> postingLines = bankAccountService.getTransactionsByDates(accountId, dateFrom, dateTo);
+
+            // Create the response
+            TransactionHistoryResponse response = new TransactionHistoryResponse();
+            response.setStatus(TransactionHistoryResponse.TransactionStatus.SUCCESS);
+            response.setMessage("Transaction history retrieved successfully");
+            response.setTimestamp(LocalDateTime.now());
+
+            // If no transactions found
+            if (postingLines.isEmpty()) {
+                response.setData("[]");
+                return response;
+            }
 
     private List<String> formatTransactionDetails(List<TransactionDetailsBO> postingLines) {
         return postingLines.stream()
@@ -84,14 +83,20 @@ public class TransServiceImpl implements TransServiceApi {
                 "}";
     }
 
-    private String formatJsonResponse(List<String> transactionDetails) {
-        return "[\n" + String.join(",\n", transactionDetails) + "\n]";
-    }
+            String transactionsJson = "[\n" + String.join(",\n", transactionDetails) + "\n]";
+            response.setData(transactionsJson);
+            
+            log.info("Successfully processed transaction history for account {}", accountId);
+            return response;
 
-    private void handleTransactionError(Exception e) {
-        if (e instanceof AccountNotFoundException || e instanceof ResourceNotFoundException) {
-            return;
+        } catch (Exception e) {
+            log.error("Error processing transaction request: {}", e.getMessage(), e);
+            TransactionHistoryResponse response = new TransactionHistoryResponse();
+            response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
+            response.setMessage("An error occurred while processing the request: " + e.getMessage());
+            response.setTimestamp(LocalDateTime.now());
+            response.setData("[]");
+            return response;
         }
-        throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
     }
 }

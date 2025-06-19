@@ -1,8 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 
-import com.adorsys.webank.exception.AccountNotFoundException;
-import com.adorsys.webank.exception.ServiceUnavailableException;
+import com.adorsys.webank.obs.dto.response.RegistrationResponse;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
@@ -40,12 +39,16 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
     @Override
     @Transactional
-    public String registerAccount(String registrationJwt) {
+    public RegistrationResponse registerAccount(String registrationJwt) {
         ECKey devicePub = SecurityUtils.extractDeviceJwkFromContext();
 
         if (devicePub == null) {
             log.error("Device public key is null. Cannot register account.");
-            throw new ServiceUnavailableException("Device public key is missing. Cannot register account.");
+            return new RegistrationResponse(
+                null,
+                RegistrationResponse.RegistrationStatus.FAILED,
+                "Device public key is missing. Cannot register account."
+            );
         }
         try {
 
@@ -90,12 +93,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                 log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
             }
 
-            return "Bank account successfully created. Details: " + createdAccountResult;
+            return new RegistrationResponse(accountId, RegistrationResponse.RegistrationStatus.SUCCESS, "Bank account successfully created. Details: " + createdAccountResult);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the request: {}", e.getMessage(), e);
             }
-            throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
+            return new RegistrationResponse(null, RegistrationResponse.RegistrationStatus.FAILED, "An error occurred while processing the request: " + e.getMessage());
         }
     }
 
