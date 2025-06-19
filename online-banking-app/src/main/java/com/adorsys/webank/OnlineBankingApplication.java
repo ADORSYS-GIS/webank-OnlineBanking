@@ -19,9 +19,6 @@ import de.adorsys.webank.bank.server.utils.client.ExchangeRateClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Main application class.
- */
 @RequiredArgsConstructor
 @SpringBootApplication(exclude = {
 		SecurityAutoConfiguration.class,
