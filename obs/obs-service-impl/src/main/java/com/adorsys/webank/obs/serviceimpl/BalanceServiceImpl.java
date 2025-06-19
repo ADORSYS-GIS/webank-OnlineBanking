@@ -1,14 +1,17 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.dto.*;
-import com.adorsys.webank.obs.service.*;
-import de.adorsys.webank.bank.api.domain.*;
-import de.adorsys.webank.bank.api.service.*;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import com.adorsys.webank.obs.dto.BalanceRequest;
+import com.adorsys.webank.obs.dto.response.BalanceResponse;
+import com.adorsys.webank.obs.service.BalanceServiceApi;
+import de.adorsys.webank.bank.api.domain.BalanceBO;
+import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
+import de.adorsys.webank.bank.api.service.BankAccountService;
+import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -29,8 +32,6 @@ public class BalanceServiceImpl implements BalanceServiceApi {
     @Override
     @CircuitBreaker(name = "balanceService", fallbackMethod = "getBalanceFallback")
     public BalanceResponse getBalance(BalanceRequest balanceRequest) {
-        log.info("Processing balance request for account: {}", balanceRequest.getAccountID());
-        
         try {
             String accountId = balanceRequest.getAccountID();
 
@@ -40,40 +41,52 @@ public class BalanceServiceImpl implements BalanceServiceApi {
                     true
             );
 
+            BalanceResponse response = new BalanceResponse();
+            response.setAccountId(accountId);
+            response.setTimestamp(LocalDateTime.now());
+
             if (details == null || details.getBalances() == null || details.getBalances().isEmpty()) {
-                log.warn("No balance found for account: {}", accountId);
-                return BalanceResponse.error("Balance empty", accountId);
+                response.setStatus(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS);
+                response.setMessage("No balance information available");
+                response.setBalance(BigDecimal.ZERO);
+                return response;
             }
 
-            // Assuming the first balance in the list is the latest balance
             Optional<BalanceBO> latestBalance = details.getBalances().stream().findFirst();
 
-            String balanceAmount = latestBalance.map(balanceBO -> String.valueOf(balanceBO.getAmount().getAmount()))
-                    .orElse("0");
-            
-            log.info("Successfully retrieved balance for account: {}, balance: {}", accountId, balanceAmount);
-            return BalanceResponse.success(balanceAmount, accountId);
-            
+            if (latestBalance.isPresent()) {
+                BalanceBO balance = latestBalance.get();
+                BigDecimal amount = balance.getAmount().getAmount();
+                response.setStatus(BalanceResponse.BalanceStatus.AVAILABLE);
+                response.setMessage("Balance retrieved successfully");
+                response.setBalance(amount);
+                return response;
+            }
+
+            response.setStatus(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS);
+            response.setMessage("Balance not available");
+            response.setBalance(BigDecimal.ZERO);
+            return response;
+
         } catch (Exception e) {
-            log.error("Error occurred while processing balance request for account: {}", 
-                     balanceRequest.getAccountID(), e);
-            throw e; // Let the circuit breaker handle this
+            BalanceResponse response = new BalanceResponse();
+            response.setAccountId(balanceRequest.getAccountID());
+            response.setStatus(BalanceResponse.BalanceStatus.SYSTEM_ERROR);
+            response.setMessage("Error retrieving balance: " + e.getMessage());
+            response.setTimestamp(LocalDateTime.now());
+            response.setBalance(BigDecimal.ZERO);
+            return response;
         }
     }
 
-    /**
-     * Fallback method for circuit breaker when external service is unavailable.
-     * This method is called when the circuit breaker is open or when exceptions occur.
-     *
-     * @param balanceRequest The balance request containing the account ID.
-     * @param exception The exception that triggered the fallback.
-     * @return A BalanceResponse with SERVICE_UNAVAILABLE status.
-     */
-    public BalanceResponse getBalanceFallback(BalanceRequest balanceRequest, Exception exception) {
-        String accountId = balanceRequest.getAccountID();
-        log.warn("Circuit breaker fallback triggered for account: {}. Exception: {}", 
-                accountId, exception.getMessage());
-        
-        return BalanceResponse.serviceUnavailable(accountId);
+    public BalanceResponse getBalanceFallback(BalanceRequest balanceRequest, Throwable t) {
+        BalanceResponse response = new BalanceResponse();
+        response.setAccountId(balanceRequest.getAccountID());
+        response.setStatus(BalanceResponse.BalanceStatus.SYSTEM_ERROR);
+        response.setMessage("External service is temporarily unavailable");
+        response.setTimestamp(LocalDateTime.now());
+        response.setBalance(BigDecimal.ZERO);
+        return response;
     }
+
 }

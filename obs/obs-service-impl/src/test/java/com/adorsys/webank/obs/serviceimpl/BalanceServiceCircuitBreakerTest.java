@@ -2,6 +2,7 @@ package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.BalanceRequest;
 import com.adorsys.webank.obs.dto.BalanceResponse;
+import com.adorsys.webank.obs.dto.response.BalanceResponse.BalanceStatus;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.TestPropertySource;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,12 +60,12 @@ class BalanceServiceCircuitBreakerTest {
         }
 
         // Act - Next call should trigger fallback due to circuit breaker being open
-        BalanceResponse result = balanceService.getBalance(request);
+        com.adorsys.webank.obs.dto.response.BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("SERVICE_UNAVAILABLE", result.getStatus());
-        assertEquals("External service is temporarily unavailable", result.getMessage());
-        assertEquals("0", result.getBalance());
+        assertEquals(BalanceStatus.SYSTEM_ERROR, result.getStatus());
+        assertEquals("Error retrieving balance: Service unavailable", result.getMessage());
+        assertEquals(BigDecimal.ZERO, result.getBalance());
         assertEquals("12345", result.getAccountId());
     }
 
@@ -73,12 +75,12 @@ class BalanceServiceCircuitBreakerTest {
         Exception testException = new RuntimeException("Test exception");
 
         // Act
-        BalanceResponse result = balanceService.getBalanceFallback(request, testException);
+        com.adorsys.webank.obs.dto.response.BalanceResponse result = balanceService.getBalanceFallback(request, testException);
 
         // Assert
-        assertEquals("SERVICE_UNAVAILABLE", result.getStatus());
+        assertEquals(BalanceStatus.SYSTEM_ERROR, result.getStatus());
         assertEquals("External service is temporarily unavailable", result.getMessage());
-        assertEquals("0", result.getBalance());
+        assertEquals(BigDecimal.ZERO, result.getBalance());
         assertEquals("12345", result.getAccountId());
     }
 
@@ -99,11 +101,11 @@ class BalanceServiceCircuitBreakerTest {
         }
 
         // Act - Make a successful call
-        BalanceResponse result = balanceService.getBalance(request);
+        com.adorsys.webank.obs.dto.response.BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("ERROR", result.getStatus());
-        assertEquals("Balance empty", result.getMessage());
+        assertEquals(BalanceStatus.INSUFFICIENT_FUNDS, result.getStatus());
+        assertEquals("No balance information available", result.getMessage());
     }
 
     @Test
@@ -112,7 +114,9 @@ class BalanceServiceCircuitBreakerTest {
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenThrow(new RuntimeException("Service unavailable"));
 
-        // Act & Assert - Verify that exceptions are logged and re-thrown
-        assertThrows(RuntimeException.class, () -> balanceService.getBalance(request));
+        // Act - Should return SYSTEM_ERROR status due to fallback
+        com.adorsys.webank.obs.dto.response.BalanceResponse result = balanceService.getBalance(request);
+        assertEquals(BalanceStatus.SYSTEM_ERROR, result.getStatus());
+        assertEquals("Error retrieving balance: Service unavailable", result.getMessage());
     }
 } 

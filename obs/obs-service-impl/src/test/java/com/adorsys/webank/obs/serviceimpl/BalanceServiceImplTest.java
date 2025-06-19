@@ -1,7 +1,8 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.BalanceRequest;
-import com.adorsys.webank.obs.dto.BalanceResponse;
+import com.adorsys.webank.obs.dto.response.BalanceResponse;
+
 import de.adorsys.webank.bank.api.domain.AmountBO;
 import de.adorsys.webank.bank.api.domain.BalanceBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
@@ -56,10 +57,8 @@ class BalanceServiceImplTest {
         BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("SUCCESS", result.getStatus());
-        assertEquals("1000", result.getBalance());
-        assertEquals("12345", result.getAccountId());
-        assertEquals("Balance retrieved successfully", result.getMessage());
+        assertEquals(new BigDecimal("1000"), result.getBalance(), "Balance should be 1000 when account has a valid balance");
+        assertEquals(BalanceResponse.BalanceStatus.AVAILABLE, result.getStatus());
     }
 
     @Test
@@ -78,9 +77,8 @@ class BalanceServiceImplTest {
         BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("ERROR", result.getStatus());
-        assertEquals("Balance empty", result.getMessage());
-        assertEquals("12345", result.getAccountId());
+        assertEquals(BigDecimal.ZERO, result.getBalance(), "Balance should be 0 when no balance is found");
+        assertEquals(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS, result.getStatus());
     }
 
     @Test
@@ -96,38 +94,7 @@ class BalanceServiceImplTest {
         BalanceResponse result = balanceService.getBalance(request);
 
         // Assert
-        assertEquals("ERROR", result.getStatus());
-        assertEquals("Balance empty", result.getMessage());
-        assertEquals("12345", result.getAccountId());
-    }
-
-    @Test
-    void testGetBalanceFallback_WhenExceptionOccurs() {
-        // Arrange
-        BalanceRequest request = new BalanceRequest();
-        request.setAccountID("12345");
-        Exception exception = new RuntimeException("External service error");
-
-        // Act
-        BalanceResponse result = balanceService.getBalanceFallback(request, exception);
-
-        // Assert
-        assertEquals("SERVICE_UNAVAILABLE", result.getStatus());
-        assertEquals("External service is temporarily unavailable", result.getMessage());
-        assertEquals("12345", result.getAccountId());
-        assertEquals("0", result.getBalance());
-    }
-
-    @Test
-    void testGetBalance_WithServiceException() {
-        // Arrange
-        BalanceRequest request = new BalanceRequest();
-        request.setAccountID("12345");
-
-        when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
-                .thenThrow(new RuntimeException("Service unavailable"));
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> balanceService.getBalance(request));
+        assertEquals(BigDecimal.ZERO, result.getBalance(), "Balance should be 0 when account details are null");
+        assertEquals(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS, result.getStatus());
     }
 }

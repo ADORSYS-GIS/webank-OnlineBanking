@@ -1,12 +1,18 @@
 package com.adorsys.webank.obs.service;
 
 import com.adorsys.webank.obs.dto.BalanceRequest;
-import com.adorsys.webank.obs.dto.BalanceResponse;
+import com.adorsys.webank.obs.dto.response.BalanceResponse;
 
 /**
- * This interface defines the API for balance-related operations in the OBS service.
- * It provides methods to retrieve account balances based on specific requests.
+ * Service interface for handling balance-related operations.
  */
 public interface BalanceServiceApi {
+    
+    /**
+     * Retrieves the balance for a given account.
+     *
+     * @param balanceRequest The balance request containing the account ID.
+     * @return A BalanceResponse object containing the balance information.
+     */
     BalanceResponse getBalance(BalanceRequest balanceRequest);
 }

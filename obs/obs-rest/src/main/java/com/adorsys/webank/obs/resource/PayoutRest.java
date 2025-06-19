@@ -1,20 +1,20 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.service.PayoutServiceApi;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RestController;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
+@RequestMapping("/api/transfers")
 public class PayoutRest implements PayoutRestApi {
 
     private final PayoutServiceApi payoutService;
@@ -30,19 +30,21 @@ public class PayoutRest implements PayoutRestApi {
 
     @Override
     @PreAuthorize("hasAnyRole('ROLE_ACCOUNT_CERTIFIED', 'ROLE_KYC_CERT') and isAuthenticated()")
-    public ResponseEntity<String> payout(
+    public ResponseEntity<MoneyTransferResponse> payout(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody MoneyTransferRequestDto request) {
 
         try {
-            log.info("Received payout request: {}", request);
-            String result = payoutService.payout(request);
+            log.info("Received payout request for sender account ID: {}", request.getSenderAccountId());
+            MoneyTransferResponse response = payoutService.payout(request);
             log.info("Payout processed successfully.");
-            return ResponseEntity.status(HttpStatus.CREATED).body(result);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error occurred during payout processing", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while processing the payout request.");
+            MoneyTransferResponse errorResponse = new MoneyTransferResponse();
+            errorResponse.setStatus(MoneyTransferResponse.TransferStatus.SYSTEM_ERROR);
+            errorResponse.setMessage("An error occurred while processing the payout request: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }

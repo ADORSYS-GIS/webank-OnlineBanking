@@ -1,0 +1,73 @@
+# ===================================================================
+# COMMON CONFIGURATION
+# ===================================================================
+
+server:
+  port: 8081
+  forward-headers-strategy: framework
+  private-key: ${SERVER_PRIVATE_KEY_JSON:}
+  public-key: ${SERVER_PUBLIC_KEY_JSON:}
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /api/actuator
+  endpoint:
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# ===================================================================
+# APPLICATION-SPECIFIC PROPERTIES
+# ===================================================================
+
+# JWT Configuration
+jwt:
+  issuer: webank-online-banking
+  expiration-time-ms: 3600000 # 1 hour
+
+# ===================================================================
+# SPRING DEFAULTS
+# ===================================================================
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+  # Default to H2 in-memory database for development
+  # Use --spring.profiles.active=postgres to use PostgreSQL
+  profiles:
+    active: h2
+
+# ===================================================================
+# CIRCUIT BREAKER CONFIGURATION (migrated from application.properties)
+# ===================================================================
+resilience4j:
+  circuitbreaker:
+    instances:
+      balanceService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 60s
+        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 5
+        recordExceptions:
+        - java.lang.Exception
+        ignoreExceptions:
+        - java.lang.IllegalArgumentException
+  timelimiter:
+    instances:
+      balanceService:
+        timeoutDuration: 5s
+
+logging:
+  level:
+    io.github.resilience4j.circuitbreaker: DEBUG
+    com.adorsys.webank.obs.serviceimpl.BalanceServiceImpl: DEBUG
