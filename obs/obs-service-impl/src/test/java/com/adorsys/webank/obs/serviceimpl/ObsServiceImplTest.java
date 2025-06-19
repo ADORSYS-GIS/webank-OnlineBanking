@@ -239,7 +239,7 @@ class ObsServiceImplTest {
 
         // Act & Assert
         assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount(publicKey));
-        );
+
 
 
     }

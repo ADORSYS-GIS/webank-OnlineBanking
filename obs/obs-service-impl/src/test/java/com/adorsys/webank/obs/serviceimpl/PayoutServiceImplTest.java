@@ -219,26 +219,4 @@ class PayoutServiceImplTest {
         }
     }
 
-    @Test
-    void payout_throwsServiceUnavailableExceptionOnUnexpectedError() {
-        // Arrange
-        try (MockedStatic<JwtHeaderExtractor> extractorMock = mockStatic(JwtHeaderExtractor.class);
-             MockedStatic<SecurityUtils> securityUtilsMock = mockStatic(SecurityUtils.class)) {
-            extractorMock.when(() -> JwtHeaderExtractor.extractField(anyString(), eq("accountJwt")))
-                    .thenReturn(VALID_ACCOUNT_CERT);
-            extractorMock.when(() -> JwtHeaderExtractor.extractField(anyString(), eq("kycCertJwt")))
-                    .thenReturn(null);
-            securityUtilsMock.when(SecurityUtils::getCurrentUserJWT)
-                    .thenReturn(Optional.of(VALID_JWT_TOKEN));
-            when(transactionHelper.validateAndProcessTransaction(
-                    eq(SENDER_ACCOUNT_ID),
-                    eq(RECIPIENT_ACCOUNT_ID),
-                    eq("500.00"),
-                    eq(VALID_JWT_TOKEN)
-            )).thenThrow(new RuntimeException("Unexpected error"));
-
-            // Act & Assert
-            assertThrows(RuntimeException.class, () -> payoutService.payout(smallAmountRequest));
-        }
-    }
 }

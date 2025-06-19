@@ -3,7 +3,6 @@ package com.adorsys.webank.obs.serviceimpl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -26,14 +25,6 @@ import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
 import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
-import java.math.BigDecimal;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WithdrawServiceImplTest {
@@ -64,9 +55,14 @@ class WithdrawServiceImplTest {
             // Mock validator to return false for invalid JWT
             when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(false);
 
-            // Act & Assert
-            ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, () -> withdrawService.withdraw(request));
-            assertTrue(exception.getMessage().contains("Invalid transaction JWT"));
+            // Act
+            MoneyTransferResponse response = withdrawService.withdraw(request);
+
+            // Assert
+            assertNotNull(response);
+            assertEquals(MoneyTransferResponse.TransferStatus.INVALID_ACCOUNT, response.getStatus());
+            assertEquals("Invalid transaction JWT", response.getMessage());
+
             verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
             verifyNoInteractions(transactionHelper);
         }
