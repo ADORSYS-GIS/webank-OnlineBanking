@@ -1,10 +1,10 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.dto.response.TransactionHistoryResponse;
 import com.adorsys.webank.obs.service.*;
 import de.adorsys.webank.bank.api.domain.*;
 import de.adorsys.webank.bank.api.service.*;
-import org.slf4j.*;
 import org.springframework.stereotype.*;
 import lombok.RequiredArgsConstructor;
 import java.time.*;
@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class TransServiceImpl implements TransServiceApi {
 
-
     private final BankAccountService bankAccountService;
 
     /**
@@ -27,29 +26,41 @@ public class TransServiceImpl implements TransServiceApi {
      */
 
     @Override
-    public String getTrans(TransRequest transRequest) {
+    public TransactionHistoryResponse getTrans(TransRequest transRequest) {
         try {
-            log.info("Received transaction request: {}", transRequest);
+            log.info("Received transaction history request for account ID: {}", transRequest.getAccountID());
+            
             // Extract the account ID from the request
             String accountId = transRequest.getAccountID();
 
             // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
             if (bankAccount == null) {
-                return "Bank account not found for ID: " + accountId;
+                TransactionHistoryResponse response = new TransactionHistoryResponse();
+                response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
+                response.setMessage("Bank account not found for ID: " + accountId);
+                response.setTimestamp(LocalDateTime.now());
+                response.setData("[]");
+                return response;
             }
 
             // Define the date range for transactions (default to last month)
             LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
             LocalDateTime dateTo = LocalDateTime.now();
 
-
             // Fetch the transactions using the ledger service
             List<TransactionDetailsBO> postingLines = bankAccountService.getTransactionsByDates(accountId, dateFrom, dateTo);
 
+            // Create the response
+            TransactionHistoryResponse response = new TransactionHistoryResponse();
+            response.setStatus(TransactionHistoryResponse.TransactionStatus.SUCCESS);
+            response.setMessage("Transaction history retrieved successfully");
+            response.setTimestamp(LocalDateTime.now());
+
             // If no transactions found
             if (postingLines.isEmpty()) {
-                return "No transactions found for the given account and date range.";
+                response.setData("[]");
+                return response;
             }
 
             // Map the posting lines to a properly formatted JSON string
@@ -66,14 +77,20 @@ public class TransServiceImpl implements TransServiceApi {
                     })
                     .toList();
 
-            log.info("Transaction details: {} " , transactionDetails);
-
-            return "[\n" + String.join(",\n", transactionDetails) + "\n]";
-
-
+            String transactionsJson = "[\n" + String.join(",\n", transactionDetails) + "\n]";
+            response.setData(transactionsJson);
+            
+            log.info("Successfully processed transaction history for account {}", accountId);
+            return response;
 
         } catch (Exception e) {
-            return "An error occurred while processing the request: " + e.getMessage();
+            log.error("Error processing transaction request: {}", e.getMessage(), e);
+            TransactionHistoryResponse response = new TransactionHistoryResponse();
+            response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
+            response.setMessage("An error occurred while processing the request: " + e.getMessage());
+            response.setTimestamp(LocalDateTime.now());
+            response.setData("[]");
+            return response;
         }
     }
 

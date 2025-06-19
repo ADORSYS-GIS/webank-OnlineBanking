@@ -32,7 +32,6 @@ nbdist/
 ### Other ###
 bin/
 .factorypath
-*.log
 logs
 log
 .vscode
@@ -43,3 +42,6 @@ log
 cms-db-schema/liquibase.properties
 ledgers-db/liquibase.properties
 .env
+
+# Log files
+*.log

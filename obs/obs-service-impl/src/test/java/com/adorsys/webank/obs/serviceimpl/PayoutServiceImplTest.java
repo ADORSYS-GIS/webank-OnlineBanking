@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
 import com.adorsys.webank.obs.security.JwtHeaderExtractor;
 import com.adorsys.webank.config.SecurityUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,10 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+
+import java.math.BigDecimal;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -47,13 +48,13 @@ class PayoutServiceImplTest {
         smallAmountRequest = new MoneyTransferRequestDto();
         smallAmountRequest.setSenderAccountId(SENDER_ACCOUNT_ID);
         smallAmountRequest.setRecipientAccountId(RECIPIENT_ACCOUNT_ID);
-        smallAmountRequest.setAmount("500.00");
+        smallAmountRequest.setAmount(new BigDecimal("500.00"));
 
         // Setup large amount request (greater than 1000)
         largeAmountRequest = new MoneyTransferRequestDto();
         largeAmountRequest.setSenderAccountId(SENDER_ACCOUNT_ID);
         largeAmountRequest.setRecipientAccountId(RECIPIENT_ACCOUNT_ID);
-        largeAmountRequest.setAmount("1500.00");
+        largeAmountRequest.setAmount(new BigDecimal("1500.00"));
     }
 
     @Test
@@ -75,21 +76,25 @@ class PayoutServiceImplTest {
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
-            String result = payoutService.payout(smallAmountRequest);
+            MoneyTransferResponse result = payoutService.payout(smallAmountRequest);
 
             // Assert
-            assertEquals(TRANSACTION_SUCCESS, result);
+            assertEquals(MoneyTransferResponse.TransferStatus.COMPLETED, result.getStatus());
+            assertEquals(TRANSACTION_SUCCESS, result.getTransactionId());
+            assertEquals(new BigDecimal("500.00"), result.getAmount());
+            assertEquals("XAF", result.getCurrency());
+            assertNotNull(result.getTimestamp());
+            assertEquals("Transfer completed successfully", result.getMessage());
             verify(transactionHelper).validateAndProcessTransaction(
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
+                    
             );
         }
     }
@@ -111,21 +116,24 @@ class PayoutServiceImplTest {
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("1500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
             )).thenReturn(TRANSACTION_SUCCESS);
 
             // Act
-            String result = payoutService.payout(largeAmountRequest);
+            MoneyTransferResponse result = payoutService.payout(largeAmountRequest);
 
             // Assert
-            assertEquals(TRANSACTION_SUCCESS, result);
+            assertEquals(MoneyTransferResponse.TransferStatus.COMPLETED, result.getStatus());
+            assertEquals(TRANSACTION_SUCCESS, result.getTransactionId());
+            assertEquals(new BigDecimal("1500.00"), result.getAmount());
+            assertEquals("XAF", result.getCurrency());
+            assertNotNull(result.getTimestamp());
+            assertEquals("Transfer completed successfully", result.getMessage());
             verify(transactionHelper).validateAndProcessTransaction(
                     eq(SENDER_ACCOUNT_ID),
                     eq(RECIPIENT_ACCOUNT_ID),
                     eq("1500.00"),
-                    eq(VALID_JWT_TOKEN),
-                    any(Logger.class)
+                    eq(VALID_JWT_TOKEN)
             );
         }
     }
@@ -149,7 +157,7 @@ class PayoutServiceImplTest {
             });
 
             assertEquals("KYC certificate is required for transactions exceeding 10,000 francs.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
 
@@ -163,8 +171,6 @@ class PayoutServiceImplTest {
             
             securityUtilsMock.when(SecurityUtils::getCurrentUserJWT)
                     .thenReturn(Optional.of(VALID_JWT_TOKEN));
-            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
-                    .thenReturn(null);
 
             // Act & Assert
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -172,7 +178,7 @@ class PayoutServiceImplTest {
             });
 
             assertEquals("Account certificate is required for all transactions.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
 
@@ -186,8 +192,6 @@ class PayoutServiceImplTest {
             
             securityUtilsMock.when(SecurityUtils::getCurrentUserJWT)
                     .thenReturn(Optional.of(VALID_JWT_TOKEN));
-            extractorMock.when(() -> JwtHeaderExtractor.extractField(eq(VALID_JWT_TOKEN), eq("accountJwt")))
-                    .thenReturn("");
 
             // Act & Assert
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -195,7 +199,7 @@ class PayoutServiceImplTest {
             });
 
             assertEquals("Account certificate is required for all transactions.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
 
@@ -210,7 +214,7 @@ class PayoutServiceImplTest {
             assertThrows(IllegalStateException.class, () -> {
                 payoutService.payout(smallAmountRequest);
             });
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString(), any(Logger.class));
+            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
-    }
+}

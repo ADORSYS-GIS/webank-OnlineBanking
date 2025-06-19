@@ -17,21 +17,27 @@ import java.math.BigDecimal;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.adorsys.webank.config.SecurityUtils;
+import com.adorsys.webank.obs.dto.response.RegistrationResponse;
+import java.util.Currency;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import org.junit.jupiter.api.AfterEach;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.JOSEException;
 
 class ObsServiceImplTest {
-
 
     @Mock
     private BankAccountCertificateCreationService bankAccountCertificateCreationService;
@@ -55,7 +61,6 @@ class ObsServiceImplTest {
         ECKey testECKey = new ECKeyGenerator(Curve.P_256)
                 .keyID("test-key-id")
                 .generate();
-
 
         // Mock SecurityUtils to return our test ECKey
         securityUtilsMock = mockStatic(SecurityUtils.class);
@@ -81,10 +86,11 @@ class ObsServiceImplTest {
         )).thenReturn(null);
 
         // Call the method to test
-        String result = obsService.registerAccount(publicKey);
+        RegistrationResponse result = obsService.registerAccount(publicKey);
 
         // Verify the result
-        assertTrue(result.contains("An error occurred while processing the request"));
+        assertEquals(RegistrationResponse.RegistrationStatus.FAILED, result.getStatus());
+        assertTrue(result.getMessage().contains("An error occurred while processing the request"));
 
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString());
     }
@@ -101,10 +107,11 @@ class ObsServiceImplTest {
         )).thenReturn(mockResult);
 
         // Call the method to test
-        String result = obsService.registerAccount(publicKey);
+        RegistrationResponse result = obsService.registerAccount(publicKey);
 
         // Verify the result
-        assertEquals("Bank account successfully created. Details: " + mockResult, result);
+        assertEquals(RegistrationResponse.RegistrationStatus.SUCCESS, result.getStatus());
+        assertEquals("Bank account successfully created. Details: " + mockResult, result.getMessage());
 
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString());
     }
@@ -121,7 +128,7 @@ class ObsServiceImplTest {
         )).thenReturn(mockResult);
 
         // Call the method
-        obsService.registerAccount(publicKey);
+        RegistrationResponse result = obsService.registerAccount(publicKey);
 
         // Capture the arguments
         ArgumentCaptor<String> ecKeyCaptor = ArgumentCaptor.forClass(String.class);
@@ -160,23 +167,26 @@ class ObsServiceImplTest {
 
         // Verify branch is correct
         assertEquals("OBS", branchCaptor.getValue());
-    }
 
+        // Verify response
+        assertEquals(RegistrationResponse.RegistrationStatus.SUCCESS, result.getStatus());
+        assertEquals("Bank account successfully created. Details: " + mockResult, result.getMessage());
+    }
 
     @Test
     void makeTransactionsSuccessfully() {
         String accountId = "12345";
+        BankAccountBO mockAccount = new BankAccountBO();
+        mockAccount.setIban("TEST123");
+        mockAccount.setCurrency(Currency.getInstance("XAF"));
 
         // Mock BankAccountService
-        when(bankAccountService.getAccountById(accountId)).thenReturn(new BankAccountBO());
+        when(bankAccountService.getAccountById(accountId)).thenReturn(mockAccount);
 
         // Call the method
         String result = obsService.makeTrans(accountId);
 
-        // Verify deposits were made
-        verify(bankAccountTransactionService, times(0))
-                .depositCash(eq(accountId), any(), anyString());
-
+        // Verify the result message
         assertEquals("5 transactions completed successfully for account " + accountId, result);
     }
 
@@ -190,6 +200,8 @@ class ObsServiceImplTest {
         // Call the method
         String result = obsService.makeTrans(accountId);
 
+        // Verify no transactions were attempted
+        verify(bankAccountTransactionService, never()).depositCash(anyString(), any(), anyString());
         assertEquals("Bank account not found for ID: " + accountId, result);
     }
 
@@ -208,5 +220,4 @@ class ObsServiceImplTest {
 
 
     }
-
 }

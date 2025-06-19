@@ -1,7 +1,11 @@
 package com.adorsys.webank.obs.resource;
 
 import com.adorsys.webank.obs.dto.*;
+import com.adorsys.webank.obs.dto.response.BalanceResponse;
 import com.adorsys.webank.obs.service.*;
+
+import java.time.LocalDateTime;
+
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,21 +29,24 @@ public class BalanceRest implements BalanceRestApi {
      */
     @Override
     @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
-    public ResponseEntity<String> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+    public ResponseEntity<BalanceResponse> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
                                              @RequestBody BalanceRequest balanceRequest) {
-        log.info("Incoming balance request: {}", balanceRequest);
+        log.info("Incoming balance request for account ID: {}", balanceRequest.getAccountID());
 
         try {
-            String result = balanceService.getBalance(balanceRequest);
+            BalanceResponse response = balanceService.getBalance(balanceRequest);
             log.info("Balance request processed successfully.");
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error processing balance request", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while processing the request.");
+            BalanceResponse errorResponse = new BalanceResponse();
+            errorResponse.setAccountId(balanceRequest.getAccountID());
+            errorResponse.setStatus(BalanceResponse.BalanceStatus.SYSTEM_ERROR);
+            errorResponse.setMessage("An error occurred while processing the request");
+            errorResponse.setTimestamp(LocalDateTime.now());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
 
 }
-

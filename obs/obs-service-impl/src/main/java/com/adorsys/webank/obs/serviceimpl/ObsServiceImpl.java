@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
 
+import com.adorsys.webank.obs.dto.response.RegistrationResponse;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
@@ -38,7 +39,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
     @Override
     @Transactional
-    public String registerAccount(String registrationJwt) {
+    public RegistrationResponse registerAccount(String registrationJwt) {
         ECKey devicePub = SecurityUtils.extractDeviceJwkFromContext();
 
         // TODO: Replace IllegalStateException with custom exception handled by global exception handler (to be addressed in another ticket)
@@ -88,12 +89,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                 log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
             }
 
-            return "Bank account successfully created. Details: " + createdAccountResult;
+            return new RegistrationResponse(accountId, RegistrationResponse.RegistrationStatus.SUCCESS, "Bank account successfully created. Details: " + createdAccountResult);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the request: {}", e.getMessage(), e);
             }
-            return "An error occurred while processing the request: " + e.getMessage();
+            return new RegistrationResponse(null, RegistrationResponse.RegistrationStatus.FAILED, "An error occurred while processing the request: " + e.getMessage());
         }
     }
 
