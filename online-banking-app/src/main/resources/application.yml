@@ -1,7 +1,6 @@
 # ===================================================================
 # COMMON CONFIGURATION
 # ===================================================================
-
 server:
   port: 8081
   forward-headers-strategy: framework
@@ -71,3 +70,6 @@ logging:
   level:
     io.github.resilience4j.circuitbreaker: DEBUG
     com.adorsys.webank.obs.serviceimpl.BalanceServiceImpl: DEBUG
+
+payout:
+  kyc-check-threshold: ${AMOUNT_THRESHOLD:1000}
