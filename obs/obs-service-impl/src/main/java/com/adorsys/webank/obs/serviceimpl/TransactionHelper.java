@@ -1,13 +1,11 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.security.JwtCertValidator;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
@@ -17,9 +15,10 @@ import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import com.adorsys.webank.config.KeyLoader;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,13 +26,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class TransactionHelper {
-    @Value("${server.private.key.json}")
-    private String serverPrivateKeyJson;
-
-    @Value("${server.public.key.json}")
-    private String serverPublicKeyJson;
 
     @Value("${jwt.issuer}")
     private String issuer;
@@ -45,29 +40,16 @@ public class TransactionHelper {
 
     private final BankAccountService bankAccountService;
     private final TransactionService transactionService;
-    private final JwtCertValidator jwtCertValidator;
-
-    public TransactionHelper(BankAccountService bankAccountService,
-                             TransactionService transactionService,
-                             JwtCertValidator jwtCertValidator) {
-        this.bankAccountService = bankAccountService;
-        this.transactionService = transactionService;
-        this.jwtCertValidator = jwtCertValidator;
-    }
+    private final KeyLoader keyLoader;
 
     /**
      * Validates input and processes a transaction.
      * Returns error messages matching the test expectations.
      */
     public String validateAndProcessTransaction(String senderAccountId, String recipientAccountId,
-                                                String amountStr, String accountCertJwt,
-                                                Logger logger) {
-        if (!isValidJwt(accountCertJwt, logger)) {
-            logger.error("cert : {} ", accountCertJwt);
-            return "Invalid certificate or JWT. Payout Request failed";
-        }
+                                                String amountStr, String accountCertJwt) {
 
-        BigDecimal amount = parseAmount(amountStr, logger);
+        BigDecimal amount = parseAmount(amountStr);
         if (amount == null) {
             return "Invalid amount format: " + amountStr;
         }
@@ -75,7 +57,7 @@ public class TransactionHelper {
             return "Amount must be a positive number";
         }
 
-        BigDecimal balance = getCurrentBalance(senderAccountId, logger);
+        BigDecimal balance = getCurrentBalance(senderAccountId);
         if (balance == null) {
             return "Unable to retrieve balance for the source account";
         }
@@ -83,30 +65,19 @@ public class TransactionHelper {
             return "Insufficient balance. Current balance: " + balance + " XAF";
         }
 
-        return processTransaction(senderAccountId, recipientAccountId, amount, logger);
+        return processTransaction(senderAccountId, recipientAccountId, amount);
     }
 
-    public boolean isValidJwt(String accountCertificateJwt, Logger logger) {
-        try {
-            boolean isValid = jwtCertValidator.validateJWT(accountCertificateJwt);
-            logger.info("Tcd he AccountCert is: {}", accountCertificateJwt);
-            return isValid;
-        } catch (Exception e) {
-            logger.error("JWT validation error: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    public BigDecimal parseAmount(String amount, Logger logger) {
+    public BigDecimal parseAmount(String amount) {
         try {
             return new BigDecimal(amount);
         } catch (NumberFormatException e) {
-            logger.error("Invalid amount format: {}", amount);
+            log.error("Invalid amount format: {}", amount);
             return null;
         }
     }
 
-    public BigDecimal getCurrentBalance(String accountId, Logger logger) {
+    public BigDecimal getCurrentBalance(String accountId) {
         try {
             BankAccountDetailsBO accountDetails = bankAccountService.getAccountDetailsById(accountId, LocalDateTime.now(), true);
             if (accountDetails == null || accountDetails.getBalances().isEmpty()) {
@@ -117,12 +88,12 @@ public class TransactionHelper {
                     .map(balance -> balance.getAmount().getAmount())
                     .orElse(null);
         } catch (Exception e) {
-            logger.error("Failed to retrieve account balance: {}", e.getMessage());
+            log.error("Failed to retrieve account balance: {}", e.getMessage());
             return null;
         }
     }
 
-    public String processTransaction(String senderAccountId, String recipientAccountId, BigDecimal amount, Logger logger) {
+    public String processTransaction(String senderAccountId, String recipientAccountId, BigDecimal amount) {
         BankAccountBO sendingAccount = bankAccountService.getAccountById(senderAccountId);
         BankAccountBO receivingAccount = bankAccountService.getAccountById(recipientAccountId);
 
@@ -139,14 +110,13 @@ public class TransactionHelper {
         Map<String, String> errorMap = transactionService.bookMockTransaction(transactions);
 
         if (errorMap.isEmpty()) {
-            logger.info("Transaction booked");
+            log.info("Transaction booked");
         } else {
-            logger.error("Booking errors: {}", errorMap);
+            log.error("Booking errors: {}", errorMap);
             return "Transaction failed due to booking errors";
         }
 
         String transactionCert = generateTransactionCert(senderAccountId, recipientAccountId, String.valueOf(amount));
-        log.info("Transaction certificate: {}", transactionCert);
         return transactionCert + " Success";
     }
 
@@ -168,7 +138,7 @@ public class TransactionHelper {
         try {
             // Parse the server's private key
             log.debug("Parsing server private key from JSON.");
-            ECKey privateKey = (ECKey) JWK.parse(serverPrivateKeyJson);
+            ECKey privateKey = keyLoader.loadPrivateKey();
             if (privateKey.getD() == null) {
                 log.error("Private key parameter 'D' is missing in the server private key.");
                 throw new IllegalStateException("Missing private key parameter");
@@ -181,14 +151,14 @@ public class TransactionHelper {
 
             // Parse the server's public key and build the JWT header
             log.debug("Parsing server public key from JSON.");
-            ECKey publicKey = (ECKey) JWK.parse(serverPublicKeyJson);
+            ECKey publicKey = keyLoader.loadPublicKey();
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                     .type(JOSEObjectType.JWT)
                     .jwk(publicKey.toPublicJWK())
                     .build();
             log.debug("JWT header constructed successfully.");
 
-            // Determine the period for transactions lookup and fetch transactions
+            // Determine the period for transaction lookup and fetch transactions
             LocalDateTime dateFrom = LocalDateTime.now().minusMonths(1);
             log.info("Fetching transactions for senderId={} from {} to {}", senderId, dateFrom, LocalDateTime.now());
             List<TransactionDetailsBO> transactions = bankAccountService.getTransactionsByDates(senderId, dateFrom, LocalDateTime.now());

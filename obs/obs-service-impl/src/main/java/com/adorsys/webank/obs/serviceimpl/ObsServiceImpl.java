@@ -1,6 +1,7 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.obs.security.JwtCertValidator;
+
+import com.adorsys.webank.obs.dto.response.RegistrationResponse;
 import com.adorsys.webank.obs.service.RegistrationServiceApi;
 import de.adorsys.webank.bank.api.domain.AccountTypeBO;
 import de.adorsys.webank.bank.api.domain.AccountUsageBO;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.nimbusds.jose.jwk.ECKey;
+import com.adorsys.webank.config.SecurityUtils;
 
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -25,21 +28,25 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
     private final BankAccountCertificateCreationService bankAccountCertificateCreationService;
     private final BankAccountService bankAccountService;
-    private final JwtCertValidator jwtCertValidator;
     private final BankAccountTransactionService bankAccountTransactionService;
+
+    /**
+     * Registers a new bank account using the provided registration JWT.
+     *
+     * @param registrationJwt The JWT containing the registration information.
+     * @return A message indicating the result of the registration process.
+     */
 
     @Override
     @Transactional
-    public String registerAccount(String publicKey, String registrationJwt) {
-        if (log.isInfoEnabled()) {
-            log.info("Registering account with publicKey: {} and registrationJwt: {}", publicKey, registrationJwt);
+    public RegistrationResponse registerAccount(String registrationJwt) {
+        ECKey devicePub = SecurityUtils.extractDeviceJwkFromContext();
+
+        // TODO: Replace IllegalStateException with custom exception handled by global exception handler (to be addressed in another ticket)
+        if (devicePub == null) {
+           throw new IllegalStateException("Device public key not found in security context. Please ensure the user is authenticated.");
         }
         try {
-            boolean isValid = jwtCertValidator.validateJWT(registrationJwt);
-
-            if (!isValid) {
-                return "Invalid certificate or JWT. Account creation failed";
-            }
 
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
@@ -68,7 +75,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                     .build();
 
             // Call the service to create the account
-            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(publicKey, bankAccountBO, UUID.randomUUID().toString(), "OBS");
+            String createdAccountResult = bankAccountCertificateCreationService.registerNewBankAccount(String.valueOf(devicePub), bankAccountBO, UUID.randomUUID().toString(), "OBS");
 
             // Split the string by newlines
             String[] lines = createdAccountResult.split("\n");
@@ -82,12 +89,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                 log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
             }
 
-            return "Bank account successfully created. Details: " + createdAccountResult;
+            return new RegistrationResponse(accountId, RegistrationResponse.RegistrationStatus.SUCCESS, "Bank account successfully created. Details: " + createdAccountResult);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the request: {}", e.getMessage(), e);
             }
-            return "An error occurred while processing the request: " + e.getMessage();
+            return new RegistrationResponse(null, RegistrationResponse.RegistrationStatus.FAILED, "An error occurred while processing the request: " + e.getMessage());
         }
     }
 

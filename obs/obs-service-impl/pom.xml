@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2018-2024 adorsys GmbH and Co. KG
   ~ All rights are reserved.
@@ -35,14 +35,36 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.adorsys.webank</groupId>
+            <artifactId>prs-service-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
             <version>3.1.8</version>
         </dependency>
 
         <dependency>
+            <groupId>com.adorsys.webank</groupId>
+            <artifactId>prs-middleware</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
             <groupId>de.adorsys.webank</groupId>
             <artifactId>webank-bank-account-service-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 <!-- test depedencies -->
 
@@ -72,6 +94,7 @@
         <dependency>
             <groupId>de.adorsys.webank</groupId>
             <artifactId>webank-server-utils</artifactId>
+            <version>0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 

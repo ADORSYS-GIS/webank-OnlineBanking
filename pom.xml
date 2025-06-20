@@ -159,6 +159,7 @@
         <!-- automatically run annotation processors within the incremental compilation -->
         <m2e.apt.activation>jdt_apt</m2e.apt.activation>
         <slf4j.version>2.0.9</slf4j.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <nimbus-jose-jwt.version>9.25.6</nimbus-jose-jwt.version>
         <liquibase.version>4.25.1</liquibase.version>
         <subethasmtp.version>3.1.7</subethasmtp.version>
@@ -330,6 +331,12 @@
             </dependency>
 
             <!-- logging dependencies -->
+
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.slf4j</groupId>
