@@ -36,6 +36,9 @@ public class BalanceRest implements BalanceRestApi {
         try {
             BalanceResponse response = balanceService.getBalance(balanceRequest);
             log.info("Balance request processed successfully.");
+            if (response.getStatus() == BalanceResponse.BalanceStatus.SYSTEM_ERROR) {
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+            }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error processing balance request", e);
