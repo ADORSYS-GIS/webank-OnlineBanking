@@ -8,11 +8,16 @@ import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class BalanceServiceImpl implements BalanceServiceApi {
 
@@ -20,13 +25,14 @@ public class BalanceServiceImpl implements BalanceServiceApi {
 
     /**
      * Handles balance requests by fetching the balance for a given account ID.
+     * Implements circuit breaker pattern to handle external service failures gracefully.
      *
      * @param balanceRequest The balance request containing the account ID.
-     * @return A string representing the balance or an error message.
+     * @return A BalanceResponse containing the balance information or error details.
      */
-
-
     @Override
+    @CircuitBreaker(name = "balanceService", fallbackMethod = "getBalanceFallback")
+    @TimeLimiter(name = "balanceService", fallbackMethod = "getBalanceFallback")
     public BalanceResponse getBalance(BalanceRequest balanceRequest) {
         try {
             String accountId = balanceRequest.getAccountID();
@@ -75,6 +81,14 @@ public class BalanceServiceImpl implements BalanceServiceApi {
         }
     }
 
-
+    public BalanceResponse getBalanceFallback(BalanceRequest balanceRequest, Throwable t) {
+        BalanceResponse response = new BalanceResponse();
+        response.setAccountId(balanceRequest.getAccountID());
+        response.setStatus(BalanceResponse.BalanceStatus.SYSTEM_ERROR);
+        response.setMessage("External service is temporarily unavailable");
+        response.setTimestamp(LocalDateTime.now());
+        response.setBalance(BigDecimal.ZERO);
+        return response;
+    }
 
 }
