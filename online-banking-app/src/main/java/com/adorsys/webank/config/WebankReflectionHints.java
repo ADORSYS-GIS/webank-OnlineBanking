@@ -25,14 +25,13 @@ public class WebankReflectionHints implements RuntimeHintsRegistrar {
         "de.adorsys.ledgers.postings.impl.converter", // ledgers mappers
         "de.adorsys.webank.bank.api.service.domain", // webank domain models
         "de.adorsys.webank.bank.api.service.mappers" // webank mappers (add for MapStruct)
-        // Add more if you discover more packages
     };
 
     // Add explicit critical external classes for reflection (for classes not found by scanning)
     private static final String[] EXTERNAL_CLASSES_TO_REGISTER = {
-        // Flyway
-        "org.flywaydb.core.Flyway",
-        "org.flywaydb.core.api.configuration.FluentConfiguration",
+//        // Flyway
+//        "org.flywaydb.core.Flyway",
+//        "org.flywaydb.core.api.configuration.FluentConfiguration",
         // Ledgers mappers
         "de.adorsys.ledgers.postings.impl.converter.LedgerAccountMapperImpl",
         "de.adorsys.ledgers.postings.impl.converter.LedgerMapperImpl",
@@ -45,16 +44,14 @@ public class WebankReflectionHints implements RuntimeHintsRegistrar {
         "de.adorsys.webank.bank.api.service.domain.ClearingAccount",
         // Webank MapStruct mapper implementation (explicit for native)
         "de.adorsys.webank.bank.api.service.mappers.BankAccountMapperImpl"
-        // Add more if native image errors mention missing reflection registration
     };
-    // NOTE: If native image errors mention other MapStruct mappers, add them here as well.
 
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+
         // Register holidays.yml resource for native image
         hints.resources().registerPattern("holidays.yml");
-        hints.resources().registerPattern("com/adorsys/webank/mockbank/holidays.yml");
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);
         MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(classLoader);
 
