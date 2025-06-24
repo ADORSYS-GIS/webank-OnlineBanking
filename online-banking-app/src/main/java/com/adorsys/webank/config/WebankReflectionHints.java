@@ -61,14 +61,14 @@ public class WebankReflectionHints implements RuntimeHintsRegistrar {
         // Dynamic package scanning
         for (String pkg : PACKAGES_TO_SCAN) {
             String resourcePattern = "classpath*:" +
-                    org.springframework.util.ClassUtils.convertClassNameToResourcePath(pkg) + "/**/*.class";
+                    ClassUtils.convertClassNameToResourcePath(pkg) + "/**/*.class";
             try {
                 Resource[] resources = resolver.getResources(resourcePattern);
                 for (Resource resource : resources) {
                     if (resource.isReadable()) {
                         MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
                         String className = metadataReader.getClassMetadata().getClassName();
-                        hints.reflection().registerType(org.springframework.aot.hint.TypeReference.of(className),
+                        hints.reflection().registerType(TypeReference.of(className),
                                 hint -> hint.withMembers(
                                         org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                                         org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_METHODS,
@@ -84,7 +84,7 @@ public class WebankReflectionHints implements RuntimeHintsRegistrar {
         // Explicit registration for critical external classes
         for (String className : EXTERNAL_CLASSES_TO_REGISTER) {
             try {
-                hints.reflection().registerType(org.springframework.aot.hint.TypeReference.of(className),
+                hints.reflection().registerType(TypeReference.of(className),
                         hint -> hint.withMembers(
                                 org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                                 org.springframework.aot.hint.MemberCategory.INVOKE_DECLARED_METHODS,
