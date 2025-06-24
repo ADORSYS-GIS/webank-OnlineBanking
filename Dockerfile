@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.4
-
 FROM vegardit/graalvm-maven:latest-java17 AS builder
 
 WORKDIR /build_dir

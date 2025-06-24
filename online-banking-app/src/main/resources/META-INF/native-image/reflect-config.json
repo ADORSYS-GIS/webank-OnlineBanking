@@ -43,6 +43,7 @@
   { "name":  "de.adorsys.webank.bank.api.service.domain.LedgerAccountModel", "allDeclaredConstructors": true, "allDeclaredMethods": true },
   { "name":  "de.adorsys.webank.bank.api.service.domain.ClearingAccount", "allDeclaredConstructors": true, "allDeclaredMethods": true } ,
   { "name":  "de.adorsys.ledgers.postings.impl.converter.AccountStmtMapper", "allDeclaredConstructors": true, "allDeclaredMethods": true } ,
-  { "name":  "de.adorsys.ledgers.postings.impl.converter.AccountStmtMapper", "allDeclaredConstructors": true, "allDeclaredMethods": true }
+  { "name":  "de.adorsys.ledgers.postings.impl.converter.AccountStmtMapper", "allDeclaredConstructors": true, "allDeclaredMethods": true } ,
+  { "name":  "de.adorsys.webank.bank.api.service.impl.PaymentExecutionService", "allDeclaredConstructors": true, "allDeclaredMethods": true }
 
 ]

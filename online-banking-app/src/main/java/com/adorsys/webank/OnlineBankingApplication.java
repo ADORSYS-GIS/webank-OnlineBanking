@@ -1,5 +1,8 @@
 package com.adorsys.webank;
 
+import com.adorsys.webank.config.WebankReflectionHints;
+import org.springframework.context.annotation.ImportRuntimeHints;
+
 import com.adorsys.webank.obs.EnableObsServiceimpl;
 import de.adorsys.ledgers.postings.impl.EnablePostingService;
 import de.adorsys.webank.bank.api.service.BankAccountInitService;
@@ -22,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 		SecurityAutoConfiguration.class,
 		ManagementWebSecurityAutoConfiguration.class
 })
+@ImportRuntimeHints(WebankReflectionHints.class)
 @ComponentScan(
 		basePackages = {"com.adorsys.webank.obs", "com.adorsys.webank.mockbank"}
 )
