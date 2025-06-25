@@ -1,5 +1,24 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Currency;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.adorsys.webank.config.KeyLoader;
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.InsufficientBalanceException;
+import com.adorsys.webank.exception.InvalidAmountException;
+import com.adorsys.webank.exception.InvalidJwtException;
+import com.adorsys.webank.exception.TransactionException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -8,22 +27,15 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
 import de.adorsys.webank.bank.api.domain.BankAccountBO;
 import de.adorsys.webank.bank.api.domain.BankAccountDetailsBO;
 import de.adorsys.webank.bank.api.domain.MockBookingDetailsBO;
 import de.adorsys.webank.bank.api.domain.TransactionDetailsBO;
 import de.adorsys.webank.bank.api.service.BankAccountService;
 import de.adorsys.webank.bank.api.service.TransactionService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
-import com.adorsys.webank.config.KeyLoader;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -44,25 +56,25 @@ public class TransactionHelper {
 
     /**
      * Validates input and processes a transaction.
-     * Returns error messages matching the test expectations.
+     * Throws appropriate exceptions for error conditions.
      */
     public String validateAndProcessTransaction(String senderAccountId, String recipientAccountId,
                                                 String amountStr, String accountCertJwt) {
 
         BigDecimal amount = parseAmount(amountStr);
         if (amount == null) {
-            return "Invalid amount format: " + amountStr;
+            throw new InvalidAmountException("Invalid amount format: " + amountStr);
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            return "Amount must be a positive number";
+            throw new InvalidAmountException("Amount must be a positive number");
         }
 
         BigDecimal balance = getCurrentBalance(senderAccountId);
         if (balance == null) {
-            return "Unable to retrieve balance for the source account";
+            throw new TransactionException("Unable to retrieve balance for the source account");
         }
         if (balance.compareTo(amount) < 0) {
-            return "Insufficient balance. Current balance: " + balance + " XAF";
+            throw new InsufficientBalanceException("Insufficient balance. Current balance: " + balance + " XAF");
         }
 
         return processTransaction(senderAccountId, recipientAccountId, amount);
@@ -81,12 +93,12 @@ public class TransactionHelper {
         try {
             BankAccountDetailsBO accountDetails = bankAccountService.getAccountDetailsById(accountId, LocalDateTime.now(), true);
             if (accountDetails == null || accountDetails.getBalances().isEmpty()) {
-                return null;
+                throw new TransactionException("Unable to retrieve balance for the source account");
             }
             return accountDetails.getBalances().stream()
                     .findFirst()
                     .map(balance -> balance.getAmount().getAmount())
-                    .orElse(null);
+                    .orElseThrow(() -> new TransactionException("Unable to retrieve balance for the source account"));
         } catch (Exception e) {
             log.error("Failed to retrieve account balance: {}", e.getMessage());
             return null;
@@ -98,7 +110,7 @@ public class TransactionHelper {
         BankAccountBO receivingAccount = bankAccountService.getAccountById(recipientAccountId);
 
         if (sendingAccount == null || receivingAccount == null) {
-            return "One or both accounts not found";
+            throw new AccountNotFoundException("One or both accounts not found");
         }
 
         MockBookingDetailsBO mockTransaction = createMockTransaction(
@@ -141,7 +153,7 @@ public class TransactionHelper {
             ECKey privateKey = keyLoader.loadPrivateKey();
             if (privateKey.getD() == null) {
                 log.error("Private key parameter 'D' is missing in the server private key.");
-                throw new IllegalStateException("Missing private key parameter");
+                throw new InvalidJwtException("Missing private key parameter");
             }
             log.debug("Server private key parsed successfully.");
 
@@ -196,8 +208,8 @@ public class TransactionHelper {
             log.info("Certificate generation completed successfully.");
             return serializedJWT;
         } catch (Exception e) {
-            log.error("Certificate generation failed: {}", e.getMessage(), e);
-            throw new IllegalStateException("Certificate generation failed", e);
+            log.error("Certificate generation failed: {}", e.getMessage());
+            throw new TransactionException("Certificate generation failed: " + e.getMessage());
         }
     }
 

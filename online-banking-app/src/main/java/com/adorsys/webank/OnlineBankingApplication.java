@@ -1,8 +1,6 @@
 package com.adorsys.webank;
-
 import com.adorsys.webank.config.WebankReflectionHints;
 import org.springframework.context.annotation.ImportRuntimeHints;
-
 import com.adorsys.webank.obs.EnableObsServiceimpl;
 import de.adorsys.ledgers.postings.impl.EnablePostingService;
 import de.adorsys.webank.bank.api.service.BankAccountInitService;
@@ -10,13 +8,20 @@ import de.adorsys.webank.bank.api.service.EnableBankAccountService;
 import de.adorsys.webank.bank.server.utils.client.ExchangeRateClient;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationListener;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+
+import com.adorsys.webank.obs.EnableObsServiceimpl;
+
+import de.adorsys.ledgers.postings.impl.EnablePostingService;
+import de.adorsys.webank.bank.api.service.BankAccountInitService;
+import de.adorsys.webank.bank.api.service.EnableBankAccountService;
+import de.adorsys.webank.bank.server.utils.client.ExchangeRateClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

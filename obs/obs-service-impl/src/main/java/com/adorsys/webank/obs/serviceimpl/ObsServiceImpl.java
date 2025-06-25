@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.nimbusds.jose.jwk.ECKey;
 import com.adorsys.webank.config.SecurityUtils;
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -47,7 +49,6 @@ public class ObsServiceImpl implements RegistrationServiceApi {
            throw new IllegalStateException("Device public key not found in security context. Please ensure the user is authenticated.");
         }
         try {
-
             // Iban will come from configuration
             String iban = UUID.randomUUID().toString();
             String msidn =  UUID.randomUUID().toString();
@@ -94,7 +95,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the request: {}", e.getMessage(), e);
             }
-            return new RegistrationResponse(null, RegistrationResponse.RegistrationStatus.FAILED, "An error occurred while processing the request: " + e.getMessage());
+            throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
         }
     }
 
@@ -104,39 +105,47 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             log.info("Processing transaction for accountId: {}", accountId);
         }
         try {
-            // Fetch the account details
-            BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
-            if (bankAccount == null) {
-                if (log.isErrorEnabled()) {
-                    log.error("Bank account not found for accountId: {}", accountId);
-                }
-                return "Bank account not found for ID: " + accountId;
-            }
-
-            // Define multiple deposit values
-            BigDecimal[] depositValues = {
-            };
-
-            Currency currency = Currency.getInstance("XAF");
-            String recordUser = "Default name";
-
-            // Process each transaction
-            for (BigDecimal depositValue : depositValues) {
-                AmountBO depositAmount = new AmountBO(currency, depositValue);
-                if (log.isInfoEnabled()) {
-                    log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
-                }
-                bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
-            }
-
+            validateAccountExists(accountId);
+            processDepositTransactions(accountId);
             return "5 transactions completed successfully for account " + accountId;
-
         } catch (Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
-            }
-            return "An error occurred while processing the transactions: "
-                    + (e.getMessage() != null ? e.getMessage() : e.toString());
+            handleTransactionError(accountId, e);
+            throw e;
         }
+    }
+
+    private void validateAccountExists(String accountId) {
+        BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
+        if (bankAccount == null) {
+            if (log.isErrorEnabled()) {
+                log.error("Bank account not found for accountId: {}", accountId);
+            }
+            throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
+        }
+    }
+
+    private void processDepositTransactions(String accountId) {
+        BigDecimal[] depositValues = {};
+        Currency currency = Currency.getInstance("XAF");
+        String recordUser = "Default name";
+
+        for (BigDecimal depositValue : depositValues) {
+            AmountBO depositAmount = new AmountBO(currency, depositValue);
+            if (log.isInfoEnabled()) {
+                log.info("Processing deposit of {} for accountId: {}", depositValue, accountId);
+            }
+            bankAccountTransactionService.depositCash(accountId, depositAmount, recordUser);
+        }
+    }
+
+    private void handleTransactionError(String accountId, Exception e) {
+        if (log.isErrorEnabled()) {
+            log.error("An error occurred while processing the transactions for accountId: {}: {}", accountId, e.getMessage(), e);
+        }
+        if (e instanceof AccountNotFoundException) {
+            return;
+        }
+        throw new ServiceUnavailableException("An error occurred while processing the transactions: "
+                + (e.getMessage() != null ? e.getMessage() : e.toString()));
     }
 }
