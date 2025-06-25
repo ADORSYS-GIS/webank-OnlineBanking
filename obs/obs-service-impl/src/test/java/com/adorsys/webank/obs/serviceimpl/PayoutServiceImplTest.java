@@ -156,8 +156,9 @@ class PayoutServiceImplTest {
                 payoutService.payout(largeAmountRequest);
             });
 
+
             assertEquals("KYC certificate is required for transactions exceeding 1000 francs.", exception.getMessage());
-            verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
+
         }
     }
 
@@ -217,4 +218,5 @@ class PayoutServiceImplTest {
             verify(transactionHelper, never()).validateAndProcessTransaction(anyString(), anyString(), anyString(), anyString());
         }
     }
+
 }

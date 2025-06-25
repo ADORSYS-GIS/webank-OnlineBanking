@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import java.time.*;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.ServiceUnavailableException;
 
 @Service
 @Slf4j
@@ -36,12 +38,7 @@ public class TransServiceImpl implements TransServiceApi {
             // Fetch the account details
             BankAccountBO bankAccount = bankAccountService.getAccountById(accountId);
             if (bankAccount == null) {
-                TransactionHistoryResponse response = new TransactionHistoryResponse();
-                response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
-                response.setMessage("Bank account not found for ID: " + accountId);
-                response.setTimestamp(LocalDateTime.now());
-                response.setData("[]");
-                return response;
+                throw new AccountNotFoundException("Bank account not found for ID: " + accountId);
             }
 
             // Define the date range for transactions (default to last month)
@@ -85,12 +82,7 @@ public class TransServiceImpl implements TransServiceApi {
 
         } catch (Exception e) {
             log.error("Error processing transaction request: {}", e.getMessage(), e);
-            TransactionHistoryResponse response = new TransactionHistoryResponse();
-            response.setStatus(TransactionHistoryResponse.TransactionStatus.FAILED);
-            response.setMessage("An error occurred while processing the request: " + e.getMessage());
-            response.setTimestamp(LocalDateTime.now());
-            response.setData("[]");
-            return response;
+            throw new ServiceUnavailableException("An error occurred while processing the request: " + e.getMessage());
         }
     }
 

@@ -1,5 +1,6 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.ServiceUnavailableException;
 import com.adorsys.webank.obs.dto.BalanceRequest;
 import com.adorsys.webank.obs.dto.response.BalanceResponse;
 
@@ -21,6 +22,7 @@ import java.util.Currency;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class BalanceServiceImplTest {
@@ -73,12 +75,11 @@ class BalanceServiceImplTest {
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(accountDetails);
 
-        // Act
-        BalanceResponse result = balanceService.getBalance(request);
-
-        // Assert
-        assertEquals(BigDecimal.ZERO, result.getBalance(), "Balance should be 0 when no balance is found");
-        assertEquals(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS, result.getStatus());
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, 
+            () -> balanceService.getBalance(request));
+        assertEquals("Error retrieving balance: No balance information available for account: 12345", 
+            exception.getMessage());
     }
 
     @Test
@@ -90,11 +91,25 @@ class BalanceServiceImplTest {
         when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
                 .thenReturn(null);
 
-        // Act
-        BalanceResponse result = balanceService.getBalance(request);
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, 
+            () -> balanceService.getBalance(request));
+        assertEquals("Error retrieving balance: No balance information available for account: 12345", 
+            exception.getMessage());
+    }
 
-        // Assert
-        assertEquals(BigDecimal.ZERO, result.getBalance(), "Balance should be 0 when account details are null");
-        assertEquals(BalanceResponse.BalanceStatus.INSUFFICIENT_FUNDS, result.getStatus());
+    @Test
+    void testGetBalance_WithUnexpectedException() {
+        // Arrange
+        BalanceRequest request = new BalanceRequest();
+        request.setAccountID("12345");
+
+        when(bankAccountService.getAccountDetailsById(anyString(), any(LocalDateTime.class), anyBoolean()))
+                .thenThrow(new RuntimeException("DB error"));
+
+        // Act & Assert
+        ServiceUnavailableException exception = assertThrows(ServiceUnavailableException.class, 
+            () -> balanceService.getBalance(request));
+        assertEquals("Error retrieving balance: DB error", exception.getMessage());
     }
 }

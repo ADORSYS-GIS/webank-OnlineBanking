@@ -1,5 +1,9 @@
 package com.adorsys.webank.obs.serviceimpl;
 
+import com.adorsys.webank.exception.AccountNotFoundException;
+import com.adorsys.webank.exception.InsufficientBalanceException;
+import com.adorsys.webank.exception.InvalidAmountException;
+import com.adorsys.webank.exception.TransactionException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -112,33 +116,35 @@ class TransactionHelperTest {
 
     @Test
     void testValidateAndProcessTransaction_InvalidJwt() {
-        // Act
-        String result = transactionHelper.validateAndProcessTransaction(
+        // Act & Assert
+        TransactionException exception = assertThrows(TransactionException.class, () -> {
+            transactionHelper.validateAndProcessTransaction(
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, "invalid-jwt");
+        });
 
-        // Assert
-        assertEquals("Unable to retrieve balance for the source account", result);
+        assertEquals("Unable to retrieve balance for the source account", exception.getMessage());
     }
 
     @Test
     void testValidateAndProcessTransaction_InvalidAmountFormat() {
-        // Act
-        String result = transactionHelper.validateAndProcessTransaction(
+        // Act & Assert
+        InvalidAmountException exception = assertThrows(InvalidAmountException.class, () -> {
+            transactionHelper.validateAndProcessTransaction(
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, INVALID_AMOUNT, validJwt);
+        });
 
-        // Assert
-        assertEquals("Invalid amount format: " + INVALID_AMOUNT, result);
+        assertEquals("Invalid amount format: " + INVALID_AMOUNT, exception.getMessage());
     }
 
     @Test
     void testValidateAndProcessTransaction_NegativeAmount() {
-
-        // Act
-        String result = transactionHelper.validateAndProcessTransaction(
+        // Act & Assert
+        InvalidAmountException exception = assertThrows(InvalidAmountException.class, () -> {
+            transactionHelper.validateAndProcessTransaction(
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, NEGATIVE_AMOUNT, validJwt);
+        });
 
-        // Assert
-        assertEquals("Amount must be a positive number", result);
+        assertEquals("Amount must be a positive number", exception.getMessage());
     }
 
     @Test
@@ -147,12 +153,13 @@ class TransactionHelperTest {
         when(bankAccountService.getAccountDetailsById(anyString(), any(), anyBoolean()))
                 .thenReturn(createMockAccountDetails(new BigDecimal("50.00")));
 
-        // Act
-        String result = transactionHelper.validateAndProcessTransaction(
+        // Act & Assert
+        InsufficientBalanceException exception = assertThrows(InsufficientBalanceException.class, () -> {
+            transactionHelper.validateAndProcessTransaction(
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
+        });
 
-        // Assert
-        assertEquals("Insufficient balance. Current balance: 50.00 XAF", result);
+        assertEquals("Insufficient balance. Current balance: 50.00 XAF", exception.getMessage());
     }
 
     @Test
@@ -161,12 +168,13 @@ class TransactionHelperTest {
                 .thenReturn(createMockAccountDetails(new BigDecimal("1000.00")));
         when(bankAccountService.getAccountById(anyString())).thenReturn(null);
 
-        // Act
-        String result = transactionHelper.validateAndProcessTransaction(
+        // Act & Assert
+        AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
+            transactionHelper.validateAndProcessTransaction(
                 VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
+        });
 
-        // Assert
-        assertEquals("One or both accounts not found", result);
+        assertEquals("One or both accounts not found", exception.getMessage());
     }
 
     @Test
@@ -181,7 +189,7 @@ class TransactionHelperTest {
 
         // Act
         String result = transactionHelper.validateAndProcessTransaction(
-                VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
+            VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT, validJwt);
 
         // Assert
         assertEquals("Transaction failed due to booking errors", result);
@@ -202,6 +210,17 @@ class TransactionHelperTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.startsWith("eyJ")); // JWT typically starts with "eyJ"
+    }
+
+    @Test
+    void testGenerateTransactionCert_MissingPrivateKeyParameter() throws Exception {
+        // Arrange
+        when(keyLoader.loadPrivateKey()).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(TransactionException.class, () -> {
+            transactionHelper.generateTransactionCert(VALID_ACCOUNT_ID, RECIPIENT_ACCOUNT_ID, VALID_AMOUNT);
+        });
     }
 
     private BankAccountDetailsBO createMockAccountDetails(BigDecimal balance) {

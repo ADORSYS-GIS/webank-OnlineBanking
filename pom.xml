@@ -134,6 +134,7 @@
         <jboss-jaxrs-api_2.0_spec.version>1.0.1.Final</jboss-jaxrs-api_2.0_spec.version>
         <jboss-logging.version>3.3.1.Final</jboss-logging.version>
         <classgraph.version>4.8.139</classgraph.version>
+        <jakarta.servlet.version>6.1.0</jakarta.servlet.version>
 
         <!-- Test versions -->
         <junit-jupiter-api.version>5.10.2</junit-jupiter-api.version>
@@ -398,6 +399,11 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>5.0.0.4389</version>
+            </dependency>
+             <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${jakarta.servlet.version}</version>
             </dependency>
 
             <!-- test dependencies -->

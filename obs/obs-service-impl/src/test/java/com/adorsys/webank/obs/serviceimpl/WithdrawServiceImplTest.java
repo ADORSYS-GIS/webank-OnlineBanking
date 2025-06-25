@@ -1,9 +1,18 @@
 package com.adorsys.webank.obs.serviceimpl;
 
-import com.adorsys.webank.config.SecurityUtils;
-import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
-import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
-import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,14 +20,11 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import com.adorsys.webank.config.SecurityUtils;
+import com.adorsys.webank.exception.ServiceUnavailableException;
+import com.adorsys.webank.obs.dto.MoneyTransferRequestDto;
+import com.adorsys.webank.obs.dto.response.MoneyTransferResponse;
+import com.adorsys.webank.obs.security.SignTransactionJwtValidator;
 
 @ExtendWith(MockitoExtension.class)
 class WithdrawServiceImplTest {
@@ -53,12 +59,31 @@ class WithdrawServiceImplTest {
             MoneyTransferResponse response = withdrawService.withdraw(request);
 
             // Assert
-            verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
-            verifyNoInteractions(transactionHelper);
+            assertNotNull(response);
             assertEquals(MoneyTransferResponse.TransferStatus.INVALID_ACCOUNT, response.getStatus());
             assertEquals("Invalid transaction JWT", response.getMessage());
-            assertNotNull(response.getTimestamp());
-            // Note: Amount and currency are not set in error response
+
+            verify(signTransactionValidator, times(1)).validateSignTransactionJWT(accountCertJwt);
+            verifyNoInteractions(transactionHelper);
+        }
+    }
+
+    @Test
+    void testWithdrawFailsDueToMissingJWT() {
+        // Arrange
+        MoneyTransferRequestDto request = new MoneyTransferRequestDto();
+        request.setSenderAccountId("senderABC");
+        request.setRecipientAccountId("recipientXYZ");
+        request.setAmount(new BigDecimal("200.00"));
+
+        // Mock SecurityUtils.getCurrentUserJWT() to return empty
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.empty());
+
+            // Act & Assert
+            assertThrows(ServiceUnavailableException.class, () -> withdrawService.withdraw(request));
+            verifyNoInteractions(signTransactionValidator);
+            verifyNoInteractions(transactionHelper);
         }
     }
 
@@ -103,6 +128,30 @@ class WithdrawServiceImplTest {
             assertEquals("XAF", response.getCurrency());
             assertNotNull(response.getTimestamp());
             assertEquals("Withdrawal completed successfully", response.getMessage());
+        }
+    }
+
+    @Test
+    void testWithdrawThrowsServiceUnavailableExceptionOnUnexpectedError() {
+        // Arrange
+        MoneyTransferRequestDto request = new MoneyTransferRequestDto();
+        request.setSenderAccountId("senderERR");
+        request.setRecipientAccountId("recipientERR");
+        request.setAmount(new BigDecimal("400.00"));
+        String accountCertJwt = "valid-jwt";
+
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserJWT).thenReturn(Optional.of(accountCertJwt));
+            when(signTransactionValidator.validateSignTransactionJWT(accountCertJwt)).thenReturn(true);
+            when(transactionHelper.validateAndProcessTransaction(
+                eq("senderERR"),
+                eq("recipientERR"),
+                eq("400.00"),
+                eq(accountCertJwt)
+            )).thenThrow(new RuntimeException("Unexpected error"));
+
+            // Act & Assert
+            assertThrows(ServiceUnavailableException.class, () -> withdrawService.withdraw(request));
         }
     }
 }
