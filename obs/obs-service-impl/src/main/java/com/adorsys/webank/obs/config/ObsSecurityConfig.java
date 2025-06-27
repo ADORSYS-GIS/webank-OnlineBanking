@@ -49,6 +49,7 @@ public class ObsSecurityConfig {
         try {
             http
                     .csrf(AbstractHttpConfigurer::disable)
+                    .cors(cors -> cors.configurationSource(corsConfigurationSources()))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .formLogin(AbstractHttpConfigurer::disable)
                     .addFilterBefore(requestParameterExtractorFilter, UsernamePasswordAuthenticationFilter.class)
@@ -78,7 +79,17 @@ public class ObsSecurityConfig {
             throw new SecurityConfigurationException("Error configuring security filter chain", e);
         }
     }
-
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSources() {
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
     /**
      * Custom JWT authentication converter that uses the CertValidator to validate the JWT.
      *

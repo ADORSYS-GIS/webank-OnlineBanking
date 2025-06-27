@@ -20,14 +20,12 @@ public class TransRest implements TransRestApi {
     /**
      * Handles transaction requests.
      *
-     * @param authorizationHeader The Authorization header containing the JWT token.
      * @param request The transaction request body.
      * @return ResponseEntity with the result of the transaction processing.
      */
     @Override
     @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
     public ResponseEntity<TransactionHistoryResponse> getTrans(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody TransRequest request) {
 
         try {

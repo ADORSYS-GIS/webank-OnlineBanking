@@ -88,13 +88,6 @@ public interface TopupRestApi {
     )
     ResponseEntity<TopupResponse> topup(
         @Parameter(
-            description = "JWT token in the format 'Bearer <token>'",
-            required = true,
-            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-        
-        @Parameter(
             description = "Top-up request containing account and amount details",
             required = true
         )
