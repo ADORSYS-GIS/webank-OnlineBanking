@@ -85,7 +85,6 @@ class ObsServiceImplTest {
     @Test
     void registerAccountWithInvalidJwt() {
         // Prepare test data
-        String publicKey = "publicKey123";
 
         // Mock BankAccountCertificateCreationService to throw exception for invalid cases
         when(bankAccountCertificateCreationService.registerNewBankAccount(
@@ -100,8 +99,6 @@ class ObsServiceImplTest {
     @Test
     void registerAccountSuccessfully() {
         // Prepare test data
-        String publicKey = "publicKey123";
-
         // Mock BankAccountCertificateCreationService's registerNewBankAccount method
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
         when(bankAccountCertificateCreationService.registerNewBankAccount(
@@ -124,7 +121,6 @@ class ObsServiceImplTest {
     @Test
     void registerAccountAndVerifyBankAccountProperties() {
         // Prepare test data
-        String publicKey = "publicKey123";
 
         // Mock BankAccountCertificateCreationService
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
@@ -233,7 +229,6 @@ class ObsServiceImplTest {
     @Test
     void registerAccountThrowsServiceUnavailableExceptionOnUnexpectedError() {
         // Arrange
-        String publicKey = "publicKey123";
         when(bankAccountCertificateCreationService.registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString()))
             .thenThrow(new RuntimeException("Unexpected error"));
 
