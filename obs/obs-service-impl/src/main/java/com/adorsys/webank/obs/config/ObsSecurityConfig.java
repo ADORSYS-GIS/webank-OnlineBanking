@@ -1,27 +1,24 @@
 package com.adorsys.webank.obs.config;
 
-import com.adorsys.webank.config.CertValidator;
-import com.adorsys.webank.security.CustomJwtAuthenticationConverter;
-import com.adorsys.webank.security.extractor.RequestParameterExtractorFilter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
-import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
+import com.adorsys.webank.config.*;
+import com.adorsys.webank.domain.*;
 import com.adorsys.webank.domain.Role;
-import  com.adorsys.webank.config.JwtExtractor;
-import  com.adorsys.webank.config.JwtValidator;
-import com.adorsys.webank.config.KeyLoader;
-import com.adorsys.webank.exceptions.SecurityConfigurationException;
+import com.adorsys.webank.exceptions.*;
+import com.adorsys.webank.security.*;
+import com.adorsys.webank.security.extractor.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.context.annotation.*;
+import org.springframework.security.config.annotation.method.configuration.*;
+import org.springframework.security.config.annotation.web.builders.*;
+import org.springframework.security.config.annotation.web.configuration.*;
+import org.springframework.security.config.annotation.web.configurers.*;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.*;
+import org.springframework.security.config.http.*;
+import org.springframework.security.web.*;
+import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.*;
+import org.springframework.security.web.header.writers.*;
+import org.springframework.web.cors.*;
 
 
 @Configuration
@@ -49,6 +46,8 @@ public class ObsSecurityConfig {
         try {
             http
                     .csrf(AbstractHttpConfigurer::disable)
+                    .cors(cors -> cors.configurationSource(corsConfigurationSources()))
+
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .formLogin(AbstractHttpConfigurer::disable)
                     .addFilterBefore(requestParameterExtractorFilter, UsernamePasswordAuthenticationFilter.class)
@@ -77,6 +76,19 @@ public class ObsSecurityConfig {
         } catch (Exception e) {
             throw new SecurityConfigurationException("Error configuring security filter chain", e);
         }
+    }
+
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSources() {
+       UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     /**
