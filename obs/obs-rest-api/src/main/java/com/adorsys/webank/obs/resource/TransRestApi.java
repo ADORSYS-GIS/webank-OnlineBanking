@@ -87,12 +87,6 @@ public interface TransRestApi {
         consumes = "application/json"
     )
     ResponseEntity<TransactionHistoryResponse> getTrans(
-        @Parameter(
-            description = "JWT token in the format 'Bearer <token>'",
-            required = true,
-            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
         
         @Parameter(
             description = "Transaction history request containing account and filter details",

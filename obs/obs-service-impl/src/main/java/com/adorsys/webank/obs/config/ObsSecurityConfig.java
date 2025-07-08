@@ -47,7 +47,6 @@ public class ObsSecurityConfig {
             http
                     .csrf(AbstractHttpConfigurer::disable)
                     .cors(cors -> cors.configurationSource(corsConfigurationSources()))
-
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .formLogin(AbstractHttpConfigurer::disable)
                     .addFilterBefore(requestParameterExtractorFilter, UsernamePasswordAuthenticationFilter.class)
@@ -77,9 +76,6 @@ public class ObsSecurityConfig {
             throw new SecurityConfigurationException("Error configuring security filter chain", e);
         }
     }
-
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSources() {
        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();

@@ -11,8 +11,7 @@ public interface RegistrationServiceApi {
     /**
      * Registers an account using a JWT token.
      *
-     * @param registrationJwt The JWT token containing the registration information.
      * @return A RegistrationResponse containing the result of the registration process.
      */
-    RegistrationResponse registerAccount(String registrationJwt);
+    RegistrationResponse registerAccount();
 }
