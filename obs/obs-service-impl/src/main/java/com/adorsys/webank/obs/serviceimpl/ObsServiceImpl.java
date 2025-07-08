@@ -82,6 +82,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
 
             // Access the account ID, which is in the third line (index 2)
             String accountId = lines[2];
+            String accountCertificate = lines[4];
 
             // Make the deposit transaction
             String deposit = makeTrans(accountId);
@@ -89,7 +90,7 @@ public class ObsServiceImpl implements RegistrationServiceApi {
                 log.info("Created account with id: {} and deposit amount: {}", accountId, deposit);
             }
 
-            return new RegistrationResponse(accountId, RegistrationResponse.RegistrationStatus.SUCCESS, "Bank account successfully created. Details: " + createdAccountResult);
+            return new RegistrationResponse(accountId,accountCertificate, RegistrationResponse.RegistrationStatus.SUCCESS, "Bank account successfully created. Details: " + createdAccountResult);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("An error occurred while processing the request: {}", e.getMessage(), e);
