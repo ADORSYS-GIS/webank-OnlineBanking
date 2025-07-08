@@ -100,7 +100,7 @@ class ObsServiceImplTest {
     void registerAccountSuccessfully() {
         // Prepare test data
         // Mock BankAccountCertificateCreationService's registerNewBankAccount method
-        String mockResult = "Header\nSubheader\nAccount ID: 12345";
+        String mockResult = "Header\nSubheader\nAccount ID: 12345\nLine4\nCertificate: CERT-XYZ";
         when(bankAccountCertificateCreationService.registerNewBankAccount(
                 anyString(), any(BankAccountBO.class), anyString(), anyString()
         )).thenReturn(mockResult);
@@ -123,7 +123,7 @@ class ObsServiceImplTest {
         // Prepare test data
 
         // Mock BankAccountCertificateCreationService
-        String mockResult = "Header\nSubheader\nAccount ID: 12345";
+        String mockResult = "Header\nSubheader\nAccount ID: 12345\nLine4\nCertificate: CERT-XYZ";
         when(bankAccountCertificateCreationService.registerNewBankAccount(
                 anyString(), any(BankAccountBO.class), anyString(), anyString()
         )).thenReturn(mockResult);

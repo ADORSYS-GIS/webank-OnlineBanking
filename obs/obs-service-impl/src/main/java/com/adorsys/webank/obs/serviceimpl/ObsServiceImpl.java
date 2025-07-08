@@ -80,6 +80,10 @@ public class ObsServiceImpl implements RegistrationServiceApi {
             // Split the string by newlines
             String[] lines = createdAccountResult.split("\n");
 
+            if (lines.length < 5) {
+                throw new RuntimeException("Unexpected response format from certificate service");
+            }
+
             // Access the account ID, which is in the third line (index 2)
             String accountId = lines[2];
             String accountCertificate = lines[4];
