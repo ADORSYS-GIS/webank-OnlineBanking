@@ -23,7 +23,6 @@ public class PayoutRest implements PayoutRestApi {
      * Handles payout requests for certified accounts.
      * Requires the user to have the ROLE_ACCOUNT_CERTIFIED or ROLE_KYC_CERT and be authenticated.
      *
-     * @param authorizationHeader The authorization header containing the user's credentials.
      * @param request             The request body containing payout details.
      * @return ResponseEntity with the result of the payout processing or an error message.
      */
@@ -31,7 +30,6 @@ public class PayoutRest implements PayoutRestApi {
     @Override
     @PreAuthorize("hasAnyRole('ROLE_ACCOUNT_CERTIFIED', 'ROLE_KYC_CERT') and isAuthenticated()")
     public ResponseEntity<MoneyTransferResponse> payout(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody MoneyTransferRequestDto request) {
 
         try {

@@ -19,14 +19,13 @@ public class RecoveryRestServer implements RecoveryRestApi {
      * Handles account recovery requests.
      * Requires the user to be authenticated.
      *
-     * @param authorizationHeader The authorization header containing the user's credentials.
      * @param recoveryDto         The request body containing account details for recovery.
      * @return ResponseEntity with the result of the recovery process or an error message.
      */
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> recoverAccount(String authorizationHeader, RecoveryDto recoveryDto) {
+    public ResponseEntity<String> recoverAccount(RecoveryDto recoveryDto) {
         try {
             String accountId = recoveryDto.getAccountId();
             log.info("Recovery request received for accountId: {}", accountId);

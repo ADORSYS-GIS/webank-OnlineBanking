@@ -35,13 +35,12 @@ public class ObsServiceImpl implements RegistrationServiceApi {
     /**
      * Registers a new bank account using the provided registration JWT.
      *
-     * @param registrationJwt The JWT containing the registration information.
      * @return A message indicating the result of the registration process.
      */
 
     @Override
     @Transactional
-    public RegistrationResponse registerAccount(String registrationJwt) {
+    public RegistrationResponse registerAccount() {
         ECKey devicePub = SecurityUtils.extractDeviceJwkFromContext();
 
         // TODO: Replace IllegalStateException with custom exception handled by global exception handler (to be addressed in another ticket)

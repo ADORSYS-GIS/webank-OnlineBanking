@@ -87,12 +87,6 @@ public interface WithdrawRestApi {
         produces = "application/json"
     )
     ResponseEntity<MoneyTransferResponse> withdraw(
-        @Parameter(
-            description = "JWT token in the format 'Bearer <token>'",
-            required = true,
-            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
         
         @Parameter(
             description = "Withdrawal request containing account and amount details",

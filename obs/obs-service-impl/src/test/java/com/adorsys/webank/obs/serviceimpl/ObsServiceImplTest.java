@@ -63,7 +63,7 @@ class ObsServiceImplTest {
     @BeforeEach
     void setUp() throws JOSEException {
         MockitoAnnotations.openMocks(this);
-        
+
         // Create a test ECKey
         ECKey testECKey = new ECKeyGenerator(Curve.P_256)
                 .keyID("test-key-id")
@@ -85,7 +85,6 @@ class ObsServiceImplTest {
     @Test
     void registerAccountWithInvalidJwt() {
         // Prepare test data
-        String publicKey = "publicKey123";
 
         // Mock BankAccountCertificateCreationService to throw exception for invalid cases
         when(bankAccountCertificateCreationService.registerNewBankAccount(
@@ -93,15 +92,13 @@ class ObsServiceImplTest {
         )).thenThrow(new RuntimeException("Service error"));
 
         // Act & Assert
-        assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount(publicKey));
+        assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount());
         verify(bankAccountCertificateCreationService, times(1)).registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString());
     }
 
     @Test
     void registerAccountSuccessfully() {
         // Prepare test data
-        String publicKey = "publicKey123";
-
         // Mock BankAccountCertificateCreationService's registerNewBankAccount method
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
         when(bankAccountCertificateCreationService.registerNewBankAccount(
@@ -112,7 +109,7 @@ class ObsServiceImplTest {
         when(bankAccountService.getAccountById(anyString())).thenReturn(new BankAccountBO());
 
         // Call the method to test
-        RegistrationResponse result = obsService.registerAccount(publicKey);
+        RegistrationResponse result = obsService.registerAccount();
 
         // Verify the result
         assertEquals(RegistrationResponse.RegistrationStatus.SUCCESS, result.getStatus());
@@ -124,7 +121,6 @@ class ObsServiceImplTest {
     @Test
     void registerAccountAndVerifyBankAccountProperties() {
         // Prepare test data
-        String publicKey = "publicKey123";
 
         // Mock BankAccountCertificateCreationService
         String mockResult = "Header\nSubheader\nAccount ID: 12345";
@@ -136,7 +132,7 @@ class ObsServiceImplTest {
         when(bankAccountService.getAccountById(anyString())).thenReturn(new BankAccountBO());
 
         // Call the method
-        RegistrationResponse result = obsService.registerAccount(publicKey);
+        RegistrationResponse result = obsService.registerAccount();
 
         // Capture the arguments
         ArgumentCaptor<String> ecKeyCaptor = ArgumentCaptor.forClass(String.class);
@@ -223,7 +219,7 @@ class ObsServiceImplTest {
         securityUtilsMock.when(SecurityUtils::extractDeviceJwkFromContext).thenReturn(null);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class , () ->
-            obsService.registerAccount("jwt-token")
+            obsService.registerAccount()
         );
 
         assertEquals("Device public key not found in security context. Please ensure the user is authenticated.", exception.getMessage());
@@ -233,12 +229,11 @@ class ObsServiceImplTest {
     @Test
     void registerAccountThrowsServiceUnavailableExceptionOnUnexpectedError() {
         // Arrange
-        String publicKey = "publicKey123";
         when(bankAccountCertificateCreationService.registerNewBankAccount(anyString(), any(BankAccountBO.class), anyString(), anyString()))
             .thenThrow(new RuntimeException("Unexpected error"));
 
         // Act & Assert
-        assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount(publicKey));
+        assertThrows(ServiceUnavailableException.class, () -> obsService.registerAccount());
 
 
 

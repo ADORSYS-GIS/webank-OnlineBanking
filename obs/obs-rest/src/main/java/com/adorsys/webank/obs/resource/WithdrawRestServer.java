@@ -29,7 +29,6 @@ public class WithdrawRestServer implements WithdrawRestApi {
      * Processes a withdrawal request from a certified account.
      * Requires the user to have ROLE_ACCOUNT_CERTIFIED and be authenticated.
      *
-     * @param authorizationHeader The authorization header containing the JWT token
      * @param request The withdrawal request containing account and amount details
      * @return ResponseEntity containing the result of the withdrawal operation:
      *         - On success: Returns MoneyTransferResponse with COMPLETED status
@@ -38,7 +37,6 @@ public class WithdrawRestServer implements WithdrawRestApi {
     @Override
     @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
     public ResponseEntity<MoneyTransferResponse> withdraw(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody MoneyTransferRequestDto request) {
 
         try {

@@ -22,18 +22,16 @@ public class RegistrationResource implements RegistrationResourceApi {
     /**
      * Handles account registration requests.
      *
-     * @param authorizationHeader The Authorization header containing the JWT token.
      * @return ResponseEntity with the result of the registration process.
      */
     @Override
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<RegistrationResponse> registerAccount(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
+    public ResponseEntity<RegistrationResponse> registerAccount() {
 
         log.info("Processing registration request");
 
         try {
-            RegistrationResponse response = registrationService.registerAccount(authorizationHeader);
+            RegistrationResponse response = registrationService.registerAccount();
             log.info("Registration successful for account: {}", response.getAccountId());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
