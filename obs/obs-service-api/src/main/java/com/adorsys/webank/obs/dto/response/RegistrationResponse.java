@@ -27,6 +27,13 @@ public class RegistrationResponse {
     )
     private String accountId;
 
+    @Schema
+    (
+        description = "The certificate associated with the account, used for secure transactions",
+        example = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQ..."
+    )
+    private String accountCertificate;
+
     @Schema(
         description = "Status of the registration process",
         example = "SUCCESS"
