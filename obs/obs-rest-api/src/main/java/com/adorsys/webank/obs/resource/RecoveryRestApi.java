@@ -86,12 +86,6 @@ public interface RecoveryRestApi {
         produces = "application/json"
     )
     ResponseEntity<String> recoverAccount(
-        @Parameter(
-            description = "JWT token in the format 'Bearer <token>'",
-            required = true,
-            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        )
-        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
         
         @Parameter(
             description = "Recovery request containing account recovery details",

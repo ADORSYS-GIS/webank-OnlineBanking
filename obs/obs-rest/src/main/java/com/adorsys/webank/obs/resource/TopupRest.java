@@ -27,7 +27,6 @@ public class TopupRest implements TopupRestApi {
      * This endpoint requires the user to have ROLE_ACCOUNT_CERTIFIED and be authenticated.
      * The operation will add the specified amount to the user's account.
      *
-     * @param authorizationHeader The authorization header containing the user's credentials
      * @param request The top-up request containing account ID and amount details
      * @return ResponseEntity containing the result of the top-up operation:
      *         - On success: Returns TopupResponse with COMPLETED status
@@ -36,7 +35,7 @@ public class TopupRest implements TopupRestApi {
      */
     @Override
     @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
-    public ResponseEntity<TopupResponse> topup(String authorizationHeader, TopupRequestDto request) {
+    public ResponseEntity<TopupResponse> topup(TopupRequestDto request) {
         try {
             log.info("Top-up request received for accountId: {}", request.getAccountId());
 

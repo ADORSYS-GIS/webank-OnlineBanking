@@ -21,7 +21,7 @@ public class EndpointConfig {
         endpointParameters.put("/api/accounts/transactions", List.of("accountID"));
 
         // Payout endpoint
-        endpointParameters.put("/api/accounts/payout", List.of("recipientAccountId","amount","senderAccountId"));
+        endpointParameters.put("/api/transfers/payout", List.of("recipientAccountId","amount","senderAccountId"));
 
         // Recovery endpoint
         endpointParameters.put("/api/accounts/recovery", List.of("accountId"));

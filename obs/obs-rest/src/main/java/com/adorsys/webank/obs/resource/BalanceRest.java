@@ -23,13 +23,12 @@ public class BalanceRest implements BalanceRestApi {
      * Handles balance requests for certified accounts.
      * Requires the user to have the ROLE_ACCOUNT_CERTIFIED and be authenticated.
      *
-     * @param authorizationHeader The authorization header containing the user's credentials.
      * @param balanceRequest      The request body containing account details for balance retrieval.
      * @return ResponseEntity with the balance information or an error message.
      */
     @Override
     @PreAuthorize("hasRole('ROLE_ACCOUNT_CERTIFIED') and isAuthenticated()")
-    public ResponseEntity<BalanceResponse> getBalance(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+    public ResponseEntity<BalanceResponse> getBalance(
                                              @RequestBody BalanceRequest balanceRequest) {
         log.info("Incoming balance request for account ID: {}", balanceRequest.getAccountID());
 
