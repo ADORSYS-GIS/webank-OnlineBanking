@@ -2,4 +2,5 @@
 !obs
 !online-banking-app
 !pom.xml
+!.docker-m2/settings.xml
 target
