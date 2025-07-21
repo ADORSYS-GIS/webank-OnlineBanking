@@ -15,11 +15,6 @@ COPY obs/obs-rest-api/pom.xml obs/obs-rest-api/
 COPY obs/obs-service-api/pom.xml obs/obs-service-api/
 COPY obs/obs-service-impl/pom.xml obs/obs-service-impl/
 
-# Provision Maven settings with GitHub credentials
-COPY settings.template.xml /root/.m2/settings.xml
-RUN sed -i "s|GH_USERNAME|${GH_USERNAME}|g" /root/.m2/settings.xml && \
-    sed -i "s|GH_PASSWORD|${GH_PASSWORD}|g" /root/.m2/settings.xml
-
 # Download dependencies to leverage cache
 RUN mvn dependency:go-offline -B
 
