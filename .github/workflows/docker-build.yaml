@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - release/**
+      - 226-implement-graalvm-native-image-support
     tags:
       - "v*"
 
