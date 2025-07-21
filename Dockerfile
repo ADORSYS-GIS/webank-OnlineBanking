@@ -26,7 +26,7 @@ COPY obs/obs-service-api/src obs/obs-service-api/src
 COPY obs/obs-service-impl/src obs/obs-service-impl/src
 
 RUN mvn package -Pnative -DskipTests \
-    && cp online-banking-app/target/online-banking-app-*-SNAPSHOT /build_dir/server
+    && cp online-banking-app/target/online-banking-app /build_dir/server
 
 
 FROM debian:12-slim AS deps
