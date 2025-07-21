@@ -2,10 +2,6 @@ FROM vegardit/graalvm-maven:latest-java17 AS builder
 
 WORKDIR /build_dir
 
-# Set build-time variables for GitHub credentials
-ARG GH_USERNAME
-ARG GH_PASSWORD
-
 # Copy project-level pom.xml files for dependency resolution
 COPY pom.xml .
 COPY online-banking-app/pom.xml online-banking-app/
@@ -15,10 +11,8 @@ COPY obs/obs-rest-api/pom.xml obs/obs-rest-api/
 COPY obs/obs-service-api/pom.xml obs/obs-service-api/
 COPY obs/obs-service-impl/pom.xml obs/obs-service-impl/
 
-# Provision Maven settings with GitHub credentials
-COPY ./.m2/settings.xml /root/.m2/settings.xml
-RUN sed -i "s|GH_USERNAME|${GH_USERNAME}|g" /root/.m2/settings.xml && \
-    sed -i "s|GH_PASSWORD|${GH_PASSWORD}|g" /root/.m2/settings.xml \
+# Copy the generated settings.xml
+COPY .m2/settings.xml /root/.m2/settings.xml
 
 # Download dependencies to leverage cache
 RUN mvn dependency:go-offline -B
