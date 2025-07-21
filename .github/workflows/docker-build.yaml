@@ -40,6 +40,9 @@ jobs:
             </servers>
           </settings>
           EOF
+          # Verify the file was created
+          ls -la .m2/
+          cat .m2/settings.xml
 
       - name: Set up QEMU (for cross‑architecture emulation)
         uses: docker/setup-qemu-action@v3

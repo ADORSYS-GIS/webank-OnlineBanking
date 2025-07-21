@@ -12,6 +12,7 @@ COPY obs/obs-service-api/pom.xml obs/obs-service-api/
 COPY obs/obs-service-impl/pom.xml obs/obs-service-impl/
 
 # Copy the generated settings.xml
+RUN mkdir -p /root/.m2
 COPY .m2/settings.xml /root/.m2/settings.xml
 
 # Download dependencies to leverage cache
