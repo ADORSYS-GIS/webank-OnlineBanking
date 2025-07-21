@@ -13,7 +13,7 @@ COPY obs/obs-service-impl/pom.xml obs/obs-service-impl/
 
 # Copy the generated settings.xml
 RUN mkdir -p /root/.m2
-COPY .m2/settings.xml /root/.m2/settings.xml
+COPY .docker-m2/settings.xml /root/.m2/settings.xml
 
 # Download dependencies to leverage cache
 RUN mvn dependency:go-offline -B
@@ -24,7 +24,6 @@ COPY obs/obs-rest/src obs/obs-rest/src
 COPY obs/obs-rest-api/src obs/obs-rest-api/src
 COPY obs/obs-service-api/src obs/obs-service-api/src
 COPY obs/obs-service-impl/src obs/obs-service-impl/src
-
 
 RUN mvn package -Pnative -DskipTests \
     && cp online-banking-app/target/online-banking-app-*-SNAPSHOT /build_dir/server
@@ -68,6 +67,5 @@ ARG TARGETPLATFORM
 COPY --from=deps /deps/lib/ /lib/
 COPY --from=deps /deps/lib64/ /lib64/
 COPY --from=builder /build_dir/server ./
-
 
 ENTRYPOINT ["/app/server"]
