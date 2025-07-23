@@ -29,9 +29,7 @@ public class WebankReflectionHints implements RuntimeHintsRegistrar {
 
     // Add explicit critical external classes for reflection (for classes not found by scanning)
     private static final String[] EXTERNAL_CLASSES_TO_REGISTER = {
-//        // Flyway
-//        "org.flywaydb.core.Flyway",
-//        "org.flywaydb.core.api.configuration.FluentConfiguration",
+
         // Ledgers mappers
         "de.adorsys.ledgers.postings.impl.converter.LedgerAccountMapperImpl",
         "de.adorsys.ledgers.postings.impl.converter.LedgerMapperImpl",
