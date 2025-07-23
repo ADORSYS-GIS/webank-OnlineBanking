@@ -42,6 +42,7 @@ spring:
       # Disable flyway configurations
   flyway:
     enabled: false
+
   
   # Default to H2 in-memory database for development
   # Use --spring.profiles.active=postgres to use PostgreSQL
