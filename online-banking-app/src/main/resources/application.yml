@@ -1,7 +1,6 @@
 # ===================================================================
 # COMMON CONFIGURATION
 # ===================================================================
-
 server:
   port: 8081
   forward-headers-strategy: framework
@@ -43,7 +42,6 @@ spring:
   flyway:
     enabled: false
 
-  
   # Default to H2 in-memory database for development
   # Use --spring.profiles.active=postgres to use PostgreSQL
   profiles:
@@ -51,4 +49,3 @@ spring:
 
 payout:
   kyc-check-threshold: ${AMOUNT_THRESHOLD:1000}
-
