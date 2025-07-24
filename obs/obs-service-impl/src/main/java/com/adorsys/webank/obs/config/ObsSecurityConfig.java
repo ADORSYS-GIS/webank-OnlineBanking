@@ -55,7 +55,7 @@ public class ObsSecurityConfig {
                             .requestMatchers("/api/accounts/**").hasAuthority(Role.ACCOUNT_CERTIFIED.getRoleName())
                             .requestMatchers("/api/accounts/payout/**").hasAnyAuthority(Role.ACCOUNT_CERTIFIED.getRoleName(), Role.KYC_CERT.getRoleName())
                             .requestMatchers("/api/accounts/recovery/**").authenticated()
-                            .requestMatchers("/swagger-ui.html/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                            .requestMatchers("/swagger-ui.html/**", "/v3/api-docs/**", "/swagger-ui/**", "/api/actuator/**").permitAll()
                             .requestMatchers("/h2-console/**").permitAll()
                             .anyRequest().authenticated())
                     .oauth2ResourceServer(oauth2 -> oauth2
