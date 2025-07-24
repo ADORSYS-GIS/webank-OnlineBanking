@@ -39,6 +39,9 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+      # Disable flyway configurations
+  flyway:
+    enabled: false
 
 payout:
   kyc-check-threshold: ${AMOUNT_THRESHOLD:1000}
