@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - fix/to-up-error
   pull_request:
     branches:
       - develop
@@ -215,61 +216,3 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=webank-online-banking -Dsonar.projectName='webank-online-banking' -Ddependency-check.skip=true
-
-  native-build:
-    if: github.event_name == 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-    name: Native Build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17.0.12
-          distribution: 'graalvm'
-          cache: 'maven'
-
-      # Cache native-image build cache (key locations for GraalVM)
-      - name: Cache native-image build
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache
-            ~/.graalvm
-            target/native-sources
-            target/native-image-source-jar
-            target/classes
-          key: ${{ runner.os }}-native-image-${{ hashFiles('**/pom.xml') }}-${{ hashFiles('src/main/**/*.java') }}
-          restore-keys: |
-            ${{ runner.os }}-native-image-${{ hashFiles('**/pom.xml') }}-
-            ${{ runner.os }}-native-image-
-
-      - name: Download build artifacts (classes + m2)
-        uses: actions/download-artifact@v4
-        with:
-          name: compiled-classes
-
-      - name: Restore Maven repo
-        run: |
-          mkdir -p ~/.m2/repository
-          cp -r .m2/repository/* ~/.m2/repository/ || true
-
-      - name: Set up Maven settings.xml
-        run: |
-          mkdir -p ~/.m2
-          echo "<settings>
-                  <servers>
-                    <server>
-                      <id>github-webank</id>
-                      <username>${{ github.actor }}</username>
-                      <password>${{ secrets.WEBANK_ACCESS_TOKEN }}</password>
-                    </server>
-                  </servers>
-                </settings>" > ~/.m2/settings.xml
-
-      - name: Build Native Image
-        run: |
-          mvn -Pnative -DskipTests -Dmaven.javadoc.skip=true -Ddependency-check.skip=true -s ~/.m2/settings.xml clean package
