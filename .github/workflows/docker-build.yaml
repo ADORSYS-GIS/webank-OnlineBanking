@@ -1,12 +1,9 @@
-name: Build & Push Native Multi‑Arch Image
+name: Build & Push Docker Image
 
 on:
   push:
     branches:
-      - develop
-      - release/**
-    tags:
-      - "v*"
+      - fix/to-up-error
 
 env:
   REGISTRY: ghcr.io
@@ -42,10 +39,7 @@ jobs:
           ls -la .docker-m2/
           cat .docker-m2/settings.xml
 
-      - name: Set up QEMU (for cross‑architecture emulation)
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx (multi‑arch builder)
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Lowercase the repository name
@@ -68,7 +62,6 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-
           flavor: |
             latest=false
           images: "${{ env.REGISTRY }}/${{ steps.string.outputs.lowercase }}"
@@ -80,12 +73,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Build & push multi‑arch image
+      - name: Build & push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
